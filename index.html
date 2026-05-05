@@ -108,10 +108,11 @@
                                 <thead>
                                     <tr>
                                         <th>Employee</th>
+                                        <th>ID</th>
                                         <th>Role</th>
-                                        <th>Status</th>
-                                        <th>Progress</th>
-                                        <th>Actions</th>
+                                        <th>Date of Joining</th>
+                                        <th>Current Project</th>
+                                        <th>Team</th>
                                     </tr>
                                 </thead>
                                 <tbody id="employee-table-body">
@@ -133,63 +134,72 @@
                 </div>
             </section>
 
-            <!-- Employee View -->
+            <!-- Employee View (Employee Space) -->
             <section id="employee-view" class="view-section" style="display: none;">
-                <div class="view-header">
-                    <h1>My Workspace</h1>
-                    <p>Manage your tasks, files, and track your progress.</p>
+                <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-end;">
+                    <div>
+                        <h1>Employee Space</h1>
+                        <p>View team directory and manage conference certificates.</p>
+                    </div>
                 </div>
 
-                <div class="dashboard-grid">
-                    <!-- Personal Progress -->
-                    <div class="glass-panel">
-                        <div class="panel-header">
-                            <h2>My Progress</h2>
-                        </div>
-                        <div class="progress-details">
-                            <div class="progress-circle">
-                                <span>75%</span>
-                            </div>
-                            <p>Current Sprint Completion</p>
-                        </div>
-                        <div class="task-summary mt-4">
-                            <div class="task-stat">
-                                <span>Completed</span>
-                                <strong>15</strong>
-                            </div>
-                            <div class="task-stat">
-                                <span>Pending</span>
-                                <strong>5</strong>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Work Directory (Files) -->
-                    <div class="glass-panel col-span-2">
-                        <div class="panel-header">
-                            <h2>My Drive</h2>
-                            <div class="drive-actions">
-                                <button class="btn-outline"><i data-lucide="folder-plus"></i> New Folder</button>
-                                <button class="btn-primary"><i data-lucide="upload"></i> Upload</button>
-                            </div>
-                        </div>
-                        <div class="file-grid" id="file-grid">
-                            <!-- Populated by JS -->
-                        </div>
-                    </div>
+                <div class="employee-grid" id="employee-cards-container">
+                    <!-- Populated by JS -->
                 </div>
                 
-                <!-- Recent Tasks -->
-                <div class="glass-panel mt-6">
-                    <div class="panel-header">
-                        <h2>My Tasks</h2>
-                    </div>
-                    <ul class="task-list" id="personal-task-list">
-                        <!-- Populated by JS -->
-                    </ul>
+                <div class="add-emp-container">
+                    <button class="btn-primary add-emp-btn" onclick="openAddEmployeeModal()">
+                        <i data-lucide="plus"></i> Add New Employee
+                    </button>
                 </div>
             </section>
         </main>
+    </div>
+
+    <!-- Add Employee Modal -->
+    <div class="modal-overlay" id="add-employee-modal" style="display: none;">
+        <div class="modal glass-panel">
+            <div class="modal-header">
+                <h2>Add New Employee</h2>
+                <button class="icon-btn" onclick="closeAddEmployeeModal()"><i data-lucide="x"></i></button>
+            </div>
+            <form id="add-emp-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="emp-name" required placeholder="e.g., John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label>Employee ID</label>
+                        <input type="text" id="emp-id" required placeholder="e.g., EMP-005">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="emp-email" required placeholder="e.g., john@nexis.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Role</label>
+                        <input type="text" id="emp-role" required placeholder="e.g., Frontend Developer">
+                    </div>
+                    <div class="form-group">
+                        <label>Date of Joining</label>
+                        <input type="date" id="emp-doj" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Team</label>
+                        <input type="text" id="emp-team" required placeholder="e.g., Engineering">
+                    </div>
+                    <div class="form-group col-span-2">
+                        <label>Current Working Project</label>
+                        <input type="text" id="emp-project" required placeholder="e.g., Portal Revamp">
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-outline" onclick="closeAddEmployeeModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Add Employee</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <script src="app.js"></script>

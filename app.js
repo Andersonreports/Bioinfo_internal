@@ -1,9 +1,9 @@
 // Mock Data
-const employees = [
-    { id: 1, name: "Sarah Jenkins", role: "Senior Developer", email: "sarah.j@nexis.com", status: "active", progress: 85, avatar: "https://ui-avatars.com/api/?name=Sarah+Jenkins&background=8b5cf6&color=fff" },
-    { id: 2, name: "Marcus Chen", role: "UI/UX Designer", email: "marcus.c@nexis.com", status: "busy", progress: 60, avatar: "https://ui-avatars.com/api/?name=Marcus+Chen&background=ec4899&color=fff" },
-    { id: 3, name: "Emily Watson", role: "Product Manager", email: "emily.w@nexis.com", status: "active", progress: 92, avatar: "https://ui-avatars.com/api/?name=Emily+Watson&background=10b981&color=fff" },
-    { id: 4, name: "David Kim", role: "DevOps Engineer", email: "david.k@nexis.com", status: "active", progress: 45, avatar: "https://ui-avatars.com/api/?name=David+Kim&background=f59e0b&color=fff" }
+let employees = [
+    { id: 1, employeeId: "EMP-001", name: "Sarah Jenkins", role: "Senior Developer", email: "sarah.j@nexis.com", doj: "2022-03-15", currentProject: "Alpha Redesign", team: "Engineering", certificates: ["React_Summit_2023.pdf"], avatar: "https://ui-avatars.com/api/?name=Sarah+Jenkins&background=8b5cf6&color=fff" },
+    { id: 2, employeeId: "EMP-002", name: "Marcus Chen", role: "UI/UX Designer", email: "marcus.c@nexis.com", doj: "2023-01-10", currentProject: "Nexus Mobile", team: "Design", certificates: [], avatar: "https://ui-avatars.com/api/?name=Marcus+Chen&background=ec4899&color=fff" },
+    { id: 3, employeeId: "EMP-003", name: "Emily Watson", role: "Product Manager", email: "emily.w@nexis.com", doj: "2021-11-05", currentProject: "Q4 Roadmap", team: "Product", certificates: ["Agile_Leadership.pdf", "Scrum_Master.pdf"], avatar: "https://ui-avatars.com/api/?name=Emily+Watson&background=10b981&color=fff" },
+    { id: 4, employeeId: "EMP-004", name: "David Kim", role: "DevOps Engineer", email: "david.k@nexis.com", doj: "2022-08-20", currentProject: "Cloud Migration", team: "Infrastructure", certificates: [], avatar: "https://ui-avatars.com/api/?name=David+Kim&background=f59e0b&color=fff" }
 ];
 
 const achievements = [
@@ -12,48 +12,24 @@ const achievements = [
     { id: 3, user: "Team Alpha", title: "Sprint Goal Met", desc: "Delivered project ahead of time", icon: "zap" }
 ];
 
-const files = [
-    { id: 1, name: "Project Guidelines", type: "folder", date: "Oct 12" },
-    { id: 2, name: "Assets & Logos", type: "folder", date: "Oct 10" },
-    { id: 3, name: "Q3_Report.pdf", type: "file", date: "Oct 24", icon: "file-text" },
-    { id: 4, name: "API_Docs.md", type: "file", date: "Oct 22", icon: "file-code" },
-    { id: 5, name: "User_Research.xlsx", type: "file", date: "Oct 20", icon: "file-spreadsheet" }
-];
-
-const tasks = [
-    { id: 1, text: "Review Q4 roadmap with stakeholders", tag: "Management", completed: false },
-    { id: 2, text: "Update design system components", tag: "Design", completed: true },
-    { id: 3, text: "Prepare presentation for all-hands", tag: "General", completed: false },
-    { id: 4, text: "Approve pending pull requests", tag: "Dev", completed: false }
-];
-
 // View Switching Logic
 function switchView(viewName) {
-    // Update nav buttons
-    document.querySelectorAll('.nav-item').forEach(btn => {
-        btn.classList.remove('active');
-    });
+    document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
     document.getElementById(`btn-${viewName}-view`).classList.add('active');
 
-    // Update visibility
-    document.querySelectorAll('.view-section').forEach(section => {
-        section.style.display = 'none';
-    });
-    
+    document.querySelectorAll('.view-section').forEach(section => section.style.display = 'none');
     const targetSection = document.getElementById(`${viewName}-view`);
     targetSection.style.display = 'block';
     
-    // Re-trigger animation
     targetSection.style.animation = 'none';
-    targetSection.offsetHeight; // Trigger reflow
+    targetSection.offsetHeight; 
     targetSection.style.animation = null;
 
-    // Update user role display
     const roleDisplay = document.getElementById('current-role-display');
-    roleDisplay.textContent = viewName === 'manager' ? 'Manager' : 'Employee';
+    roleDisplay.textContent = viewName === 'manager' ? 'Manager' : 'Employee Space';
 }
 
-// Render Functions
+// Render Manager Directory
 function renderEmployees() {
     const tbody = document.getElementById('employee-table-body');
     if (!tbody) return;
@@ -69,38 +45,21 @@ function renderEmployees() {
                     </div>
                 </div>
             </td>
+            <td>${emp.employeeId}</td>
             <td>${emp.role}</td>
-            <td><span class="status-badge status-${emp.status}">${emp.status.charAt(0).toUpperCase() + emp.status.slice(1)}</span></td>
-            <td>
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <div class="progress-bar-bg">
-                        <div class="progress-fill" style="width: ${emp.progress}%; background: ${getProgressColor(emp.progress)}"></div>
-                    </div>
-                    <span style="font-size: 0.75rem; color: var(--text-muted);">${emp.progress}%</span>
-                </div>
-            </td>
-            <td>
-                <button class="btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">View</button>
-            </td>
+            <td>${emp.doj}</td>
+            <td><span class="status-badge status-active">${emp.currentProject}</span></td>
+            <td>${emp.team}</td>
         </tr>
     `).join('');
-}
-
-function getProgressColor(val) {
-    if (val >= 80) return 'var(--success)';
-    if (val >= 50) return 'var(--primary)';
-    return 'var(--warning)';
 }
 
 function renderAchievements() {
     const list = document.getElementById('achievement-list');
     if (!list) return;
-
     list.innerHTML = achievements.map(ach => `
         <div class="achievement-item">
-            <div class="ach-icon">
-                <i data-lucide="${ach.icon}"></i>
-            </div>
+            <div class="ach-icon"><i data-lucide="${ach.icon}"></i></div>
             <div class="ach-content">
                 <h4>${ach.title}</h4>
                 <p><strong>${ach.user}</strong> - ${ach.desc}</p>
@@ -109,55 +68,119 @@ function renderAchievements() {
     `).join('');
 }
 
-function renderFiles() {
-    const grid = document.getElementById('file-grid');
-    if (!grid) return;
+// Render Employee Space Cards
+function renderEmployeeSpace() {
+    const container = document.getElementById('employee-cards-container');
+    if (!container) return;
 
-    grid.innerHTML = files.map(file => {
-        const isFolder = file.type === 'folder';
-        const iconName = isFolder ? 'folder' : (file.icon || 'file');
-        
-        return `
-            <div class="file-card ${isFolder ? 'folder' : ''}">
-                <div class="file-icon">
-                    <i data-lucide="${iconName}" style="width: 32px; height: 32px;"></i>
+    container.innerHTML = employees.map(emp => `
+        <div class="emp-card glass-panel">
+            <div class="emp-card-header">
+                <img src="${emp.avatar}" alt="${emp.name}" class="emp-card-avatar">
+                <div class="emp-card-info">
+                    <h3>${emp.name}</h3>
+                    <p>${emp.role}</p>
+                    <span class="emp-id-badge">${emp.employeeId}</span>
                 </div>
-                <div class="file-name" title="${file.name}">${file.name}</div>
-                <div class="file-date">${file.date}</div>
             </div>
-        `;
-    }).join('');
-}
-
-function renderTasks() {
-    const list = document.getElementById('personal-task-list');
-    if (!list) return;
-
-    list.innerHTML = tasks.map(task => `
-        <li class="task-item ${task.completed ? 'completed' : ''}">
-            <div class="task-checkbox" onclick="toggleTask(${task.id})">
-                ${task.completed ? '<i data-lucide="check" style="width: 14px; height: 14px; color: white;"></i>' : ''}
+            
+            <div class="emp-card-actions">
+                <button class="btn-outline" onclick="triggerUpload(${emp.id})">
+                    <i data-lucide="upload-cloud"></i> Upload Cert
+                </button>
+                <button class="btn-primary" onclick="toggleCerts(${emp.id})">
+                    <i data-lucide="eye"></i> View Certs
+                </button>
             </div>
-            <span class="task-text">${task.text}</span>
-            <span class="task-tag">${task.tag}</span>
-        </li>
+            
+            <div class="cert-viewer" id="certs-${emp.id}" style="display: none;">
+                <h4>Conference Certificates</h4>
+                ${emp.certificates.length > 0 
+                    ? `<ul class="cert-list">
+                        ${emp.certificates.map(cert => `
+                            <li><i data-lucide="file-text"></i> ${cert}</li>
+                        `).join('')}
+                       </ul>`
+                    : `<p class="no-certs">No certificates uploaded yet.</p>`
+                }
+            </div>
+        </div>
     `).join('');
+    
+    lucide.createIcons();
 }
 
-function toggleTask(id) {
-    const task = tasks.find(t => t.id === id);
-    if (task) {
-        task.completed = !task.completed;
-        renderTasks();
-        lucide.createIcons(); // Re-initialize icons for the new checkmarks
+// Certificate Logic
+function triggerUpload(empId) {
+    const fileName = prompt("Enter the name of the certificate file to upload (e.g., 'React_Summit.pdf'):");
+    if (fileName && fileName.trim() !== "") {
+        const emp = employees.find(e => e.id === empId);
+        if (emp) {
+            emp.certificates.push(fileName.trim());
+            alert(`${fileName} uploaded successfully for ${emp.name}!`);
+            renderEmployeeSpace();
+            const certViewer = document.getElementById(`certs-${empId}`);
+            if(certViewer) certViewer.style.display = 'block';
+        }
     }
+}
+
+function toggleCerts(empId) {
+    const certViewer = document.getElementById(`certs-${empId}`);
+    if (certViewer) {
+        certViewer.style.display = certViewer.style.display === 'none' ? 'block' : 'none';
+    }
+}
+
+// Add New Employee Logic
+function openAddEmployeeModal() {
+    document.getElementById('add-employee-modal').style.display = 'flex';
+}
+
+function closeAddEmployeeModal() {
+    document.getElementById('add-employee-modal').style.display = 'none';
+    document.getElementById('add-emp-form').reset();
+}
+
+function handleAddEmployee(event) {
+    event.preventDefault();
+    const name = document.getElementById('emp-name').value;
+    const email = document.getElementById('emp-email').value;
+    const employeeId = document.getElementById('emp-id').value;
+    const role = document.getElementById('emp-role').value;
+    const doj = document.getElementById('emp-doj').value;
+    const project = document.getElementById('emp-project').value;
+    const team = document.getElementById('emp-team').value;
+
+    const newEmp = {
+        id: employees.length + 1,
+        employeeId: employeeId,
+        name: name,
+        role: role,
+        email: email,
+        doj: doj,
+        currentProject: project,
+        team: team,
+        certificates: [],
+        avatar: \`https://ui-avatars.com/api/?name=\${encodeURIComponent(name)}&background=random&color=fff\`
+    };
+
+    employees.push(newEmp);
+    closeAddEmployeeModal();
+    
+    renderEmployees();
+    renderEmployeeSpace();
 }
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     renderEmployees();
     renderAchievements();
-    renderFiles();
-    renderTasks();
+    renderEmployeeSpace();
     lucide.createIcons();
+    
+    const addForm = document.getElementById('add-emp-form');
+    if(addForm) {
+        addForm.addEventListener('submit', handleAddEmployee);
+    }
 });
