@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexis | Team Portal</title>
+    <meta name="description" content="A premium portal for managing employee details, work progress, and achievements.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Background Elements -->
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar glass-panel">
+            <div class="brand">
+                <i data-lucide="hexagon" class="brand-icon"></i>
+                <h2>Nexis</h2>
+            </div>
+            
+            <div class="nav-section">
+                <p class="nav-label">VIEWS</p>
+                <button class="nav-item active" id="btn-manager-view" onclick="switchView('manager')">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Manager Dashboard</span>
+                </button>
+                <button class="nav-item" id="btn-employee-view" onclick="switchView('employee')">
+                    <i data-lucide="user"></i>
+                    <span>My Portal</span>
+                </button>
+            </div>
+
+            <div class="user-profile">
+                <img src="https://ui-avatars.com/api/?name=Admin+User&background=6366f1&color=fff" alt="User Profile" class="avatar">
+                <div class="user-info">
+                    <p class="user-name">Admin User</p>
+                    <p class="user-role" id="current-role-display">Manager</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="search-bar glass-panel">
+                    <i data-lucide="search"></i>
+                    <input type="text" placeholder="Search employees, files, or tasks...">
+                </div>
+                <div class="header-actions">
+                    <button class="icon-btn glass-panel"><i data-lucide="bell"></i></button>
+                    <button class="icon-btn glass-panel"><i data-lucide="settings"></i></button>
+                </div>
+            </header>
+
+            <!-- Manager View -->
+            <section id="manager-view" class="view-section active">
+                <div class="view-header">
+                    <h1>Team Overview</h1>
+                    <p>Monitor progress, achievements, and team details.</p>
+                </div>
+                
+                <!-- KPI Cards -->
+                <div class="kpi-grid">
+                    <div class="kpi-card glass-panel">
+                        <div class="kpi-header">
+                            <i data-lucide="users" class="icon-blue"></i>
+                            <span>Total Team</span>
+                        </div>
+                        <h3>24</h3>
+                        <p class="trend positive"><i data-lucide="trending-up"></i> +2 this month</p>
+                    </div>
+                    <div class="kpi-card glass-panel">
+                        <div class="kpi-header">
+                            <i data-lucide="target" class="icon-purple"></i>
+                            <span>Active Projects</span>
+                        </div>
+                        <h3>12</h3>
+                        <p class="trend">On track</p>
+                    </div>
+                    <div class="kpi-card glass-panel">
+                        <div class="kpi-header">
+                            <i data-lucide="award" class="icon-gold"></i>
+                            <span>Achievements</span>
+                        </div>
+                        <h3>8</h3>
+                        <p class="trend positive"><i data-lucide="star"></i> Great work</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <!-- Employee Directory Table -->
+                    <div class="glass-panel col-span-2">
+                        <div class="panel-header">
+                            <h2>Employee Directory</h2>
+                            <button class="btn-primary">Add New</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="modern-table">
+                                <thead>
+                                    <tr>
+                                        <th>Employee</th>
+                                        <th>Role</th>
+                                        <th>Status</th>
+                                        <th>Progress</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="employee-table-body">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Achievement Wall -->
+                    <div class="glass-panel">
+                        <div class="panel-header">
+                            <h2>Achievement Wall</h2>
+                        </div>
+                        <div class="achievement-list" id="achievement-list">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Employee View -->
+            <section id="employee-view" class="view-section" style="display: none;">
+                <div class="view-header">
+                    <h1>My Workspace</h1>
+                    <p>Manage your tasks, files, and track your progress.</p>
+                </div>
+
+                <div class="dashboard-grid">
+                    <!-- Personal Progress -->
+                    <div class="glass-panel">
+                        <div class="panel-header">
+                            <h2>My Progress</h2>
+                        </div>
+                        <div class="progress-details">
+                            <div class="progress-circle">
+                                <span>75%</span>
+                            </div>
+                            <p>Current Sprint Completion</p>
+                        </div>
+                        <div class="task-summary mt-4">
+                            <div class="task-stat">
+                                <span>Completed</span>
+                                <strong>15</strong>
+                            </div>
+                            <div class="task-stat">
+                                <span>Pending</span>
+                                <strong>5</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Work Directory (Files) -->
+                    <div class="glass-panel col-span-2">
+                        <div class="panel-header">
+                            <h2>My Drive</h2>
+                            <div class="drive-actions">
+                                <button class="btn-outline"><i data-lucide="folder-plus"></i> New Folder</button>
+                                <button class="btn-primary"><i data-lucide="upload"></i> Upload</button>
+                            </div>
+                        </div>
+                        <div class="file-grid" id="file-grid">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Tasks -->
+                <div class="glass-panel mt-6">
+                    <div class="panel-header">
+                        <h2>My Tasks</h2>
+                    </div>
+                    <ul class="task-list" id="personal-task-list">
+                        <!-- Populated by JS -->
+                    </ul>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>
