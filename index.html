@@ -121,6 +121,22 @@
                                             <!-- Populated by JS -->
                                         </select>
                                     </div>
+                                    <div class="filter-group">
+                                        <label for="filter-sample">Sample Type</label>
+                                        <select id="filter-sample" onchange="handleFilterChange()">
+                                            <option value="all">All Types</option>
+                                            <option value="Single">Single</option>
+                                            <option value="Couple">Couple</option>
+                                            <option value="Trio">Trio</option>
+                                            <option value="Family segregation">Family segregation</option>
+                                            <option value="AF">AF</option>
+                                            <option value="POC">POC</option>
+                                            <option value="Infertility">Infertility</option>
+                                            <option value="Sample followup">Sample followup</option>
+                                            <option value="CMC sample followup">CMC sample followup</option>
+                                            <option value="Single (CMC)">Single (CMC)</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                             <button class="btn-primary" onclick="openAddEmployeeModal()">Add New</button>

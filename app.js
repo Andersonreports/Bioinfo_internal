@@ -127,16 +127,18 @@ function updateKPIs() {
 function handleFilterChange() {
     const teamFilter = document.getElementById('filter-team').value;
     const leaderFilter = document.getElementById('filter-leader').value;
+    const sampleFilter = document.getElementById('filter-sample').value;
     const searchFilter = document.getElementById('global-search').value.toLowerCase();
 
     const filtered = employees.filter(emp => {
         const matchesTeam = teamFilter === 'all' || (emp.team && emp.team.toLowerCase().includes(teamFilter.toLowerCase()));
         const matchesLeader = leaderFilter === 'all' || emp.teamLeader === leaderFilter;
+        const matchesSample = sampleFilter === 'all' || (emp.samples && emp.samples.toLowerCase().includes(sampleFilter.toLowerCase()));
         const matchesSearch = emp.name.toLowerCase().includes(searchFilter) || 
                              emp.employeeId.toLowerCase().includes(searchFilter) ||
                              emp.role.toLowerCase().includes(searchFilter);
         
-        return matchesTeam && matchesLeader && matchesSearch;
+        return matchesTeam && matchesLeader && matchesSample && matchesSearch;
     });
 
     renderEmployees(filtered);
