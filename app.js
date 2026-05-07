@@ -191,40 +191,44 @@ function renderEmployees(data = employees) {
     `).join('');
 }
 
-// Render Employee Space Cards
+// Render Employee Space Cards (Circular Stat Cards)
 function renderEmployeeSpace(data = employees) {
     const container = document.getElementById('employee-cards-container');
     if (!container) return;
 
     container.innerHTML = data.map(emp => `
-        <div class="emp-card glass-panel" onclick="openEmployeeDetails(${emp.id})">
-            <div class="emp-card-header">
-                <img src="${emp.avatar}" alt="${emp.name}" class="emp-card-avatar">
-                <div class="emp-card-info">
-                    <h3>${emp.name}</h3>
-                    <p>${emp.role}</p>
-                    <span class="emp-id-badge">${emp.employeeId}</span>
+        <div class="emp-stat-card" onclick="openEmployeeDetails(${emp.id})">
+            <div class="stat-circle">
+                <div class="stat-progress"></div>
+                <img src="${emp.avatar}" alt="${emp.name}" class="stat-avatar">
+                <div class="stat-badge">${emp.team}</div>
+            </div>
+            <div class="stat-info">
+                <h3>${emp.name}</h3>
+                <p>${emp.role}</p>
+                <div class="stat-meta">
+                    <span>${emp.employeeId}</span>
                 </div>
             </div>
             
             <div class="emp-card-actions" onclick="event.stopPropagation()">
-                <button class="btn-outline" onclick="triggerUpload(${emp.id})">
-                    <i data-lucide="upload-cloud"></i> Upload Cert
+                <button class="icon-btn-small" onclick="triggerUpload(${emp.id})" title="Upload Certificate">
+                    <i data-lucide="upload-cloud"></i>
                 </button>
-                <button class="btn-primary" onclick="toggleCerts(${emp.id})">
-                    <i data-lucide="eye"></i> View Certs
+                <button class="icon-btn-small" onclick="toggleCerts(${emp.id})" title="View Certificates">
+                    <i data-lucide="eye"></i>
                 </button>
             </div>
             
             <div class="cert-viewer" id="certs-${emp.id}" style="display: none;" onclick="event.stopPropagation()">
-                <h4>Conference Certificates</h4>
+                <h4>Certificates</h4>
                 ${emp.certificates.length > 0 
                     ? `<ul class="cert-list">
                         ${emp.certificates.map(cert => `
-                            <li><i data-lucide="file-text"></i> ${cert}</li>
+                            <li>${cert}</li>
                         `).join('')}
                        </ul>`
-                    : `<p class="no-certs">No certificates uploaded yet.</p>`
+                    : `<p class="no-certs">No certs</p>`
                 }
             </div>
         </div>
