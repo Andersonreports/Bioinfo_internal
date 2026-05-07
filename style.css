@@ -53,7 +53,7 @@
 }
 
 .brand h2 {
-    color: #4facfe;
+    color: #4facfe; /* Light blue for visibility */
     font-weight: 700;
     font-size: 1.6rem;
     letter-spacing: 2px;
@@ -73,7 +73,7 @@
     display: flex;
     flex-direction: column;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    color: #ecf0f1;
+    color: #ffffff; /* Brighter white for general text */
     position: relative;
     overflow: hidden;
 }
@@ -93,7 +93,7 @@
 .sidebar-toggle {
     background: #2c3e50;
     border: none;
-    color: #95a5a6;
+    color: #ffffff; /* White for better visibility */
     cursor: pointer;
     width: 36px;
     height: 36px;
@@ -122,7 +122,7 @@
     padding: 1rem 1.5rem;
     background: transparent;
     border: none;
-    color: #bdc3c7;
+    color: #ecf0f1; /* Off-white for labels */
     cursor: pointer;
     transition: all 0.2s;
     gap: 1.5rem;
