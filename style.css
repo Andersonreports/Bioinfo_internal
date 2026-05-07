@@ -30,7 +30,7 @@
 
 /* Top Navigation Bar */
 .top-navbar {
-    background: #2c3e50;
+    background: #3b2e5a; /* Dark Lavender Header */
     height: 70px;
     width: 100%;
     display: flex;
@@ -49,13 +49,13 @@
 }
 
 .brand-icon {
-    color: #4facfe;
+    color: #a78bfa; /* Lavender blue icon */
     width: 36px;
     height: 36px;
 }
 
 .brand h2 {
-    color: #4facfe; /* Light blue for visibility */
+    color: #a78bfa;
     font-weight: 700;
     font-size: 1.6rem;
     letter-spacing: 2px;
@@ -68,14 +68,14 @@
     height: calc(100vh - 70px);
 }
 
-/* Dark Sidebar */
+/* Dark Lavender Sidebar */
 .sidebar {
-    background: #34495e;
+    background: #4c3d75; /* Deep Lavender Sidebar */
     width: 260px;
     display: flex;
     flex-direction: column;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    color: #ffffff; /* Brighter white for general text */
+    color: #ffffff;
     position: relative;
     overflow: hidden;
 }
@@ -93,9 +93,9 @@
 }
 
 .sidebar-toggle {
-    background: #2c3e50;
+    background: #3b2e5a;
     border: none;
-    color: #ffffff; /* White for better visibility */
+    color: #ffffff;
     cursor: pointer;
     width: 36px;
     height: 36px;
@@ -107,7 +107,7 @@
 }
 
 .sidebar-toggle:hover {
-    background: #1abc9c;
+    background: #8b5cf6;
     color: #fff;
 }
 
@@ -124,7 +124,7 @@
     padding: 1rem 1.5rem;
     background: transparent;
     border: none;
-    color: #ecf0f1; /* Off-white for labels */
+    color: #e9e5ff; /* Soft lavender white */
     cursor: pointer;
     transition: all 0.2s;
     gap: 1.5rem;
@@ -135,14 +135,14 @@
 }
 
 .nav-item:hover {
-    background: rgba(0,0,0,0.2);
+    background: rgba(255,255,255,0.1);
     color: #fff;
 }
 
 .nav-item.active {
-    background: rgba(0,0,0,0.3);
+    background: rgba(0,0,0,0.2);
     color: #fff;
-    border-left: 4px solid #1abc9c;
+    border-left: 4px solid #a78bfa;
 }
 
 .nav-item i {
