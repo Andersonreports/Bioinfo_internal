@@ -108,9 +108,12 @@
                                     <option value="Single (CMC)">Single (CMC)</option>
                                 </select>
                             </div>
+                            <div class="filter-group" style="margin-top: auto;">
+                                <label style="visibility:hidden">.</label>
+                                <button class="btn-primary" onclick="openAddEmployeeModal()">+ Add New</button>
+                            </div>
                         </div>
                     </div>
-                    <button class="btn-primary" onclick="openAddEmployeeModal()">Add New</button>
                 </div>
 
                 <!-- Circular Stat Cards Container -->
@@ -226,6 +229,45 @@
                 <div class="modal-actions">
                     <button type="button" class="btn-outline" onclick="closeAddEmployeeModal()">Cancel</button>
                     <button type="submit" class="btn-primary">Add Employee</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Certificate Upload Modal -->
+    <div class="modal-overlay" id="cert-upload-modal" style="display: none;">
+        <div class="modal glass-panel">
+            <div class="modal-header">
+                <h2>Upload Certificate</h2>
+                <button class="icon-btn" onclick="closeCertModal()"><i data-lucide="x"></i></button>
+            </div>
+            <form id="cert-upload-form">
+                <input type="hidden" id="cert-emp-id">
+                <div class="form-grid">
+                    <div class="form-group col-span-2">
+                        <label>Event Name</label>
+                        <input type="text" id="cert-event-name" required placeholder="e.g., Clinical Genomics Summit 2026">
+                    </div>
+                    <div class="form-group">
+                        <label>Event Date</label>
+                        <input type="date" id="cert-event-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Place</label>
+                        <input type="text" id="cert-place" required placeholder="e.g., Chennai, India">
+                    </div>
+                    <div class="form-group">
+                        <label>Award / Achievement</label>
+                        <input type="text" id="cert-award" placeholder="e.g., Best Poster Award (Optional)">
+                    </div>
+                    <div class="form-group">
+                        <label>Certificate File</label>
+                        <input type="file" id="cert-file" required>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-outline" onclick="closeCertModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Certificate</button>
                 </div>
             </form>
         </div>
