@@ -1,13 +1,15 @@
 :root {
-    /* Color Palette - Light Premium Theme */
-    --bg-dark: #f8fafc;
-    --bg-darker: #f1f5f9;
+    /* Color Palette - Light Lavender Theme */
+    --bg-dark: #f3f0ff;
+    --bg-darker: #e9e5ff;
     --panel-bg: rgba(255, 255, 255, 0.7);
-    --panel-border: rgba(148, 163, 184, 0.2);
+    --panel-border: rgba(196, 181, 253, 0.3);
     
-    --primary: #4f46e5;
+    --primary: #6366f1;
+    --primary-light: #818cf8;
     --primary-hover: #4338ca;
     --secondary: #db2777;
+    --accent: #f43f5e;
     --accent-blue: #0284c7;
     --accent-purple: #7c3aed;
     --accent-gold: #d97706;
