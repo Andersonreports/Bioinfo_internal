@@ -90,7 +90,17 @@ async function fetchData() {
     try {
         const response = await fetch(CSV_URL);
         const csvText = await response.text();
-        employees = parseCSV(csvText);
+        const rawEmployees = parseCSV(csvText);
+        
+        // Sort by Joining Date (DD/MM/YYYY) - Ascending (First joined first displayed)
+        employees = rawEmployees.sort((a, b) => {
+            const parseDate = (dateStr) => {
+                if (!dateStr || dateStr === 'N/A') return new Date(0);
+                const [day, month, year] = dateStr.split('/').map(Number);
+                return new Date(year, month - 1, day);
+            };
+            return parseDate(a.doj) - parseDate(b.doj);
+        });
         
         populateTeamLeaders();
         updateKPIs();
