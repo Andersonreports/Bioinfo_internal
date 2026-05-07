@@ -3,11 +3,6 @@ const SHEET_ID = '1ZIs0bbHxkwpo1nUvDcLr-oRei1mUOlaOJISOoeNI6Pc';
 const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
 
 let employees = [];
-let achievements = [
-    { id: 1, user: "Sarah Jenkins", title: "Code Quality Award", desc: "Maintained 0 bugs in Q3", icon: "award" },
-    { id: 2, user: "Marcus Chen", title: "Design Excellence", desc: "New app redesign shipped", icon: "palette" },
-    { id: 3, user: "Team Alpha", title: "Sprint Goal Met", desc: "Delivered project ahead of time", icon: "zap" }
-];
 
 // View Switching Logic
 function switchView(viewName) {
@@ -24,6 +19,17 @@ function switchView(viewName) {
 
     const roleDisplay = document.getElementById('current-role-display');
     roleDisplay.textContent = viewName === 'manager' ? 'Manager' : 'Employee Space';
+}
+
+// Sidebar Logic
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('sidebar-toggle-btn');
+    sidebar.classList.toggle('collapsed');
+    
+    const icon = sidebar.classList.contains('collapsed') ? 'chevron-right' : 'chevron-left';
+    toggleBtn.innerHTML = `<i data-lucide="${icon}"></i>`;
+    lucide.createIcons();
 }
 
 // CSV Parser
@@ -68,6 +74,9 @@ function parseCSV(csv) {
                 doj: obj['Date of Joining'] || 'N/A',
                 team: obj['Team'] || 'Primary',
                 teamLeader: obj['Team Leader name'] || 'N/A',
+                samples: obj['Report/sample types'] || 'N/A',
+                analysis: obj['Analysis'] || 'N/A',
+                work: obj['Work'] || 'N/A',
                 certificates: [],
                 avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(obj['Name'])}&background=random&color=fff`
             });
@@ -96,7 +105,7 @@ function populateTeamLeaders() {
     const leaderSelect = document.getElementById('filter-leader');
     if (!leaderSelect) return;
 
-    const leaders = [...new Set(employees.map(emp => emp.teamLeader))].filter(l => l && l !== 'N/A' && l !== 'Team Leader name');
+    const leaders = [...new Set(employees.map(emp => emp.teamLeader))].filter(l => l && l !== 'N/A' && l !== 'Team Leader name' && l.trim() !== '');
     
     // Clear existing options except first
     leaderSelect.innerHTML = '<option value="all">All Leaders</option>';
@@ -110,7 +119,7 @@ function populateTeamLeaders() {
 
 function updateKPIs() {
     document.getElementById('kpi-total-team').textContent = employees.length;
-    const activeTeams = [...new Set(employees.map(emp => emp.team))].filter(t => t && t !== 'Team').length;
+    const activeTeams = [...new Set(employees.map(emp => emp.team))].filter(t => t && t !== 'Team' && t.trim() !== '').length;
     document.getElementById('kpi-active-teams').textContent = activeTeams;
 }
 
@@ -121,7 +130,7 @@ function handleFilterChange() {
     const searchFilter = document.getElementById('global-search').value.toLowerCase();
 
     const filtered = employees.filter(emp => {
-        const matchesTeam = teamFilter === 'all' || emp.team.toLowerCase().includes(teamFilter.toLowerCase());
+        const matchesTeam = teamFilter === 'all' || (emp.team && emp.team.toLowerCase().includes(teamFilter.toLowerCase()));
         const matchesLeader = leaderFilter === 'all' || emp.teamLeader === leaderFilter;
         const matchesSearch = emp.name.toLowerCase().includes(searchFilter) || 
                              emp.employeeId.toLowerCase().includes(searchFilter) ||
@@ -134,13 +143,38 @@ function handleFilterChange() {
     renderEmployeeSpace(filtered);
 }
 
+// Modal Logic
+function openEmployeeDetails(id) {
+    const emp = employees.find(e => e.id === id);
+    if (!emp) return;
+
+    document.getElementById('details-avatar').src = emp.avatar;
+    document.getElementById('details-name').textContent = emp.name;
+    document.getElementById('details-role').textContent = emp.role;
+    document.getElementById('details-id').textContent = emp.employeeId;
+    document.getElementById('details-team').textContent = emp.team;
+    document.getElementById('details-leader').textContent = emp.teamLeader;
+    document.getElementById('details-doj').textContent = emp.doj;
+    document.getElementById('details-email').textContent = emp.email;
+    document.getElementById('details-work').textContent = emp.work;
+    document.getElementById('details-analysis').textContent = emp.analysis;
+    document.getElementById('details-samples').textContent = emp.samples;
+
+    document.getElementById('employee-details-modal').style.display = 'flex';
+}
+
+function closeDetailsModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('employee-details-modal').style.display = 'none';
+}
+
 // Render Manager Directory
 function renderEmployees(data = employees) {
     const tbody = document.getElementById('employee-table-body');
     if (!tbody) return;
     
     tbody.innerHTML = data.map(emp => `
-        <tr>
+        <tr onclick="openEmployeeDetails(${emp.id})" style="cursor: pointer;">
             <td>
                 <div class="emp-cell">
                     <img src="${emp.avatar}" alt="${emp.name}" class="emp-avatar">
@@ -159,27 +193,13 @@ function renderEmployees(data = employees) {
     `).join('');
 }
 
-function renderAchievements() {
-    const list = document.getElementById('achievement-list');
-    if (!list) return;
-    list.innerHTML = achievements.map(ach => `
-        <div class="achievement-item">
-            <div class="ach-icon"><i data-lucide="${ach.icon}"></i></div>
-            <div class="ach-content">
-                <h4>${ach.title}</h4>
-                <p><strong>${ach.user}</strong> - ${ach.desc}</p>
-            </div>
-        </div>
-    `).join('');
-}
-
 // Render Employee Space Cards
 function renderEmployeeSpace(data = employees) {
     const container = document.getElementById('employee-cards-container');
     if (!container) return;
 
     container.innerHTML = data.map(emp => `
-        <div class="emp-card glass-panel">
+        <div class="emp-card glass-panel" onclick="openEmployeeDetails(${emp.id})">
             <div class="emp-card-header">
                 <img src="${emp.avatar}" alt="${emp.name}" class="emp-card-avatar">
                 <div class="emp-card-info">
@@ -189,7 +209,7 @@ function renderEmployeeSpace(data = employees) {
                 </div>
             </div>
             
-            <div class="emp-card-actions">
+            <div class="emp-card-actions" onclick="event.stopPropagation()">
                 <button class="btn-outline" onclick="triggerUpload(${emp.id})">
                     <i data-lucide="upload-cloud"></i> Upload Cert
                 </button>
@@ -198,7 +218,7 @@ function renderEmployeeSpace(data = employees) {
                 </button>
             </div>
             
-            <div class="cert-viewer" id="certs-${emp.id}" style="display: none;">
+            <div class="cert-viewer" id="certs-${emp.id}" style="display: none;" onclick="event.stopPropagation()">
                 <h4>Conference Certificates</h4>
                 ${emp.certificates.length > 0 
                     ? `<ul class="cert-list">
@@ -266,6 +286,9 @@ function handleAddEmployee(event) {
         doj: doj,
         teamLeader: leader,
         team: team,
+        work: 'N/A',
+        analysis: 'N/A',
+        samples: 'N/A',
         certificates: [],
         avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`
     };
@@ -282,7 +305,6 @@ function handleAddEmployee(event) {
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     fetchData();
-    renderAchievements();
     lucide.createIcons();
     
     const addForm = document.getElementById('add-emp-form');
@@ -290,4 +312,3 @@ document.addEventListener('DOMContentLoaded', () => {
         addForm.addEventListener('submit', handleAddEmployee);
     }
 });
-
