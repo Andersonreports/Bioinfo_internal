@@ -154,9 +154,17 @@ function openEmployeeDetails(id) {
     document.getElementById('details-leader').textContent = emp.teamLeader;
     document.getElementById('details-doj').textContent = emp.doj;
     document.getElementById('details-email').textContent = emp.email;
-    document.getElementById('details-work').textContent = emp.work;
-    document.getElementById('details-analysis').textContent = emp.analysis;
-    document.getElementById('details-samples').textContent = emp.samples;
+
+    // Helper to render lists
+    const renderList = (text) => {
+        if (!text) return 'N/A';
+        const items = text.split(',').map(item => item.trim()).filter(item => item !== "");
+        return `<ul class="details-list">${items.map(item => `<li>${item}</li>`).join('')}</ul>`;
+    };
+
+    document.getElementById('details-work').innerHTML = renderList(emp.work);
+    document.getElementById('details-analysis').innerHTML = renderList(emp.analysis);
+    document.getElementById('details-samples').innerHTML = renderList(emp.samples);
 
     document.getElementById('employee-details-modal').style.display = 'flex';
 }
