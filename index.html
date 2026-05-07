@@ -21,11 +21,7 @@
     <div class="app-container">
         <!-- Sidebar Navigation -->
         <aside class="sidebar glass-panel" id="sidebar">
-            <div class="sidebar-header">
-                <div class="brand">
-                    <i data-lucide="dna" class="brand-icon"></i>
-                    <h2>GenomicDesk</h2>
-                </div>
+            <div class="sidebar-controls">
                 <button class="sidebar-toggle" id="sidebar-toggle-btn" onclick="toggleSidebar()">
                     <i data-lucide="chevron-left"></i>
                 </button>
@@ -56,9 +52,13 @@
         <main class="main-content">
             <!-- Top Header -->
             <header class="top-header">
+                <div class="brand">
+                    <i data-lucide="dna" class="brand-icon"></i>
+                    <h2>GenomicDesk</h2>
+                </div>
                 <div class="search-bar glass-panel">
                     <i data-lucide="search"></i>
-                    <input type="text" id="global-search" placeholder="Search employees, files, or tasks..." oninput="handleFilterChange()">
+                    <input type="text" id="global-search" placeholder="Search employees..." oninput="handleFilterChange()">
                 </div>
                 <div class="header-actions">
                     <button class="icon-btn glass-panel"><i data-lucide="bell"></i></button>
