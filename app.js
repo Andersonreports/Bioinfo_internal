@@ -86,6 +86,25 @@ function parseCSV(csv) {
     return result;
 }
 
+// Format date from DD/MM/YYYY → "12th Mar 2026"
+function formatDate(dateStr) {
+    if (!dateStr || dateStr === 'N/A') return 'N/A';
+    const parts = dateStr.split('/');
+    if (parts.length !== 3) return dateStr;
+    const [day, month, year] = parts.map(Number);
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const suffix = (d) => {
+        if (d >= 11 && d <= 13) return 'th';
+        switch (d % 10) {
+            case 1: return 'st';
+            case 2: return 'nd';
+            case 3: return 'rd';
+            default: return 'th';
+        }
+    };
+    return `${day}${suffix(day)} ${months[month - 1]} ${year}`;
+}
+
 // Fetch Data
 async function fetchData() {
     try {
@@ -163,7 +182,7 @@ function openEmployeeDetails(id) {
     document.getElementById('details-id').textContent = emp.employeeId;
     document.getElementById('details-team').textContent = emp.team;
     document.getElementById('details-leader').textContent = emp.teamLeader;
-    document.getElementById('details-doj').textContent = emp.doj;
+    document.getElementById('details-doj').textContent = formatDate(emp.doj);
     document.getElementById('details-email').textContent = emp.email;
 
     // Helper to render lists
@@ -203,7 +222,7 @@ function renderEmployees(data = employees) {
             </td>
             <td>${emp.employeeId}</td>
             <td>${emp.role}</td>
-            <td>${emp.doj}</td>
+            <td>${formatDate(emp.doj)}</td>
             <td><span class="status-badge status-active">${emp.team}</span></td>
             <td>${emp.teamLeader}</td>
         </tr>
