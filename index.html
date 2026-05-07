@@ -18,44 +18,49 @@
     <div class="bg-orb orb-1"></div>
     <div class="bg-orb orb-2"></div>
     
+    <!-- Top Navigation Bar -->
+    <header class="top-navbar">
+        <div class="brand">
+            <i data-lucide="dna" class="brand-icon"></i>
+            <h2>GenomicDesk</h2>
+        </div>
+    </header>
+
     <div class="app-container">
         <!-- Sidebar Navigation -->
-        <aside class="sidebar glass-panel" id="sidebar">
-            <div class="sidebar-controls">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
                 <button class="sidebar-toggle" id="sidebar-toggle-btn" onclick="toggleSidebar()">
-                    <i data-lucide="chevron-left"></i>
+                    <i data-lucide="menu"></i>
                 </button>
             </div>
             
-            <div class="nav-section">
-                <p class="nav-label">VIEWS</p>
+            <nav class="nav-section">
                 <button class="nav-item active" id="btn-manager-view" onclick="switchView('manager')">
                     <i data-lucide="layout-dashboard"></i>
-                    <span>Manager Dashboard</span>
+                    <span>Home</span>
                 </button>
                 <button class="nav-item" id="btn-employee-view" onclick="switchView('employee')">
                     <i data-lucide="user"></i>
-                    <span>My Portal</span>
+                    <span>My Profile</span>
                 </button>
-            </div>
+            </nav>
 
-            <div class="user-profile">
-                <img src="https://ui-avatars.com/api/?name=Admin+User&background=6366f1&color=fff" alt="User Profile" class="avatar">
-                <div class="user-info">
-                    <p class="user-name">Admin User</p>
-                    <p class="user-role" id="current-role-display">Manager</p>
+            <div class="sidebar-footer">
+                <div class="user-profile-mini">
+                    <div class="avatar-circle">AU</div>
+                    <div class="user-info">
+                        <p class="user-name">Admin User</p>
+                        <p class="user-role">Manager</p>
+                    </div>
                 </div>
             </div>
         </aside>
 
         <!-- Main Content Area -->
         <main class="main-content">
-            <!-- Top Header -->
-            <header class="top-header">
-                <div class="brand">
-                    <i data-lucide="dna" class="brand-icon"></i>
-                    <h2>GenomicDesk</h2>
-                </div>
+            <!-- Search & Actions Bar -->
+            <div class="content-header">
                 <div class="search-bar glass-panel">
                     <i data-lucide="search"></i>
                     <input type="text" id="global-search" placeholder="Search employees..." oninput="handleFilterChange()">
@@ -64,7 +69,7 @@
                     <button class="icon-btn glass-panel"><i data-lucide="bell"></i></button>
                     <button class="icon-btn glass-panel"><i data-lucide="settings"></i></button>
                 </div>
-            </header>
+            </div>
 
             <!-- Manager View -->
             <section id="manager-view" class="view-section active">
