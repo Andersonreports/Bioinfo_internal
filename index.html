@@ -74,65 +74,48 @@
                     </div>
                 </div>
 
-                <div class="dashboard-grid no-achievements">
-                    <!-- Employee Directory Table -->
-                    <div class="glass-panel col-span-2">
-                        <div class="panel-header">
-                            <div class="header-title-group">
-                                <h2>Employee Directory</h2>
-                                <div class="filters-container">
-                                    <div class="filter-group">
-                                        <label for="filter-team">Team</label>
-                                        <select id="filter-team" onchange="handleFilterChange()">
-                                            <option value="all">All Teams</option>
-                                            <option value="Primary">Primary</option>
-                                            <option value="Secondary">Secondary</option>
-                                            <option value="Tertiary">Tertiary</option>
-                                        </select>
-                                    </div>
-                                    <div class="filter-group">
-                                        <label for="filter-leader">Team Leader</label>
-                                        <select id="filter-leader" onchange="handleFilterChange()">
-                                            <option value="all">All Leaders</option>
-                                            <!-- Populated by JS -->
-                                        </select>
-                                    </div>
-                                    <div class="filter-group">
-                                        <label for="filter-sample">Sample Type</label>
-                                        <select id="filter-sample" onchange="handleFilterChange()">
-                                            <option value="all">All Types</option>
-                                            <option value="Single">Single</option>
-                                            <option value="Couple">Couple</option>
-                                            <option value="Trio">Trio</option>
-                                            <option value="Family segregation">Family segregation</option>
-                                            <option value="AF">AF</option>
-                                            <option value="POC">POC</option>
-                                            <option value="Infertility">Infertility</option>
-                                            <option value="Single (CMC)">Single (CMC)</option>
-                                        </select>
-                                    </div>
-                                </div>
+                <div class="view-header-row">
+                    <div class="header-title-group">
+                        <h2>Team Directory</h2>
+                        <div class="filters-container">
+                            <div class="filter-group">
+                                <label for="filter-team">Team</label>
+                                <select id="filter-team" onchange="handleFilterChange()">
+                                    <option value="all">All Teams</option>
+                                    <option value="Primary">Primary</option>
+                                    <option value="Secondary">Secondary</option>
+                                    <option value="Tertiary">Tertiary</option>
+                                </select>
                             </div>
-                            <button class="btn-primary" onclick="openAddEmployeeModal()">Add New</button>
-                        </div>
-                        <div class="table-responsive">
-                            <table class="modern-table">
-                                <thead>
-                                    <tr>
-                                        <th>Employee</th>
-                                        <th>ID</th>
-                                        <th>Role</th>
-                                        <th>Date of Joining</th>
-                                        <th>Team</th>
-                                        <th>Team Leader</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="employee-table-body">
+                            <div class="filter-group">
+                                <label for="filter-leader">Team Leader</label>
+                                <select id="filter-leader" onchange="handleFilterChange()">
+                                    <option value="all">All Leaders</option>
                                     <!-- Populated by JS -->
-                                </tbody>
-                            </table>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="filter-sample">Sample Type</label>
+                                <select id="filter-sample" onchange="handleFilterChange()">
+                                    <option value="all">All Types</option>
+                                    <option value="Single">Single</option>
+                                    <option value="Couple">Couple</option>
+                                    <option value="Trio">Trio</option>
+                                    <option value="Family segregation">Family segregation</option>
+                                    <option value="AF">AF</option>
+                                    <option value="POC">POC</option>
+                                    <option value="Infertility">Infertility</option>
+                                    <option value="Single (CMC)">Single (CMC)</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
+                    <button class="btn-primary" onclick="openAddEmployeeModal()">Add New</button>
+                </div>
+
+                <!-- Circular Stat Cards Container -->
+                <div id="employee-cards-container" class="employee-grid">
+                    <!-- Populated by JS -->
                 </div>
             </section>
 
