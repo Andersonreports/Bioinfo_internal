@@ -26,6 +26,73 @@
     --transition: all 0.3s ease;
 }
 
+/* Brand Styling */
+.brand-icon {
+    color: #8b5cf6;
+    width: 32px;
+    height: 32px;
+}
+
+/* Filters Styling */
+.header-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.filters-container {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.filter-group label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.filter-group select {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 150px;
+}
+
+.filter-group select:focus {
+    border-color: #6366f1;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.filter-group select option {
+    background: #0f172a;
+    color: #fff;
+}
+
+@media (max-width: 768px) {
+    .filters-container {
+        gap: 1rem;
+    }
+    
+    .filter-group select {
+        min-width: 120px;
+    }
+}
+
 * {
     margin: 0;
     padding: 0;

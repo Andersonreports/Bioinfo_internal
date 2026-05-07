@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexis | Team Portal</title>
+    <title>GenomicDesk | Team Portal</title>
     <meta name="description" content="A premium portal for managing employee details, work progress, and achievements.">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,8 +22,8 @@
         <!-- Sidebar Navigation -->
         <aside class="sidebar glass-panel">
             <div class="brand">
-                <i data-lucide="hexagon" class="brand-icon"></i>
-                <h2>Nexis</h2>
+                <i data-lucide="dna" class="brand-icon"></i>
+                <h2>GenomicDesk</h2>
             </div>
             
             <div class="nav-section">
@@ -53,7 +53,7 @@
             <header class="top-header">
                 <div class="search-bar glass-panel">
                     <i data-lucide="search"></i>
-                    <input type="text" placeholder="Search employees, files, or tasks...">
+                    <input type="text" id="global-search" placeholder="Search employees, files, or tasks..." oninput="handleFilterChange()">
                 </div>
                 <div class="header-actions">
                     <button class="icon-btn glass-panel"><i data-lucide="bell"></i></button>
@@ -75,15 +75,15 @@
                             <i data-lucide="users" class="icon-blue"></i>
                             <span>Total Team</span>
                         </div>
-                        <h3>24</h3>
-                        <p class="trend positive"><i data-lucide="trending-up"></i> +2 this month</p>
+                        <h3 id="kpi-total-team">0</h3>
+                        <p class="trend positive"><i data-lucide="trending-up"></i> Live Feed</p>
                     </div>
                     <div class="kpi-card glass-panel">
                         <div class="kpi-header">
                             <i data-lucide="target" class="icon-purple"></i>
-                            <span>Active Projects</span>
+                            <span>Active Teams</span>
                         </div>
-                        <h3>12</h3>
+                        <h3 id="kpi-active-teams">0</h3>
                         <p class="trend">On track</p>
                     </div>
                     <div class="kpi-card glass-panel">
@@ -100,8 +100,28 @@
                     <!-- Employee Directory Table -->
                     <div class="glass-panel col-span-2">
                         <div class="panel-header">
-                            <h2>Employee Directory</h2>
-                            <button class="btn-primary">Add New</button>
+                            <div class="header-title-group">
+                                <h2>Employee Directory</h2>
+                                <div class="filters-container">
+                                    <div class="filter-group">
+                                        <label for="filter-team">Team</label>
+                                        <select id="filter-team" onchange="handleFilterChange()">
+                                            <option value="all">All Teams</option>
+                                            <option value="Primary">Primary</option>
+                                            <option value="Secondary">Secondary</option>
+                                            <option value="Tertiary">Tertiary</option>
+                                        </select>
+                                    </div>
+                                    <div class="filter-group">
+                                        <label for="filter-leader">Team Leader</label>
+                                        <select id="filter-leader" onchange="handleFilterChange()">
+                                            <option value="all">All Leaders</option>
+                                            <!-- Populated by JS -->
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn-primary" onclick="openAddEmployeeModal()">Add New</button>
                         </div>
                         <div class="table-responsive">
                             <table class="modern-table">
@@ -111,8 +131,8 @@
                                         <th>ID</th>
                                         <th>Role</th>
                                         <th>Date of Joining</th>
-                                        <th>Current Project</th>
                                         <th>Team</th>
+                                        <th>Team Leader</th>
                                     </tr>
                                 </thead>
                                 <tbody id="employee-table-body">
@@ -136,7 +156,7 @@
 
             <!-- Employee View (Employee Space) -->
             <section id="employee-view" class="view-section" style="display: none;">
-                <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-end;">
+                <div class="view-header">
                     <div>
                         <h1>Employee Space</h1>
                         <p>View team directory and manage conference certificates.</p>
@@ -175,7 +195,7 @@
                     </div>
                     <div class="form-group">
                         <label>Email</label>
-                        <input type="email" id="emp-email" required placeholder="e.g., john@nexis.com">
+                        <input type="email" id="emp-email" required placeholder="e.g., john@genomicdesk.com">
                     </div>
                     <div class="form-group">
                         <label>Role</label>
@@ -187,11 +207,15 @@
                     </div>
                     <div class="form-group">
                         <label>Team</label>
-                        <input type="text" id="emp-team" required placeholder="e.g., Engineering">
+                        <select id="emp-team" required>
+                            <option value="Primary">Primary</option>
+                            <option value="Secondary">Secondary</option>
+                            <option value="Tertiary">Tertiary</option>
+                        </select>
                     </div>
                     <div class="form-group col-span-2">
-                        <label>Current Working Project</label>
-                        <input type="text" id="emp-project" required placeholder="e.g., Portal Revamp">
+                        <label>Team Leader Name</label>
+                        <input type="text" id="emp-leader" required placeholder="e.g., Jane Smith">
                     </div>
                 </div>
                 <div class="modal-actions">
@@ -202,7 +226,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=2"></script>
+    <script src="app.js?v=3"></script>
     <script>
         // Initialize Lucide icons
         lucide.createIcons();

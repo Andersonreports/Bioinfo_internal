@@ -1,12 +1,9 @@
-// Mock Data
-let employees = [
-    { id: 1, employeeId: "EMP-001", name: "Sarah Jenkins", role: "Senior Developer", email: "sarah.j@nexis.com", doj: "2022-03-15", currentProject: "Alpha Redesign", team: "Engineering", certificates: ["React_Summit_2023.pdf"], avatar: "https://ui-avatars.com/api/?name=Sarah+Jenkins&background=8b5cf6&color=fff" },
-    { id: 2, employeeId: "EMP-002", name: "Marcus Chen", role: "UI/UX Designer", email: "marcus.c@nexis.com", doj: "2023-01-10", currentProject: "Nexus Mobile", team: "Design", certificates: [], avatar: "https://ui-avatars.com/api/?name=Marcus+Chen&background=ec4899&color=fff" },
-    { id: 3, employeeId: "EMP-003", name: "Emily Watson", role: "Product Manager", email: "emily.w@nexis.com", doj: "2021-11-05", currentProject: "Q4 Roadmap", team: "Product", certificates: ["Agile_Leadership.pdf", "Scrum_Master.pdf"], avatar: "https://ui-avatars.com/api/?name=Emily+Watson&background=10b981&color=fff" },
-    { id: 4, employeeId: "EMP-004", name: "David Kim", role: "DevOps Engineer", email: "david.k@nexis.com", doj: "2022-08-20", currentProject: "Cloud Migration", team: "Infrastructure", certificates: [], avatar: "https://ui-avatars.com/api/?name=David+Kim&background=f59e0b&color=fff" }
-];
+// Configuration
+const SHEET_ID = '1ZIs0bbHxkwpo1nUvDcLr-oRei1mUOlaOJISOoeNI6Pc';
+const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
 
-const achievements = [
+let employees = [];
+let achievements = [
     { id: 1, user: "Sarah Jenkins", title: "Code Quality Award", desc: "Maintained 0 bugs in Q3", icon: "award" },
     { id: 2, user: "Marcus Chen", title: "Design Excellence", desc: "New app redesign shipped", icon: "palette" },
     { id: 3, user: "Team Alpha", title: "Sprint Goal Met", desc: "Delivered project ahead of time", icon: "zap" }
@@ -29,12 +26,120 @@ function switchView(viewName) {
     roleDisplay.textContent = viewName === 'manager' ? 'Manager' : 'Employee Space';
 }
 
+// CSV Parser
+function parseCSV(csv) {
+    const lines = csv.split('\n');
+    const result = [];
+    const headers = lines[0].split(',').map(h => h.trim());
+
+    for (let i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        
+        // Handle quoted values (comma inside quotes)
+        const row = [];
+        let current = '';
+        let inQuotes = false;
+        
+        for (let char of lines[i]) {
+            if (char === '"') {
+                inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+                row.push(current.trim());
+                current = '';
+            } else {
+                current += char;
+            }
+        }
+        row.push(current.trim());
+
+        const obj = {};
+        headers.forEach((header, index) => {
+            obj[header] = row[index] || '';
+        });
+        
+        // Map CSV fields to our internal employee object
+        if (obj['Name']) {
+            result.push({
+                id: i,
+                employeeId: obj['Employee ID'] || `GEN-${100 + i}`,
+                name: obj['Name'],
+                role: obj['Role'] || 'Bioinformatician',
+                email: `${obj['Name'].toLowerCase().replace(/\s+/g, '.')}@genomicdesk.com`,
+                doj: obj['Date of Joining'] || 'N/A',
+                team: obj['Team'] || 'Primary',
+                teamLeader: obj['Team Leader name'] || 'N/A',
+                certificates: [],
+                avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(obj['Name'])}&background=random&color=fff`
+            });
+        }
+    }
+    return result;
+}
+
+// Fetch Data
+async function fetchData() {
+    try {
+        const response = await fetch(CSV_URL);
+        const csvText = await response.text();
+        employees = parseCSV(csvText);
+        
+        populateTeamLeaders();
+        updateKPIs();
+        renderEmployees();
+        renderEmployeeSpace();
+    } catch (error) {
+        console.error('Error fetching data:', error);
+    }
+}
+
+function populateTeamLeaders() {
+    const leaderSelect = document.getElementById('filter-leader');
+    if (!leaderSelect) return;
+
+    const leaders = [...new Set(employees.map(emp => emp.teamLeader))].filter(l => l && l !== 'N/A' && l !== 'Team Leader name');
+    
+    // Clear existing options except first
+    leaderSelect.innerHTML = '<option value="all">All Leaders</option>';
+    leaders.sort().forEach(leader => {
+        const option = document.createElement('option');
+        option.value = leader;
+        option.textContent = leader;
+        leaderSelect.appendChild(option);
+    });
+}
+
+function updateKPIs() {
+    document.getElementById('kpi-total-team').textContent = employees.length;
+    const activeTeams = [...new Set(employees.map(emp => emp.team))].filter(t => t && t !== 'Team').length;
+    document.getElementById('kpi-active-teams').textContent = activeTeams;
+}
+
+// Filtering Logic
+function handleFilterChange() {
+    const teamFilter = document.getElementById('filter-team').value;
+    const leaderFilter = document.getElementById('filter-leader').value;
+    const searchFilter = document.getElementById('global-search').value.toLowerCase();
+
+    const filtered = employees.filter(emp => {
+        const matchesTeam = teamFilter === 'all' || emp.team.toLowerCase().includes(teamFilter.toLowerCase());
+        const matchesLeader = leaderFilter === 'all' || emp.teamLeader === leaderFilter;
+        const matchesSearch = emp.name.toLowerCase().includes(searchFilter) || 
+                             emp.employeeId.toLowerCase().includes(searchFilter) ||
+                             emp.role.toLowerCase().includes(searchFilter);
+        
+        return matchesTeam && matchesLeader && matchesSearch;
+    });
+
+    renderEmployees(filtered);
+    renderEmployeeSpace(filtered);
+}
+
 // Render Manager Directory
-function renderEmployees() {
+function renderEmployees(data = employees) {
     const tbody = document.getElementById('employee-table-body');
     if (!tbody) return;
     
-    tbody.innerHTML = employees.map(emp => `
+    tbody.innerHTML = data.map(emp => `
         <tr>
             <td>
                 <div class="emp-cell">
@@ -48,8 +153,8 @@ function renderEmployees() {
             <td>${emp.employeeId}</td>
             <td>${emp.role}</td>
             <td>${emp.doj}</td>
-            <td><span class="status-badge status-active">${emp.currentProject}</span></td>
-            <td>${emp.team}</td>
+            <td><span class="status-badge status-active">${emp.team}</span></td>
+            <td>${emp.teamLeader}</td>
         </tr>
     `).join('');
 }
@@ -69,11 +174,11 @@ function renderAchievements() {
 }
 
 // Render Employee Space Cards
-function renderEmployeeSpace() {
+function renderEmployeeSpace(data = employees) {
     const container = document.getElementById('employee-cards-container');
     if (!container) return;
 
-    container.innerHTML = employees.map(emp => `
+    container.innerHTML = data.map(emp => `
         <div class="emp-card glass-panel">
             <div class="emp-card-header">
                 <img src="${emp.avatar}" alt="${emp.name}" class="emp-card-avatar">
@@ -149,7 +254,7 @@ function handleAddEmployee(event) {
     const employeeId = document.getElementById('emp-id').value;
     const role = document.getElementById('emp-role').value;
     const doj = document.getElementById('emp-doj').value;
-    const project = document.getElementById('emp-project').value;
+    const leader = document.getElementById('emp-leader').value;
     const team = document.getElementById('emp-team').value;
 
     const newEmp = {
@@ -159,24 +264,25 @@ function handleAddEmployee(event) {
         role: role,
         email: email,
         doj: doj,
-        currentProject: project,
+        teamLeader: leader,
         team: team,
         certificates: [],
-        avatar: \`https://ui-avatars.com/api/?name=\${encodeURIComponent(name)}&background=random&color=fff\`
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`
     };
 
-    employees.push(newEmp);
+    employees.unshift(newEmp);
     closeAddEmployeeModal();
     
+    populateTeamLeaders();
+    updateKPIs();
     renderEmployees();
     renderEmployeeSpace();
 }
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    renderEmployees();
+    fetchData();
     renderAchievements();
-    renderEmployeeSpace();
     lucide.createIcons();
     
     const addForm = document.getElementById('add-emp-form');
@@ -184,3 +290,4 @@ document.addEventListener('DOMContentLoaded', () => {
         addForm.addEventListener('submit', handleAddEmployee);
     }
 });
+
