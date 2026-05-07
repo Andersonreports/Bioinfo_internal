@@ -6,19 +6,20 @@ let employees = [];
 
 // View Switching Logic
 function switchView(viewName) {
-    document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-    document.getElementById(`btn-${viewName}-view`).classList.add('active');
+    // Remove active from ALL nav tabs
+    document.querySelectorAll('.nav-tab').forEach(btn => btn.classList.remove('active'));
+    // Add active only to the selected tab
+    const activeBtn = document.getElementById(`btn-${viewName}-view`);
+    if (activeBtn) activeBtn.classList.add('active');
 
     document.querySelectorAll('.view-section').forEach(section => section.style.display = 'none');
     const targetSection = document.getElementById(`${viewName}-view`);
-    targetSection.style.display = 'block';
-    
-    targetSection.style.animation = 'none';
-    targetSection.offsetHeight; 
-    targetSection.style.animation = null;
-
-    const roleDisplay = document.getElementById('current-role-display');
-    roleDisplay.textContent = viewName === 'manager' ? 'Manager' : 'Employee Space';
+    if (targetSection) {
+        targetSection.style.display = 'block';
+        targetSection.style.animation = 'none';
+        targetSection.offsetHeight;
+        targetSection.style.animation = null;
+    }
 }
 
 // Sidebar Logic
