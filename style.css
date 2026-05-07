@@ -97,7 +97,7 @@
 .sidebar-toggle {
     background: transparent;
     border: none;
-    color: #94a3b8;
+    color: #ffffff; /* Explicit white */
     cursor: pointer;
     width: 32px;
     height: 32px;
@@ -126,7 +126,7 @@
     padding: 0.85rem 1.5rem;
     background: transparent;
     border: none;
-    color: #94a3b8;
+    color: #ffffff; /* Explicit white for contrast */
     cursor: pointer;
     transition: all 0.2s;
     gap: 1.25rem;
