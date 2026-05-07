@@ -58,11 +58,23 @@
 
 /* Collapsed Sidebar */
 .sidebar.collapsed {
-    width: 80px;
-    padding: 1.5rem 1rem;
+    width: 100px;
+    padding: 1.5rem 0.75rem;
 }
 
-.sidebar.collapsed .brand h2,
+.sidebar.collapsed .brand {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+}
+
+.sidebar.collapsed .brand h2 {
+    font-size: 0.7rem;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
 .sidebar.collapsed .nav-item span,
 .sidebar.collapsed .nav-label,
 .sidebar.collapsed .user-info {
