@@ -18,45 +18,32 @@
     <div class="bg-orb orb-1"></div>
     <div class="bg-orb orb-2"></div>
     
-    <!-- Top Navigation Bar -->
-    <header class="top-navbar">
-        <div class="brand">
-            <i data-lucide="dna" class="brand-icon"></i>
-            <h2>GenomicDesk</h2>
+    <!-- Top Navigation System (MS Word Style) -->
+    <header class="app-header">
+        <div class="title-bar">
+            <div class="brand">
+                <i data-lucide="dna" class="brand-icon"></i>
+                <h2>GenomicDesk</h2>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn"><i data-lucide="bell"></i></button>
+                <button class="icon-btn"><i data-lucide="settings"></i></button>
+                <div class="user-badge">AU</div>
+            </div>
         </div>
+        <nav class="nav-tabs">
+            <button class="nav-tab active" id="btn-manager-view" onclick="switchView('manager')">
+                <i data-lucide="layout-dashboard"></i>
+                <span>Manager Dashboard</span>
+            </button>
+            <button class="nav-tab" id="btn-employee-view" onclick="switchView('employee')">
+                <i data-lucide="user"></i>
+                <span>My Portal</span>
+            </button>
+        </nav>
     </header>
 
     <div class="app-container">
-        <!-- Sidebar Navigation -->
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <button class="sidebar-toggle" id="sidebar-toggle-btn" onclick="toggleSidebar()">
-                    <i data-lucide="menu"></i>
-                </button>
-            </div>
-            
-            <nav class="nav-section">
-                <button class="nav-item active" id="btn-manager-view" onclick="switchView('manager')">
-                    <i data-lucide="layout-dashboard"></i>
-                    <span>Home</span>
-                </button>
-                <button class="nav-item" id="btn-employee-view" onclick="switchView('employee')">
-                    <i data-lucide="user"></i>
-                    <span>My Profile</span>
-                </button>
-            </nav>
-
-            <div class="sidebar-footer">
-                <div class="user-profile-mini">
-                    <div class="avatar-circle">AU</div>
-                    <div class="user-info">
-                        <p class="user-name">Admin User</p>
-                        <p class="user-role">Manager</p>
-                    </div>
-                </div>
-            </div>
-        </aside>
-
         <!-- Main Content Area -->
         <main class="main-content">
             <!-- Search & Actions Bar -->
@@ -64,10 +51,6 @@
                 <div class="search-bar glass-panel">
                     <i data-lucide="search"></i>
                     <input type="text" id="global-search" placeholder="Search employees..." oninput="handleFilterChange()">
-                </div>
-                <div class="header-actions">
-                    <button class="icon-btn glass-panel"><i data-lucide="bell"></i></button>
-                    <button class="icon-btn glass-panel"><i data-lucide="settings"></i></button>
                 </div>
             </div>
 
