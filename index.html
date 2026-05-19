@@ -11,7 +11,1244 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="style.css?v=4">
+    <style>
+:root {
+    /* Color Palette - Light Lavender Theme */
+    --bg-dark: #f3f0ff;
+    --bg-darker: #e9e5ff;
+    --panel-bg: rgba(255, 255, 255, 0.7);
+    --panel-border: rgba(196, 181, 253, 0.3);
+    
+    --primary: #6366f1;
+    --primary-light: #818cf8;
+    --primary-hover: #4338ca;
+    --secondary: #db2777;
+    --accent: #f43f5e;
+    --accent-blue: #0284c7;
+    --accent-purple: #7c3aed;
+    --accent-gold: #d97706;
+    --success: #059669;
+    --warning: #d97706;
+    
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    
+    --font-main: 'Outfit', sans-serif;
+    
+    --glass-blur: blur(12px);
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    
+    --transition: all 0.3s ease;
+}
+
+/* Top Navigation System (MS Word Style) */
+.app-header {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.title-bar {
+    background: #f8bbd0; /* Pastel Pink Title Bar */
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08); /* Stronger shadow */
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.brand-icon {
+    color: #ad1457;
+    width: 28px;
+    height: 28px;
+}
+
+.brand h2 {
+    color: #1a1a1a; /* Solid dark black, no effects */
+    font-weight: 800;
+    font-size: 1.6rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-shadow: none;
+    filter: none;
+    opacity: 1;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.user-badge {
+    width: 36px;
+    height: 36px;
+    background: #ad1457;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 6px rgba(173, 20, 87, 0.3);
+}
+
+/* Horizontal Navigation Tabs - "Hanging Texts" Style */
+.nav-tabs {
+    background: transparent; /* Removed separate rectangle */
+    display: flex;
+    padding: 0.5rem 2rem;
+    border-bottom: none; /* Removed border */
+    gap: 2.5rem; /* More gap for airy feel */
+}
+
+.nav-tab {
+    padding: 0.75rem 0; /* Just vertical padding */
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: #64748b;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: inherit;
+    font-weight: 600;
+    transition: all 0.2s;
+    font-size: 1rem;
+    letter-spacing: 0.5px;
+}
+
+.nav-tab:hover {
+    background: transparent;
+    color: #ad1457;
+}
+
+.nav-tab.active {
+    color: #ad1457;
+    border-bottom-color: #ad1457;
+}
+
+.nav-tab i {
+    width: 20px;
+    height: 20px;
+}
+
+/* Main Content Adjustments */
+.app-container {
+    display: block;
+    min-height: calc(100vh - 110px);
+}
+
+.main-content {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 3rem 2rem; /* Significantly more top padding to prevent stacking */
+}
+
+.nav-item i {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.sidebar.collapsed .nav-item span {
+    display: none;
+}
+
+.sidebar.collapsed .nav-item {
+    padding: 1.25rem;
+    justify-content: center;
+}
+
+/* Sidebar Footer */
+.sidebar-footer {
+    padding: 1.5rem;
+    background: rgba(0,0,0,0.2);
+}
+
+.user-profile-mini {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    background: #7d5fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.sidebar.collapsed .user-info {
+    display: none;
+}
+
+/* Filters Styling - Fixed for Light Theme */
+.header-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.filters-container {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.filter-group label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.filter-group select {
+    background: #fff;
+    border: 1px solid var(--panel-border);
+    color: var(--text-main);
+    padding: 0.4rem 0.75rem;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 140px;
+    box-shadow: var(--shadow-sm);
+}
+
+.filter-group select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+}
+
+/* Employee Details Modal (Floating Table) */
+.details-modal {
+    max-width: 700px !important;
+    border-radius: 24px !important;
+}
+
+.details-header-info {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.details-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    object-fit: cover;
+}
+
+.details-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    max-height: 70vh;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.details-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.details-table th {
+    text-align: left;
+    width: 180px;
+    padding: 0.75rem 0;
+    color: var(--text-muted);
+    font-weight: 500;
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--panel-border);
+}
+
+.details-table td {
+    padding: 0.75rem 0;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border-bottom: 1px solid var(--panel-border);
+}
+
+.details-section h3 {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.details-text-block {
+    background: rgba(0, 0, 0, 0.02);
+    padding: 1.25rem;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    border: 1px solid var(--panel-border);
+}
+
+.no-achievements .col-span-2 {
+    grid-column: span 3;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-main);
+    background-color: var(--bg-darker);
+    color: var(--text-main);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* Background Gradients */
+.bg-orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    z-index: -1;
+    opacity: 0.2;
+}
+
+.orb-1 {
+    top: -10%;
+    left: -10%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, var(--accent-purple) 0%, transparent 70%);
+}
+
+.orb-2 {
+    bottom: -10%;
+    right: -10%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, var(--accent-blue) 0%, transparent 70%);
+}
+
+/* Utilities */
+.glass-panel {
+    background: var(--panel-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--panel-border);
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+}
+
+.mt-4 { margin-top: 1rem; }
+.mt-6 { margin-top: 1.5rem; }
+
+/* Layout */
+.app-container {
+    display: flex;
+    height: 100vh;
+    padding: 1rem;
+    gap: 1rem;
+}
+
+
+
+
+.brand h2 {
+    font-weight: 700;
+    font-size: 1.5rem;
+    background: linear-gradient(to right, var(--text-main), var(--text-muted));
+    -webkit-background-clip: text;
+    color: transparent;
+}
+
+
+
+.nav-section {
+    flex: 1;
+}
+
+.nav-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+    letter-spacing: 0.05em;
+}
+
+.nav-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-family: var(--font-main);
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: var(--transition);
+    margin-bottom: 0.5rem;
+    text-align: left;
+}
+
+.nav-item i {
+    width: 20px;
+    height: 20px;
+}
+
+.nav-item:hover, .nav-item.active {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--text-main);
+}
+
+.nav-item.active {
+    border-left: 3px solid var(--primary);
+    background: linear-gradient(90deg, rgba(99, 102, 241, 0.1) 0%, transparent 100%);
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--panel-border);
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--panel-border);
+}
+
+.user-info {
+    flex: 1;
+}
+
+.user-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.user-role {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 2rem);
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+/* Custom Scrollbar for Main Content */
+.main-content::-webkit-scrollbar {
+    width: 6px;
+}
+.main-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+.main-content::-webkit-scrollbar-thumb {
+    background: var(--panel-border);
+    border-radius: 10px;
+}
+
+
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.25rem;
+    width: 400px;
+    border-radius: 99px;
+}
+
+.search-bar i {
+    color: var(--text-muted);
+    width: 18px;
+    height: 18px;
+}
+
+.search-bar input {
+    background: transparent;
+    border: none;
+    color: var(--text-main);
+    font-family: var(--font-main);
+    width: 100%;
+    outline: none;
+}
+
+.search-bar input::placeholder {
+    color: var(--text-muted);
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.icon-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-main);
+    cursor: pointer;
+    border: 1px solid var(--panel-border);
+    transition: var(--transition);
+}
+
+.icon-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+/* Views & Dashboards */
+.view-section {
+    animation: fadeIn 0.4s ease forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.view-header {
+    margin-bottom: 2rem;
+}
+
+.view-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.view-header p {
+    color: var(--text-muted);
+}
+
+/* Buttons */
+.btn-primary {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-family: var(--font-main);
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-primary:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.btn-outline {
+    background: transparent;
+    color: var(--text-main);
+    border: 1px solid var(--panel-border);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-family: var(--font-main);
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-outline:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* KPI Cards */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.kpi-card {
+    padding: 1.5rem;
+    transition: var(--transition);
+}
+
+.kpi-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.kpi-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-bottom: 1rem;
+}
+
+.icon-blue { color: var(--accent-blue); }
+.icon-purple { color: var(--accent-purple); }
+.icon-gold { color: var(--accent-gold); }
+
+.kpi-card h3 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.trend {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.trend.positive {
+    color: var(--success);
+}
+
+.trend i { width: 14px; height: 14px; }
+
+/* Dashboard Grids */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+}
+
+.col-span-2 {
+    /* If grid changes to 3 cols later */
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--panel-border);
+}
+
+.panel-header h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+/* Tables */
+.table-responsive {
+    overflow-x: auto;
+    padding: 0 1.5rem 1.5rem 1.5rem;
+}
+
+.modern-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.modern-table th {
+    text-align: left;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 1rem 0.5rem;
+    border-bottom: 1px solid var(--panel-border);
+}
+
+.modern-table td {
+    padding: 1rem 0.5rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.05);
+    vertical-align: middle;
+}
+
+.emp-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.emp-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}
+
+.emp-name {
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.emp-email {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status-active { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+.status-busy { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+
+.progress-bar-bg {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--primary);
+    border-radius: 3px;
+}
+
+/* Achievements */
+.achievement-list {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.achievement-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    border: 1px solid var(--panel-border);
+    transition: var(--transition);
+}
+
+.achievement-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.ach-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--accent-gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ach-content h4 {
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+}
+
+.ach-content p {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+/* Employee Space Specifics */
+.employee-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.emp-card {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    transition: var(--transition);
+}
+
+/* Circular Stat Cards Grid */
+#employee-cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1.5rem;
+    padding: 1.5rem 0;
+}
+
+.emp-stat-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 1.5rem 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    cursor: pointer;
+    text-align: center;
+    position: relative;
+    border: 1px solid #f1f5f9;
+}
+
+.emp-stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(0,0,0,0.08);
+    border-color: #f8bbd0;
+}
+
+.stat-circle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    margin-bottom: 1rem;
+    padding: 4px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.stat-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 4px solid #f1f5f9;
+    border-top-color: #ad1457; /* Active theme color (Deep Pink) */
+    transform: rotate(-45deg);
+}
+
+.stat-avatar {
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    object-fit: cover;
+    z-index: 1;
+    border: 3px solid #fff;
+}
+
+.stat-badge {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    background: #ad1457;
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    z-index: 2;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.stat-info h3 {
+    font-size: 1.05rem;
+    color: #0f172a;
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+}
+
+.stat-info p {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-bottom: 0.75rem;
+}
+
+.stat-meta {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    background: #f8fafc;
+    padding: 3px 10px;
+    border-radius: 10px;
+    display: inline-block;
+    border: 1px solid #f1f5f9;
+}
+
+.icon-btn-small {
+    background: #fff5f8;
+    border: none;
+    color: #ad1457;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin: 0.25rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.icon-btn-small:hover {
+    background: #ad1457;
+    color: #fff;
+    transform: scale(1.1);
+}
+
+.emp-card-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+/* Unique Active Teams Modal Custom Styles */
+.teams-modal {
+    max-width: 850px !important;
+    border-radius: 24px !important;
+}
+
+.teams-grid-modal {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-top: 0.5rem;
+    padding: 0.5rem 0;
+}
+
+.team-modal-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 1px solid #f1f5f9;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    transition: all 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.team-modal-card:hover {
+    transform: translateY(-3px);
+    border-color: #f8bbd0;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.06);
+}
+
+.team-modal-badge {
+    background: #ad1457;
+    color: #fff;
+    align-self: flex-start;
+    padding: 0.35rem 0.85rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 6px rgba(173, 20, 87, 0.2);
+}
+
+.team-modal-leader {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px dashed #f1f5f9;
+}
+
+.team-modal-leader-info h4 {
+    font-size: 0.7rem;
+    color: #ad1457;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 0.15rem;
+}
+
+.team-modal-leader-info p {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.team-modal-members h4 {
+    font-size: 0.7rem;
+    color: #64748b;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.team-modal-members-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.team-modal-member-badge {
+    background: #fafafa;
+    border: 1px solid #f1f5f9;
+    color: #374151;
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.team-modal-member-badge:hover {
+    background: #fff5f8;
+    border-color: #f8bbd0;
+    color: #ad1457;
+}
+
+.kpi-card.clickable {
+    cursor: pointer;
+}
+
+.kpi-card.clickable:hover {
+    border-color: #ad1457 !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+}
+
+.icon-btn-small:hover {
+    background: #ad1457;
+    color: #fff;
+    transform: scale(1.1);
+}
+
+.emp-card-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+
+.cert-viewer {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: white;
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    z-index: 100;
+    margin-top: 10px;
+    border: 1px solid #f1f5f9;
+}
+
+.cert-viewer h4 {
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+    color: #ad1457;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cert-list {
+    list-style: none;
+    text-align: left;
+}
+
+.cert-list li {
+    font-size: 0.8rem;
+    padding: 4px 0;
+    color: #64748b;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.cert-list li:last-child {
+    border-bottom: none;
+}
+
+.add-emp-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+    padding: 2rem 0;
+    border-top: 1px dashed var(--panel-border);
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(6px);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal {
+    width: 100%;
+    max-width: 620px;
+    padding: 2.5rem;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    border: 1px solid #fce4ec;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #fce4ec;
+}
+
+.modal-header h2 {
+    color: #1a1a1a;
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.form-group.col-span-2 {
+    grid-column: span 2;
+}
+
+.form-group label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #ad1457;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-group input,
+.form-group select {
+    background: #fafafa;
+    border: 1.5px solid #f1f5f9;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    color: #1a1a1a;
+    font-family: inherit;
+    font-size: 0.95rem;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: #ad1457;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(173,20,87,0.08);
+}
+
+.form-group input::placeholder {
+    color: #b0bec5;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+/* Modal Details List Style */
+.details-list {
+    list-style: none;
+    padding: 0.25rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.details-list li {
+    color: #374151;
+    font-size: 0.9rem;
+    padding: 0.4rem 0 0.4rem 1rem;
+    border-left: 3px solid #ad1457;
+    background: transparent;
+    border-radius: 0;
+    font-weight: 400;
+}
+
+.details-list li:hover {
+    transform: none;
+    background: transparent;
+    color: #ad1457;
+}
+
+.details-text-block {
+    background: #fafafa;
+    padding: 1.25rem;
+    border-radius: 12px;
+    border: 1px solid #f1f5f9;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+</style>
 </head>
 <body>
     <!-- Background Elements -->
@@ -64,7 +1301,7 @@
                         <h3 id="kpi-total-team">0</h3>
                         <p class="trend positive"><i data-lucide="trending-up"></i> Live Feed</p>
                     </div>
-                    <div class="kpi-card glass-panel">
+                    <div class="kpi-card glass-panel clickable" onclick="openActiveTeamsModal()">
                         <div class="kpi-header">
                             <i data-lucide="target" class="icon-purple"></i>
                             <span>Active Teams</span>
@@ -184,6 +1421,27 @@
         </div>
     </div>
 
+    <!-- Active Teams Modal -->
+    <div class="modal-overlay" id="active-teams-modal" style="display: none;" onclick="closeActiveTeamsModal(event)">
+        <div class="modal glass-panel teams-modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="details-header-info">
+                    <i data-lucide="users" style="color: #ad1457; width: 32px; height: 32px;"></i>
+                    <div>
+                        <h2>Active Teams</h2>
+                        <p>Overview of all active teams, leaders, and their members</p>
+                    </div>
+                </div>
+                <button class="icon-btn" onclick="closeActiveTeamsModal()"><i data-lucide="x"></i></button>
+            </div>
+            <div class="details-content">
+                <div id="teams-modal-list" class="teams-grid-modal">
+                    <!-- Dynamic team content goes here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Add Employee Modal -->
     <div class="modal-overlay" id="add-employee-modal" style="display: none;">
         <div class="modal glass-panel">
@@ -273,7 +1531,428 @@
         </div>
     </div>
 
-    <script src="app.js?v=4"></script>
+    <script>
+// Configuration
+const SHEET_ID = '1ZIs0bbHxkwpo1nUvDcLr-oRei1mUOlaOJISOoeNI6Pc';
+const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
+
+let employees = [];
+
+// View Switching Logic
+function switchView(viewName) {
+    // Remove active from ALL nav tabs
+    document.querySelectorAll('.nav-tab').forEach(btn => btn.classList.remove('active'));
+    // Add active only to the selected tab
+    const activeBtn = document.getElementById(`btn-${viewName}-view`);
+    if (activeBtn) activeBtn.classList.add('active');
+
+    document.querySelectorAll('.view-section').forEach(section => section.style.display = 'none');
+    const targetSection = document.getElementById(`${viewName}-view`);
+    if (targetSection) {
+        targetSection.style.display = 'block';
+        targetSection.style.animation = 'none';
+        targetSection.offsetHeight;
+        targetSection.style.animation = null;
+    }
+}
+
+// Sidebar Logic
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('sidebar-toggle-btn');
+    sidebar.classList.toggle('collapsed');
+    
+    const icon = sidebar.classList.contains('collapsed') ? 'chevron-right' : 'chevron-left';
+    toggleBtn.innerHTML = `<i data-lucide="${icon}"></i>`;
+    lucide.createIcons();
+}
+
+// CSV Parser
+function parseCSV(csv) {
+    const lines = csv.split('\n');
+    const result = [];
+    const headers = lines[0].split(',').map(h => h.trim());
+
+    for (let i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        
+        // Handle quoted values (comma inside quotes)
+        const row = [];
+        let current = '';
+        let inQuotes = false;
+        
+        for (let char of lines[i]) {
+            if (char === '"') {
+                inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+                row.push(current.trim());
+                current = '';
+            } else {
+                current += char;
+            }
+        }
+        row.push(current.trim());
+
+        const obj = {};
+        headers.forEach((header, index) => {
+            obj[header] = row[index] || '';
+        });
+        
+        // Map CSV fields to our internal employee object
+        if (obj['Name']) {
+            result.push({
+                id: i,
+                employeeId: obj['Employee ID'] || `GEN-${100 + i}`,
+                name: obj['Name'],
+                role: obj['Role'] || 'Bioinformatician',
+                email: `${obj['Name'].toLowerCase().replace(/\s+/g, '.')}@genomicdesk.com`,
+                doj: obj['Date of Joining'] || 'N/A',
+                team: obj['Team'] || 'Primary',
+                teamLeader: obj['Team Leader name'] || 'N/A',
+                samples: obj['Report/sample types'] || 'N/A',
+                analysis: obj['Analysis'] || 'N/A',
+                work: obj['Work'] || 'N/A',
+                certificates: [],
+                avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(obj['Name'])}&background=random&color=fff`
+            });
+        }
+    }
+    return result;
+}
+
+// Format date from DD/MM/YYYY → "12th Mar 2026"
+function formatDate(dateStr) {
+    if (!dateStr || dateStr === 'N/A') return 'N/A';
+    const parts = dateStr.split('/');
+    if (parts.length !== 3) return dateStr;
+    const [day, month, year] = parts.map(Number);
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const suffix = (d) => {
+        if (d >= 11 && d <= 13) return 'th';
+        switch (d % 10) {
+            case 1: return 'st';
+            case 2: return 'nd';
+            case 3: return 'rd';
+            default: return 'th';
+        }
+    };
+    return `${day}${suffix(day)} ${months[month - 1]} ${year}`;
+}
+
+// Fetch Data
+async function fetchData() {
+    try {
+        const response = await fetch(CSV_URL);
+        const csvText = await response.text();
+        const rawEmployees = parseCSV(csvText);
+        
+        // Sort by Joining Date (DD/MM/YYYY) - Ascending (First joined first displayed)
+        employees = rawEmployees.sort((a, b) => {
+            const parseDate = (dateStr) => {
+                if (!dateStr || dateStr === 'N/A') return new Date(0);
+                const [day, month, year] = dateStr.split('/').map(Number);
+                return new Date(year, month - 1, day);
+            };
+            return parseDate(a.doj) - parseDate(b.doj);
+        });
+        
+        populateTeamLeaders();
+        updateKPIs();
+        renderEmployees();
+        renderEmployeeSpace();
+    } catch (error) {
+        console.error('Error fetching data:', error);
+    }
+}
+
+function populateTeamLeaders() {
+    const leaderSelect = document.getElementById('filter-leader');
+    if (!leaderSelect) return;
+
+    const leaders = [...new Set(employees.map(emp => emp.teamLeader))].filter(l => l && l !== 'N/A' && l !== 'Team Leader name' && l.trim() !== '');
+    
+    // Clear existing options except first
+    leaderSelect.innerHTML = '<option value="all">All Leaders</option>';
+    leaders.sort().forEach(leader => {
+        const option = document.createElement('option');
+        option.value = leader;
+        option.textContent = leader;
+        leaderSelect.appendChild(option);
+    });
+}
+
+function updateKPIs() {
+    document.getElementById('kpi-total-team').textContent = employees.length;
+    const activeTeams = [...new Set(employees.map(emp => emp.team))].filter(t => t && t !== 'Team' && t.trim() !== '').length;
+    document.getElementById('kpi-active-teams').textContent = activeTeams;
+}
+
+// Filtering Logic
+function handleFilterChange() {
+    const teamFilter = document.getElementById('filter-team').value;
+    const leaderFilter = document.getElementById('filter-leader').value;
+    const sampleFilter = document.getElementById('filter-sample').value;
+
+    const filtered = employees.filter(emp => {
+        const matchesTeam = teamFilter === 'all' || (emp.team && emp.team.toLowerCase().includes(teamFilter.toLowerCase()));
+        const matchesLeader = leaderFilter === 'all' || emp.teamLeader === leaderFilter;
+        const matchesSample = sampleFilter === 'all' || (emp.samples && emp.samples.toLowerCase().includes(sampleFilter.toLowerCase()));
+        
+        return matchesTeam && matchesLeader && matchesSample;
+    });
+
+    renderEmployees(filtered);
+    renderEmployeeSpace(filtered);
+}
+
+// Modal Logic
+function openEmployeeDetails(id) {
+    const emp = employees.find(e => e.id === id);
+    if (!emp) return;
+
+    document.getElementById('details-avatar').src = emp.avatar;
+    document.getElementById('details-name').textContent = emp.name;
+    document.getElementById('details-role').textContent = emp.role;
+    document.getElementById('details-id').textContent = emp.employeeId;
+    document.getElementById('details-team').textContent = emp.team;
+    document.getElementById('details-leader').textContent = emp.teamLeader;
+    document.getElementById('details-doj').textContent = formatDate(emp.doj);
+    document.getElementById('details-email').textContent = emp.email;
+
+    // Helper to render lists
+    const renderList = (text) => {
+        if (!text) return 'N/A';
+        const items = text.split(',').map(item => item.trim()).filter(item => item !== "");
+        return `<ul class="details-list">${items.map(item => `<li>${item}</li>`).join('')}</ul>`;
+    };
+
+    document.getElementById('details-work').innerHTML = renderList(emp.work);
+    document.getElementById('details-analysis').innerHTML = renderList(emp.analysis);
+    document.getElementById('details-samples').innerHTML = renderList(emp.samples);
+
+    document.getElementById('employee-details-modal').style.display = 'flex';
+}
+
+function closeDetailsModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('employee-details-modal').style.display = 'none';
+}
+
+function openActiveTeamsModal() {
+    const teamsData = {};
+    
+    employees.forEach(emp => {
+        const teamName = emp.team ? emp.team.trim() : '';
+        if (!teamName || teamName.toLowerCase() === 'team' || teamName === 'N/A') return;
+        
+        if (!teamsData[teamName]) {
+            teamsData[teamName] = {
+                leader: 'N/A',
+                members: []
+            };
+        }
+        
+        if (emp.teamLeader && emp.teamLeader !== 'N/A' && emp.teamLeader.trim() !== '') {
+            teamsData[teamName].leader = emp.teamLeader.trim();
+        }
+        
+        if (emp.name && emp.name.trim() !== '') {
+            teamsData[teamName].members.push(emp.name.trim());
+        }
+    });
+
+    const modalList = document.getElementById('teams-modal-list');
+    if (!modalList) return;
+
+    modalList.innerHTML = Object.keys(teamsData).map(teamName => {
+        const team = teamsData[teamName];
+        const leaderAvatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(team.leader)}&background=fce4ec&color=ad1457&bold=true`;
+
+        return `
+            <div class="team-modal-card">
+                <div class="team-modal-badge">${teamName}</div>
+                <div class="team-modal-leader">
+                    <img src="${leaderAvatarUrl}" class="emp-avatar" style="width: 36px; height: 36px; border: 1.5px solid #fce4ec;" alt="${team.leader}">
+                    <div class="team-modal-leader-info">
+                        <h4>Team Leader</h4>
+                        <p>${team.leader}</p>
+                    </div>
+                </div>
+                <div class="team-modal-members">
+                    <h4>Members (${team.members.length})</h4>
+                    <div class="team-modal-members-list">
+                        ${team.members.map(m => `<span class="team-modal-member-badge">${m}</span>`).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    const modal = document.getElementById('active-teams-modal');
+    if (modal) {
+        modal.style.display = 'flex';
+        lucide.createIcons();
+    }
+}
+
+function closeActiveTeamsModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    const modal = document.getElementById('active-teams-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Render Manager Directory
+function renderEmployees(data = employees) {
+    const tbody = document.getElementById('employee-table-body');
+    if (!tbody) return;
+    
+    tbody.innerHTML = data.map(emp => `
+        <tr onclick="openEmployeeDetails(${emp.id})" style="cursor: pointer;">
+            <td>
+                <div class="emp-cell">
+                    <img src="${emp.avatar}" alt="${emp.name}" class="emp-avatar">
+                    <div>
+                        <div class="emp-name">${emp.name}</div>
+                        <div class="emp-email">${emp.email}</div>
+                    </div>
+                </div>
+            </td>
+            <td>${emp.employeeId}</td>
+            <td>${emp.role}</td>
+            <td>${formatDate(emp.doj)}</td>
+            <td><span class="status-badge status-active">${emp.team}</span></td>
+            <td>${emp.teamLeader}</td>
+        </tr>
+    `).join('');
+}
+
+// Render Employee Space Cards (Circular Stat Cards)
+function renderEmployeeSpace(data = employees) {
+    const container = document.getElementById('employee-cards-container');
+    if (!container) return;
+
+    container.innerHTML = data.map(emp => `
+        <div class="emp-stat-card" onclick="openEmployeeDetails(${emp.id})">
+            <div class="stat-circle">
+                <div class="stat-progress"></div>
+                <img src="${emp.avatar}" alt="${emp.name}" class="stat-avatar">
+                <div class="stat-badge">${emp.team}</div>
+            </div>
+            <div class="stat-info">
+                <h3>${emp.name}</h3>
+                <p>${emp.role}</p>
+                <div class="stat-meta">
+                    <span>${emp.employeeId}</span>
+                </div>
+            </div>
+            
+            <div class="emp-card-actions" onclick="event.stopPropagation()">
+                <button class="icon-btn-small" onclick="triggerUpload(${emp.id})" title="Upload Certificate">
+                    <i data-lucide="upload-cloud"></i>
+                </button>
+                <button class="icon-btn-small" onclick="toggleCerts(${emp.id})" title="View Certificates">
+                    <i data-lucide="eye"></i>
+                </button>
+            </div>
+            
+            <div class="cert-viewer" id="certs-${emp.id}" style="display: none;" onclick="event.stopPropagation()">
+                <h4>Certificates</h4>
+                ${emp.certificates.length > 0 
+                    ? `<ul class="cert-list">
+                        ${emp.certificates.map(cert => `
+                            <li>${cert}</li>
+                        `).join('')}
+                       </ul>`
+                    : `<p class="no-certs">No certs</p>`
+                }
+            </div>
+        </div>
+    `).join('');
+    
+    lucide.createIcons();
+}
+
+// Certificate Logic
+function triggerUpload(empId) {
+    const fileName = prompt("Enter the name of the certificate file to upload (e.g., 'React_Summit.pdf'):");
+    if (fileName && fileName.trim() !== "") {
+        const emp = employees.find(e => e.id === empId);
+        if (emp) {
+            emp.certificates.push(fileName.trim());
+            alert(`${fileName} uploaded successfully for ${emp.name}!`);
+            renderEmployeeSpace();
+            const certViewer = document.getElementById(`certs-${empId}`);
+            if(certViewer) certViewer.style.display = 'block';
+        }
+    }
+}
+
+function toggleCerts(empId) {
+    const certViewer = document.getElementById(`certs-${empId}`);
+    if (certViewer) {
+        certViewer.style.display = certViewer.style.display === 'none' ? 'block' : 'none';
+    }
+}
+
+// Add New Employee Logic
+function openAddEmployeeModal() {
+    document.getElementById('add-employee-modal').style.display = 'flex';
+}
+
+function closeAddEmployeeModal() {
+    document.getElementById('add-employee-modal').style.display = 'none';
+    document.getElementById('add-emp-form').reset();
+}
+
+function handleAddEmployee(event) {
+    event.preventDefault();
+    const name = document.getElementById('emp-name').value;
+    const email = document.getElementById('emp-email').value;
+    const employeeId = document.getElementById('emp-id').value;
+    const role = document.getElementById('emp-role').value;
+    const doj = document.getElementById('emp-doj').value;
+    const leader = document.getElementById('emp-leader').value;
+    const team = document.getElementById('emp-team').value;
+
+    const newEmp = {
+        id: employees.length + 1,
+        employeeId: employeeId,
+        name: name,
+        role: role,
+        email: email,
+        doj: doj,
+        teamLeader: leader,
+        team: team,
+        work: 'N/A',
+        analysis: 'N/A',
+        samples: 'N/A',
+        certificates: [],
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`
+    };
+
+    employees.unshift(newEmp);
+    closeAddEmployeeModal();
+    
+    populateTeamLeaders();
+    updateKPIs();
+    renderEmployees();
+    renderEmployeeSpace();
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    fetchData();
+    lucide.createIcons();
+    
+    const addForm = document.getElementById('add-emp-form');
+    if(addForm) {
+        addForm.addEventListener('submit', handleAddEmployee);
+    }
+});
+
+</script>
     <script>
         // Initialize Lucide icons
         lucide.createIcons();
