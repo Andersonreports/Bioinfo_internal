@@ -1295,10 +1295,15 @@ body {
 .modal-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 1rem;
+    align-items: center;
+    gap: 0.75rem;
     margin-top: 2rem;
     padding-top: 1.25rem;
     border-top: 1px solid #f1f5f9;
+}
+
+.modal-actions .btn-delete-cert {
+    margin-right: auto;
 }
 
 /* Modal Details List Style */
@@ -1820,13 +1825,11 @@ body {
                     </div>
                 </div>
                 <div class="modal-actions">
+                    <button type="button" class="btn-delete-cert" onclick="deleteAllCerts()">
+                        <i data-lucide="trash-2" style="width:15px;height:15px;"></i> Delete All
+                    </button>
                     <button type="button" class="btn-outline" onclick="closeCertModal()">Cancel</button>
                     <button type="submit" class="btn-primary">Save Certificate</button>
-                </div>
-                <div class="modal-actions" style="justify-content: center; padding-top: 0.75rem; border-top: none; margin-top: 0;">
-                    <button type="button" class="btn-delete-cert" onclick="deleteAllCerts()">
-                        <i data-lucide="trash-2" style="width:15px;height:15px;"></i> Delete All Certificates
-                    </button>
                 </div>
             </form>
         </div>
