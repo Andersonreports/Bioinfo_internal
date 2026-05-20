@@ -2151,24 +2151,19 @@ body {
 
                 <!-- Sub-tabs -->
                 <div class="emp-subtabs">
-                    <button class="emp-subtab active" id="subtab-directory" onclick="switchEmpSubtab('directory')">
-                        <i data-lucide="users" style="width:15px;height:15px;"></i> Team Directory
-                    </button>
-                    <button class="emp-subtab" id="subtab-updates" onclick="switchEmpSubtab('updates')">
+                    <button class="emp-subtab active" id="subtab-updates" onclick="switchEmpSubtab('updates')">
                         <i data-lucide="clipboard-list" style="width:15px;height:15px;"></i> Work Updates
                     </button>
                 </div>
 
-                <!-- Team Directory panel -->
-                <div id="emp-panel-directory">
-                    <div class="employee-grid" id="employee-cards-container">
-                        <!-- Populated by JS -->
-                    </div>
-                    <div class="add-emp-container">
-                        <button class="btn-primary add-emp-btn" onclick="openAddEmployeeModal()">
-                            <i data-lucide="plus"></i> Add New Employee
-                        </button>
-                    </div>
+                <!-- Employee cards (always visible) -->
+                <div class="employee-grid" id="employee-cards-container">
+                    <!-- Populated by JS -->
+                </div>
+                <div class="add-emp-container">
+                    <button class="btn-primary add-emp-btn" onclick="openAddEmployeeModal()">
+                        <i data-lucide="plus"></i> Add New Employee
+                    </button>
                 </div>
 
                 <!-- Work Updates panel -->
@@ -3153,7 +3148,6 @@ let workUpdates = JSON.parse(localStorage.getItem('workUpdates') || '[]');
 function switchEmpSubtab(tab) {
     document.querySelectorAll('.emp-subtab').forEach(b => b.classList.remove('active'));
     document.getElementById(`subtab-${tab}`).classList.add('active');
-    document.getElementById('emp-panel-directory').style.display = tab === 'directory' ? '' : 'none';
     document.getElementById('emp-panel-updates').style.display = tab === 'updates' ? '' : 'none';
     if (tab === 'updates') {
         populateWuNameDropdowns();
