@@ -610,6 +610,27 @@ body {
     background: rgba(255, 255, 255, 0.05);
 }
 
+.btn-delete-cert {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: none;
+    border: 1.5px solid #ef5350;
+    color: #ef5350;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 0.45rem 1.1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.btn-delete-cert:hover {
+    background: #ef5350;
+    color: #fff;
+}
+
 /* KPI Cards */
 .kpi-grid {
     display: grid;
@@ -1802,6 +1823,11 @@ body {
                     <button type="button" class="btn-outline" onclick="closeCertModal()">Cancel</button>
                     <button type="submit" class="btn-primary">Save Certificate</button>
                 </div>
+                <div class="modal-actions" style="justify-content: center; padding-top: 0.75rem; border-top: none; margin-top: 0;">
+                    <button type="button" class="btn-delete-cert" onclick="deleteAllCerts()">
+                        <i data-lucide="trash-2" style="width:15px;height:15px;"></i> Delete All Certificates
+                    </button>
+                </div>
             </form>
         </div>
     </div>
@@ -2157,6 +2183,23 @@ function openCertModal(empId) {
 function closeCertModal() {
     document.getElementById('cert-upload-modal').style.display = 'none';
     document.getElementById('cert-upload-form').reset();
+}
+
+function deleteAllCerts() {
+    const empId = parseInt(document.getElementById('cert-emp-id').value);
+    const emp = employees.find(e => e.id === empId);
+    if (!emp) return;
+    const count = emp.certificates ? emp.certificates.length : 0;
+    if (count === 0) {
+        alert(`${emp.name} has no certificates to delete.`);
+        return;
+    }
+    if (!confirm(`Delete all ${count} certificate${count !== 1 ? 's' : ''} for ${emp.name}? This cannot be undone.`)) return;
+    emp.certificates = [];
+    localStorage.removeItem(`certs_${emp.employeeId}`);
+    alert(`All certificates deleted for ${emp.name}.`);
+    closeCertModal();
+    renderEmployeeSpace();
 }
 
 function readFileAsDataURL(file) {
