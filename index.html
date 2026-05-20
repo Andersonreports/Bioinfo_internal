@@ -2149,13 +2149,6 @@ body {
                     </div>
                 </div>
 
-                <!-- Sub-tabs -->
-                <div class="emp-subtabs">
-                    <button class="emp-subtab active" id="subtab-updates" onclick="switchEmpSubtab('updates')">
-                        <i data-lucide="clipboard-list" style="width:15px;height:15px;"></i> Work Updates
-                    </button>
-                </div>
-
                 <!-- Employee cards (always visible) -->
                 <div class="employee-grid" id="employee-cards-container">
                     <!-- Populated by JS -->
@@ -2163,7 +2156,7 @@ body {
 
 
                 <!-- Work Updates panel -->
-                <div id="emp-panel-updates" style="display:none;">
+                <div id="emp-panel-updates">
                     <div class="wu-two-col">
 
                     <!-- Post update form -->
@@ -2614,6 +2607,9 @@ async function fetchData() {
         updateKPIs();
         renderEmployees();
         renderEmployeeSpace();
+        populateWuNameDropdowns();
+        setDefaultWuDate();
+        renderWorkUpdates();
     } catch (error) {
         console.error('Error fetching data:', error);
     }
