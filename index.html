@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -13,32 +13,37 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
 :root {
-    /* Color Palette - Light Lavender Theme */
-    --bg-dark: #f3f0ff;
-    --bg-darker: #e9e5ff;
-    --panel-bg: rgba(255, 255, 255, 0.7);
-    --panel-border: rgba(196, 181, 253, 0.3);
-    
-    --primary: #6366f1;
-    --primary-light: #818cf8;
-    --primary-hover: #4338ca;
-    --secondary: #db2777;
-    --accent: #f43f5e;
+    --bg-dark: #f0f4ff;
+    --bg-darker: #e8eef8;
+    --panel-bg: rgba(255,255,255,0.82);
+    --panel-border: rgba(99,143,210,0.18);
+
+    --primary: #1d4ed8;
+    --primary-light: #3b82f6;
+    --primary-hover: #1e40af;
+    --secondary: #0891b2;
+    --accent: #0ea5e9;
     --accent-blue: #0284c7;
-    --accent-purple: #7c3aed;
+    --accent-purple: #6366f1;
     --accent-gold: #d97706;
     --success: #059669;
     --warning: #d97706;
-    
+
+    --brand: #0f2a5e;          /* deep navy - header */
+    --brand-accent: #1d8cf8;   /* bright blue accent */
+    --chip: #0891b2;           /* teal for badges/chips */
+
     --text-main: #0f172a;
     --text-muted: #64748b;
-    
+
     --font-main: 'Outfit', sans-serif;
-    
-    --glass-blur: blur(12px);
-    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-    
+
+    --glass-blur: blur(16px);
+    --shadow-sm: 0 2px 8px rgba(15,42,94,0.08);
+    --shadow-md: 0 4px 20px rgba(15,42,94,0.10);
+    --shadow-lg: 0 10px 40px rgba(15,42,94,0.14);
+    --shadow-card: 0 2px 12px rgba(29,78,216,0.07), 0 8px 32px rgba(15,42,94,0.06);
+
     --transition: all 0.3s ease;
 }
 
@@ -53,13 +58,13 @@
 }
 
 .title-bar {
-    background: #f8bbd0; /* Pastel Pink Title Bar */
-    height: 60px;
+    background: linear-gradient(135deg, #0f2a5e 0%, #1a3f7a 60%, #1d4ed8 100%);
+    height: 62px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0 2rem;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08); /* Stronger shadow */
+    box-shadow: 0 4px 24px rgba(15,42,94,0.28);
 }
 
 .brand {
@@ -69,20 +74,19 @@
 }
 
 .brand-icon {
-    color: #ad1457;
-    width: 28px;
-    height: 28px;
+    color: #60a5fa;
+    width: 30px;
+    height: 30px;
+    filter: drop-shadow(0 0 8px rgba(96,165,250,0.6));
 }
 
 .brand h2 {
-    color: #1a1a1a; /* Solid dark black, no effects */
+    color: #ffffff;
     font-weight: 800;
-    font-size: 1.6rem;
-    letter-spacing: 2px;
+    font-size: 1.5rem;
+    letter-spacing: 3px;
     text-transform: uppercase;
-    text-shadow: none;
-    filter: none;
-    opacity: 1;
+    text-shadow: 0 0 20px rgba(96,165,250,0.4);
 }
 
 .header-actions {
@@ -94,7 +98,7 @@
 .user-badge {
     width: 36px;
     height: 36px;
-    background: #ad1457;
+    background: linear-gradient(135deg,#1d8cf8,#6366f1);
     color: #fff;
     border-radius: 50%;
     display: flex;
@@ -102,7 +106,7 @@
     justify-content: center;
     font-weight: 700;
     font-size: 0.9rem;
-    box-shadow: 0 2px 6px rgba(173, 20, 87, 0.3);
+    box-shadow: 0 2px 12px rgba(29,140,248,0.45);
 }
 
 /* Header dropdowns */
@@ -149,7 +153,7 @@
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #ad1457;
+    background: #1d4ed8;
     flex-shrink: 0;
     margin-top: 4px;
 }
@@ -210,11 +214,13 @@
 
 /* Horizontal Navigation Tabs - "Hanging Texts" Style */
 .nav-tabs {
-    background: transparent; /* Removed separate rectangle */
+    background: rgba(255,255,255,0.72);
+    backdrop-filter: blur(12px);
     display: flex;
-    padding: 0.5rem 2rem;
-    border-bottom: none; /* Removed border */
-    gap: 2.5rem; /* More gap for airy feel */
+    padding: 0 2rem;
+    border-bottom: 1px solid rgba(99,143,210,0.15);
+    gap: 2.5rem;
+    box-shadow: 0 2px 12px rgba(15,42,94,0.07);
 }
 
 .nav-tab {
@@ -236,12 +242,12 @@
 
 .nav-tab:hover {
     background: transparent;
-    color: #ad1457;
+    color: #1d4ed8;
 }
 
 .nav-tab.active {
-    color: #ad1457;
-    border-bottom-color: #ad1457;
+    color: #1d4ed8;
+    border-bottom-color: #1d4ed8;
 }
 
 .nav-tab i {
@@ -432,7 +438,7 @@
 
 body {
     font-family: var(--font-main);
-    background-color: var(--bg-darker);
+    background: linear-gradient(145deg, #eef2ff 0%, #dbeafe 40%, #e0f2fe 70%, #f0fdf4 100%);
     color: var(--text-main);
     height: 100vh;
     overflow: hidden;
@@ -443,35 +449,45 @@ body {
 .bg-orb {
     position: fixed;
     border-radius: 50%;
-    filter: blur(80px);
+    filter: blur(90px);
     z-index: -1;
-    opacity: 0.2;
+    opacity: 0.18;
+    pointer-events: none;
 }
 
 .orb-1 {
-    top: -10%;
-    left: -10%;
-    width: 500px;
-    height: 500px;
-    background: radial-gradient(circle, var(--accent-purple) 0%, transparent 70%);
+    top: -8%;
+    left: -8%;
+    width: 520px;
+    height: 520px;
+    background: radial-gradient(circle, #3b82f6 0%, transparent 70%);
 }
 
 .orb-2 {
     bottom: -10%;
-    right: -10%;
+    right: -8%;
     width: 600px;
     height: 600px;
-    background: radial-gradient(circle, var(--accent-blue) 0%, transparent 70%);
+    background: radial-gradient(circle, #06b6d4 0%, transparent 70%);
+}
+
+.orb-3 {
+    top: 40%;
+    right: 20%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, #6366f1 0%, transparent 70%);
+    opacity: 0.10;
 }
 
 /* Utilities */
 .glass-panel {
-    background: var(--panel-bg);
-    backdrop-filter: var(--glass-blur);
-    -webkit-backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--panel-border);
-    border-radius: 16px;
-    box-shadow: var(--shadow-lg);
+    background: rgba(255,255,255,0.88);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(99,155,220,0.18);
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(15,42,94,0.09), 0 1px 4px rgba(29,78,216,0.06);
 }
 
 .mt-4 { margin-top: 1rem; }
@@ -639,15 +655,32 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--text-main);
+    color: rgba(255,255,255,0.85);
     cursor: pointer;
-    border: 1px solid var(--panel-border);
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.12);
     transition: var(--transition);
+    position: relative;
 }
 
 .icon-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    transform: translateY(-2px);
+    background: rgba(255,255,255,0.22);
+    border-color: rgba(255,255,255,0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* icon-btn inside modal (dark bg not applicable) */
+.modal .icon-btn {
+    color: #64748b;
+    background: #f8f9fa;
+    border-color: #e2e8f0;
+}
+
+.modal .icon-btn:hover {
+    background: #1d4ed8;
+    color: #fff;
+    border-color: #1d4ed8;
 }
 
 /* Views & Dashboards */
@@ -693,7 +726,7 @@ body {
 .btn-primary:hover {
     background: var(--primary-hover);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    box-shadow: 0 4px 16px rgba(29,78,216,0.35);
 }
 
 .btn-outline {
@@ -969,7 +1002,7 @@ body {
 .emp-stat-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 12px 25px rgba(0,0,0,0.08);
-    border-color: #f8bbd0;
+    border-color: #1a3f7a;
 }
 
 .stat-circle {
@@ -994,7 +1027,7 @@ body {
     height: 100%;
     border-radius: 50%;
     border: 4px solid #f1f5f9;
-    border-top-color: #ad1457; /* Active theme color (Deep Pink) */
+    border-top-color: #1d4ed8; /* Active theme color (Deep Pink) */
     transform: rotate(-45deg);
 }
 
@@ -1011,7 +1044,7 @@ body {
     position: absolute;
     bottom: 2px;
     right: 2px;
-    background: #ad1457;
+    background: #1d4ed8;
     color: #fff;
     font-size: 0.65rem;
     font-weight: 700;
@@ -1048,7 +1081,7 @@ body {
 .icon-btn-small {
     background: #fff5f8;
     border: none;
-    color: #ad1457;
+    color: #1d4ed8;
     width: 32px;
     height: 32px;
     border-radius: 50%;
@@ -1062,7 +1095,7 @@ body {
 }
 
 .icon-btn-small:hover {
-    background: #ad1457;
+    background: #1d4ed8;
     color: #fff;
     transform: scale(1.1);
 }
@@ -1101,12 +1134,12 @@ body {
 
 .team-modal-card:hover {
     transform: translateY(-3px);
-    border-color: #f8bbd0;
+    border-color: #1a3f7a;
     box-shadow: 0 8px 25px rgba(0,0,0,0.06);
 }
 
 .team-modal-badge {
-    background: #ad1457;
+    background: #1d4ed8;
     color: #fff;
     align-self: flex-start;
     padding: 0.35rem 0.85rem;
@@ -1115,7 +1148,7 @@ body {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    box-shadow: 0 2px 6px rgba(173, 20, 87, 0.2);
+    box-shadow: 0 2px 6px rgba(29,78,216, 0.2);
 }
 
 .team-modal-leader {
@@ -1128,7 +1161,7 @@ body {
 
 .team-modal-leader-info h4 {
     font-size: 0.7rem;
-    color: #ad1457;
+    color: #1d4ed8;
     text-transform: uppercase;
     font-weight: 700;
     margin-bottom: 0.15rem;
@@ -1167,8 +1200,8 @@ body {
 
 .team-modal-member-badge:hover {
     background: #fff5f8;
-    border-color: #f8bbd0;
-    color: #ad1457;
+    border-color: #1a3f7a;
+    color: #1d4ed8;
 }
 
 /* Leader stat cards */
@@ -1188,15 +1221,15 @@ body {
 
 .leader-stat-card:hover {
     transform: translateY(-3px);
-    border-color: #f8bbd0;
-    box-shadow: 0 8px 25px rgba(173,20,87,0.08);
+    border-color: #1a3f7a;
+    box-shadow: 0 8px 25px rgba(29,78,216,0.08);
 }
 
 .leader-stat-avatar {
     width: 52px;
     height: 52px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #ad1457, #e91e8c);
+    background: linear-gradient(135deg, #1d4ed8, #2563eb);
     color: #fff;
     display: flex;
     align-items: center;
@@ -1217,8 +1250,8 @@ body {
 .leader-stat-count {
     font-size: 0.75rem;
     font-weight: 600;
-    color: #ad1457;
-    background: #fce4ec;
+    color: #1d4ed8;
+    background: #dbeafe;
     padding: 3px 10px;
     border-radius: 20px;
 }
@@ -1239,7 +1272,7 @@ body {
 }
 
 .kpi-card.clickable:hover {
-    border-color: #ad1457 !important;
+    border-color: #1d4ed8 !important;
     background: rgba(255, 255, 255, 0.9) !important;
 }
 
@@ -1269,7 +1302,7 @@ body {
     border-radius: 50%;
     object-fit: cover;
     flex-shrink: 0;
-    border: 1.5px solid #fce4ec;
+    border: 1.5px solid #dbeafe;
 }
 
 .kpi-daily-text {
@@ -1304,7 +1337,7 @@ body {
 }
 
 .daily-updates-card:hover .kpi-daily-hint {
-    color: #ad1457;
+    color: #1d4ed8;
 }
 
 /* Employee sub-tabs */
@@ -1334,8 +1367,8 @@ body {
     border-radius: 0;
 }
 
-.emp-subtab:hover { color: #ad1457; }
-.emp-subtab.active { color: #ad1457; border-bottom-color: #ad1457; }
+.emp-subtab:hover { color: #1d4ed8; }
+.emp-subtab.active { color: #1d4ed8; border-bottom-color: #1d4ed8; }
 
 /* Work updates two-column layout */
 .wu-two-col {
@@ -1415,7 +1448,7 @@ body {
     gap: 0.4rem;
     font-size: 0.75rem;
     font-weight: 700;
-    color: #ad1457;
+    color: #1d4ed8;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 0.6rem;
@@ -1437,7 +1470,7 @@ body {
     border-radius: 50%;
     object-fit: cover;
     flex-shrink: 0;
-    border: 2px solid #fce4ec;
+    border: 2px solid #dbeafe;
 }
 
 .wu-entry-body { flex: 1; }
@@ -1549,13 +1582,13 @@ body {
 }
 
 .tool-card-btn:hover {
-    background: #ad1457;
-    border-color: #ad1457;
+    background: #1d4ed8;
+    border-color: #1d4ed8;
     color: #fff;
 }
 
 .icon-btn-small:hover {
-    background: #ad1457;
+    background: #1d4ed8;
     color: #fff;
     transform: scale(1.1);
 }
@@ -1583,7 +1616,7 @@ body {
 .cert-viewer h4 {
     font-size: 0.85rem;
     margin-bottom: 0.5rem;
-    color: #ad1457;
+    color: #1d4ed8;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -1639,7 +1672,7 @@ body {
     background: #fff;
     border-radius: 20px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-    border: 1px solid #fce4ec;
+    border: 1px solid #dbeafe;
     box-sizing: border-box;
 }
 
@@ -1649,7 +1682,7 @@ body {
     align-items: center;
     margin-bottom: 2rem;
     padding-bottom: 1rem;
-    border-bottom: 2px solid #fce4ec;
+    border-bottom: 2px solid #dbeafe;
 }
 
 .modal-header h2 {
@@ -1677,7 +1710,7 @@ body {
 .form-group label {
     font-size: 0.8rem;
     font-weight: 700;
-    color: #ad1457;
+    color: #1d4ed8;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -1699,9 +1732,9 @@ body {
 
 .form-group input:focus,
 .form-group select:focus {
-    border-color: #ad1457;
+    border-color: #1d4ed8;
     background: #fff;
-    box-shadow: 0 0 0 3px rgba(173,20,87,0.08);
+    box-shadow: 0 0 0 3px rgba(29,78,216,0.08);
 }
 
 .form-group input::placeholder {
@@ -1735,7 +1768,7 @@ body {
     color: #374151;
     font-size: 0.9rem;
     padding: 0.4rem 0 0.4rem 1rem;
-    border-left: 3px solid #ad1457;
+    border-left: 3px solid #1d4ed8;
     background: transparent;
     border-radius: 0;
     font-weight: 400;
@@ -1744,7 +1777,7 @@ body {
 .details-list li:hover {
     transform: none;
     background: transparent;
-    color: #ad1457;
+    color: #1d4ed8;
 }
 
 .details-text-block {
@@ -1804,7 +1837,7 @@ body {
 }
 
 .linkedin-post:hover {
-    border-color: #f8bbd0;
+    border-color: #1a3f7a;
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
 }
 
@@ -1821,8 +1854,8 @@ body {
 }
 
 .cert-simple-card:hover {
-    border-color: #f8bbd0;
-    box-shadow: 0 4px 14px rgba(173,20,87,0.06);
+    border-color: #1a3f7a;
+    box-shadow: 0 4px 14px rgba(29,78,216,0.06);
 }
 
 .cert-simple-top {
@@ -1878,13 +1911,13 @@ body {
 }
 
 .cert-file-btn.view {
-    background: #fce4ec;
-    color: #ad1457;
-    border: 1px solid #f8bbd0;
+    background: #dbeafe;
+    color: #1d4ed8;
+    border: 1px solid #1a3f7a;
 }
 
 .cert-file-btn.view:hover {
-    background: #ad1457;
+    background: #1d4ed8;
     color: #fff;
 }
 
@@ -1946,8 +1979,8 @@ body {
 }
 
 .avatar-edit-btn:hover {
-    background: #ad1457;
-    border-color: #ad1457;
+    background: #1d4ed8;
+    border-color: #1d4ed8;
     color: #fff;
 }
 
@@ -2063,7 +2096,7 @@ body {
 }
 
 .post-attachment-info i {
-    color: #ad1457;
+    color: #1d4ed8;
     width: 24px;
     height: 24px;
 }
@@ -2081,8 +2114,8 @@ body {
 
 .post-attachment-action {
     background: #fff5f8;
-    color: #ad1457;
-    border: 1.5px solid #fce4ec;
+    color: #1d4ed8;
+    border: 1.5px solid #dbeafe;
     padding: 0.35rem 0.85rem;
     border-radius: 8px;
     font-size: 0.8rem;
@@ -2093,9 +2126,9 @@ body {
 }
 
 .post-attachment-action:hover {
-    background: #ad1457;
+    background: #1d4ed8;
     color: #fff;
-    border-color: #ad1457;
+    border-color: #1d4ed8;
 }
 
 .no-certs-post {
@@ -2126,6 +2159,7 @@ body {
     <!-- Background Elements -->
     <div class="bg-orb orb-1"></div>
     <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
     
     <!-- Top Navigation System (MS Word Style) -->
     <header class="app-header">
@@ -2145,7 +2179,7 @@ body {
                     <div class="hdr-dropdown" id="notif-panel" style="display:none;">
                         <div class="hdr-dropdown-header">
                             <span>Notifications</span>
-                            <button onclick="clearNotifications()" style="font-size:0.72rem;color:#ad1457;background:none;border:none;cursor:pointer;font-family:inherit;font-weight:600;">Clear all</button>
+                            <button onclick="clearNotifications()" style="font-size:0.72rem;color:#1d4ed8;background:none;border:none;cursor:pointer;font-family:inherit;font-weight:600;">Clear all</button>
                         </div>
                         <div id="notif-list"><p class="hdr-empty">No new notifications.</p></div>
                     </div>
@@ -2183,7 +2217,7 @@ body {
                     <div class="hdr-dropdown" id="profile-panel" style="display:none;min-width:200px;right:0;">
                         <div class="hdr-dropdown-header" style="flex-direction:column;align-items:flex-start;gap:0.15rem;">
                             <span style="font-weight:700;color:#1a1a1a;">Anderson</span>
-                            <span style="font-size:0.72rem;color:#94a3b8;">Admin · GenomicDesk</span>
+                            <span style="font-size:0.72rem;color:#94a3b8;">Admin Â· GenomicDesk</span>
                         </div>
                         <div class="settings-row" style="cursor:pointer;" onclick="switchView('manager')">
                             <span><i data-lucide="layout-dashboard" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;"></i> Manager Dashboard</span>
@@ -2329,7 +2363,7 @@ body {
                             <div class="form-group">
                                 <label>Your Name</label>
                                 <select id="wu-name">
-                                    <option value="">Select your name…</option>
+                                    <option value="">Select your nameâ€¦</option>
                                 </select>
                             </div>
                             <div class="form-group">
@@ -2338,7 +2372,7 @@ body {
                             </div>
                             <div class="form-group">
                                 <label>Work Update</label>
-                                <textarea id="wu-text" rows="3" placeholder="Describe what you worked on today…" style="width:100%;box-sizing:border-box;resize:vertical;background:#fafafa;border:1.5px solid #f1f5f9;border-radius:10px;padding:0.75rem 1rem;font-family:inherit;font-size:0.92rem;outline:none;transition:border 0.2s;"></textarea>
+                                <textarea id="wu-text" rows="3" placeholder="Describe what you worked on todayâ€¦" style="width:100%;box-sizing:border-box;resize:vertical;background:#fafafa;border:1.5px solid #f1f5f9;border-radius:10px;padding:0.75rem 1rem;font-family:inherit;font-size:0.92rem;outline:none;transition:border 0.2s;"></textarea>
                             </div>
                         </div>
                         <div style="display:flex;justify-content:flex-end;margin-top:0.75rem;">
@@ -2357,7 +2391,7 @@ body {
                                     <option value="all">All Employees</option>
                                 </select>
                                 <input type="date" id="wu-filter-date" onchange="renderWorkUpdates()" style="border:1.5px solid #f1f5f9;border-radius:8px;padding:0.4rem 0.75rem;font-size:0.82rem;font-family:inherit;background:#fff;color:#374151;">
-                                <button onclick="clearWuFilters()" style="font-size:0.78rem;color:#ad1457;background:none;border:none;cursor:pointer;font-family:inherit;font-weight:600;">Clear</button>
+                                <button onclick="clearWuFilters()" style="font-size:0.78rem;color:#1d4ed8;background:none;border:none;cursor:pointer;font-family:inherit;font-weight:600;">Clear</button>
                             </div>
                         </div>
                         <div id="wu-history-list"></div>
@@ -2397,7 +2431,7 @@ body {
                         <button class="tool-card-btn" onclick="window.open('https://andersonreports.github.io/Clinical-history/', '_blank')">Open Tracker</button>
                     </div>
                     <div class="tool-card">
-                        <div class="tool-card-icon" style="background: #fce4ec; color: #ad1457;">
+                        <div class="tool-card-icon" style="background: #dbeafe; color: #1d4ed8;">
                             <i data-lucide="flask-conical"></i>
                         </div>
                         <div class="tool-card-body">
@@ -2441,7 +2475,7 @@ body {
 
             <!-- Preview -->
             <div style="display:flex;justify-content:center;margin-bottom:1.25rem;">
-                <img id="avatar-preview" src="" alt="Preview" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid #fce4ec;">
+                <img id="avatar-preview" src="" alt="Preview" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid #dbeafe;">
             </div>
 
             <!-- Upload photo -->
@@ -2508,7 +2542,7 @@ body {
         <div class="modal glass-panel teams-modal" onclick="event.stopPropagation()">
             <div class="modal-header">
                 <div class="details-header-info">
-                    <i data-lucide="users" style="color: #ad1457; width: 32px; height: 32px;"></i>
+                    <i data-lucide="users" style="color: #1d4ed8; width: 32px; height: 32px;"></i>
                     <div>
                         <h2>Active Teams</h2>
                         <p>Overview of all active teams, leaders, and their members</p>
@@ -2625,7 +2659,7 @@ body {
         <div class="modal glass-panel view-certs-modal" onclick="event.stopPropagation()">
             <div class="modal-header">
                 <div class="details-header-info">
-                    <i data-lucide="award" style="color: #ad1457; width: 32px; height: 32px;"></i>
+                    <i data-lucide="award" style="color: #1d4ed8; width: 32px; height: 32px;"></i>
                     <div>
                         <h2 id="view-certs-title">Certificates & Achievements</h2>
                         <p id="view-certs-subtitle">Employee achievements in LinkedIn post style</p>
@@ -2688,7 +2722,7 @@ function renderNotifications() {
             <div class="notif-dot-icon"></div>
             <div>
                 <div class="notif-item-text"><strong>${u.name}</strong> posted a work update</div>
-                <div class="notif-item-text">${u.text.length > 60 ? u.text.slice(0,60)+'…' : u.text}</div>
+                <div class="notif-item-text">${u.text.length > 60 ? u.text.slice(0,60)+'â€¦' : u.text}</div>
                 <div class="notif-item-time">Today</div>
             </div>
         </div>
@@ -2806,7 +2840,7 @@ function parseCSV(csv) {
     return result;
 }
 
-// Format date from DD/MM/YYYY → "12th Mar 2026"
+// Format date from DD/MM/YYYY â†’ "12th Mar 2026"
 function formatDate(dateStr) {
     if (!dateStr || dateStr === 'N/A') return 'N/A';
     const parts = dateStr.split('/');
@@ -3398,7 +3432,7 @@ function populateWuNameDropdowns() {
         const sel = document.getElementById(id);
         if (!sel) return;
         const isFilter = id === 'wu-filter-name';
-        const first = isFilter ? '<option value="all">All Employees</option>' : '<option value="">Select your name…</option>';
+        const first = isFilter ? '<option value="all">All Employees</option>' : '<option value="">Select your nameâ€¦</option>';
         sel.innerHTML = first + names.map(n => `<option value="${n}">${n}</option>`).join('');
     });
 }
