@@ -1138,6 +1138,160 @@ body {
     background: rgba(255, 255, 255, 0.9) !important;
 }
 
+/* Employee sub-tabs */
+.emp-subtabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #f1f5f9;
+    padding-bottom: 0;
+}
+
+.emp-subtab {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 1.1rem;
+    background: none;
+    border: none;
+    border-bottom: 2.5px solid transparent;
+    margin-bottom: -2px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+    border-radius: 0;
+}
+
+.emp-subtab:hover { color: #ad1457; }
+.emp-subtab.active { color: #ad1457; border-bottom-color: #ad1457; }
+
+/* Work update form card */
+.work-update-form-card {
+    background: #fff;
+    border: 1.5px solid #f1f5f9;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+}
+
+.work-update-form-card h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.work-update-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+/* Work updates history */
+.work-updates-history {
+    background: #fff;
+    border: 1.5px solid #f1f5f9;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+}
+
+.wu-history-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.wu-history-header h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.wu-date-group {
+    margin-bottom: 1.25rem;
+}
+
+.wu-date-label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #ad1457;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.6rem;
+}
+
+.wu-entry {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.wu-entry:last-child { border-bottom: none; }
+
+.wu-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 2px solid #fce4ec;
+}
+
+.wu-entry-body { flex: 1; }
+
+.wu-entry-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.3rem;
+    flex-wrap: wrap;
+}
+
+.wu-entry-name {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.wu-entry-role {
+    font-size: 0.72rem;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 2px 8px;
+    border-radius: 20px;
+}
+
+.wu-entry-text {
+    font-size: 0.85rem;
+    color: #374151;
+    line-height: 1.55;
+}
+
+.wu-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 2rem;
+    color: #94a3b8;
+    font-size: 0.85rem;
+}
+
 /* Tools view */
 .tools-grid {
     display: grid;
@@ -1902,14 +2056,71 @@ body {
                     </div>
                 </div>
 
-                <div class="employee-grid" id="employee-cards-container">
-                    <!-- Populated by JS -->
-                </div>
-                
-                <div class="add-emp-container">
-                    <button class="btn-primary add-emp-btn" onclick="openAddEmployeeModal()">
-                        <i data-lucide="plus"></i> Add New Employee
+                <!-- Sub-tabs -->
+                <div class="emp-subtabs">
+                    <button class="emp-subtab active" id="subtab-directory" onclick="switchEmpSubtab('directory')">
+                        <i data-lucide="users" style="width:15px;height:15px;"></i> Team Directory
                     </button>
+                    <button class="emp-subtab" id="subtab-updates" onclick="switchEmpSubtab('updates')">
+                        <i data-lucide="clipboard-list" style="width:15px;height:15px;"></i> Work Updates
+                    </button>
+                </div>
+
+                <!-- Team Directory panel -->
+                <div id="emp-panel-directory">
+                    <div class="employee-grid" id="employee-cards-container">
+                        <!-- Populated by JS -->
+                    </div>
+                    <div class="add-emp-container">
+                        <button class="btn-primary add-emp-btn" onclick="openAddEmployeeModal()">
+                            <i data-lucide="plus"></i> Add New Employee
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Work Updates panel -->
+                <div id="emp-panel-updates" style="display:none;">
+
+                    <!-- Post update form -->
+                    <div class="work-update-form-card">
+                        <h3><i data-lucide="edit-3" style="width:16px;height:16px;vertical-align:middle;margin-right:6px;"></i>Post a Work Update</h3>
+                        <div class="work-update-form-grid">
+                            <div class="form-group">
+                                <label>Your Name</label>
+                                <select id="wu-name">
+                                    <option value="">Select your name…</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Date</label>
+                                <input type="date" id="wu-date">
+                            </div>
+                            <div class="form-group" style="grid-column:span 2;">
+                                <label>Work Update</label>
+                                <textarea id="wu-text" rows="3" placeholder="Describe what you worked on today…" style="width:100%;box-sizing:border-box;resize:vertical;background:#fafafa;border:1.5px solid #f1f5f9;border-radius:10px;padding:0.75rem 1rem;font-family:inherit;font-size:0.92rem;outline:none;transition:border 0.2s;"></textarea>
+                            </div>
+                        </div>
+                        <div style="display:flex;justify-content:flex-end;margin-top:0.75rem;">
+                            <button class="btn-primary" onclick="submitWorkUpdate()" style="display:flex;align-items:center;gap:0.4rem;">
+                                <i data-lucide="send" style="width:15px;height:15px;"></i> Post Update
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- History -->
+                    <div class="work-updates-history">
+                        <div class="wu-history-header">
+                            <h3>Update History</h3>
+                            <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
+                                <select id="wu-filter-name" onchange="renderWorkUpdates()" style="border:1.5px solid #f1f5f9;border-radius:8px;padding:0.4rem 0.75rem;font-size:0.82rem;font-family:inherit;background:#fff;color:#374151;">
+                                    <option value="all">All Employees</option>
+                                </select>
+                                <input type="date" id="wu-filter-date" onchange="renderWorkUpdates()" style="border:1.5px solid #f1f5f9;border-radius:8px;padding:0.4rem 0.75rem;font-size:0.82rem;font-family:inherit;background:#fff;color:#374151;">
+                                <button onclick="clearWuFilters()" style="font-size:0.78rem;color:#ad1457;background:none;border:none;cursor:pointer;font-family:inherit;font-weight:600;">Clear</button>
+                            </div>
+                        </div>
+                        <div id="wu-history-list"></div>
+                    </div>
                 </div>
             </section>
 
@@ -2763,6 +2974,128 @@ function saveAvatarChange() {
 
     closeAvatarModal();
     renderEmployeeSpace();
+}
+
+// Work Updates Logic
+let workUpdates = JSON.parse(localStorage.getItem('workUpdates') || '[]');
+
+function switchEmpSubtab(tab) {
+    document.querySelectorAll('.emp-subtab').forEach(b => b.classList.remove('active'));
+    document.getElementById(`subtab-${tab}`).classList.add('active');
+    document.getElementById('emp-panel-directory').style.display = tab === 'directory' ? '' : 'none';
+    document.getElementById('emp-panel-updates').style.display = tab === 'updates' ? '' : 'none';
+    if (tab === 'updates') {
+        populateWuNameDropdowns();
+        setDefaultWuDate();
+        renderWorkUpdates();
+        lucide.createIcons();
+    }
+}
+
+function populateWuNameDropdowns() {
+    const names = employees.map(e => e.name).sort();
+    ['wu-name', 'wu-filter-name'].forEach(id => {
+        const sel = document.getElementById(id);
+        if (!sel) return;
+        const isFilter = id === 'wu-filter-name';
+        const first = isFilter ? '<option value="all">All Employees</option>' : '<option value="">Select your name…</option>';
+        sel.innerHTML = first + names.map(n => `<option value="${n}">${n}</option>`).join('');
+    });
+}
+
+function setDefaultWuDate() {
+    const d = document.getElementById('wu-date');
+    if (d && !d.value) d.value = new Date().toISOString().slice(0, 10);
+}
+
+function submitWorkUpdate() {
+    const name = document.getElementById('wu-name').value.trim();
+    const date = document.getElementById('wu-date').value;
+    const text = document.getElementById('wu-text').value.trim();
+    if (!name) { alert('Please select your name.'); return; }
+    if (!date) { alert('Please select a date.'); return; }
+    if (!text) { alert('Please enter a work update.'); return; }
+
+    const emp = employees.find(e => e.name === name);
+    workUpdates.unshift({
+        id: Date.now(),
+        name,
+        avatar: emp ? emp.avatar : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=ad1457&color=fff`,
+        role: emp ? emp.role : '',
+        date,
+        text
+    });
+    localStorage.setItem('workUpdates', JSON.stringify(workUpdates));
+    document.getElementById('wu-text').value = '';
+    renderWorkUpdates();
+    lucide.createIcons();
+}
+
+function deleteWorkUpdate(id) {
+    if (!confirm('Delete this update?')) return;
+    workUpdates = workUpdates.filter(u => u.id !== id);
+    localStorage.setItem('workUpdates', JSON.stringify(workUpdates));
+    renderWorkUpdates();
+}
+
+function clearWuFilters() {
+    document.getElementById('wu-filter-name').value = 'all';
+    document.getElementById('wu-filter-date').value = '';
+    renderWorkUpdates();
+}
+
+function formatWuDate(dateStr) {
+    if (!dateStr) return '';
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const s = d >= 11 && d <= 13 ? 'th' : ['th','st','nd','rd'][d % 10] || 'th';
+    return `${d}${s} ${months[m-1]} ${y}`;
+}
+
+function renderWorkUpdates() {
+    const filterName = document.getElementById('wu-filter-name')?.value || 'all';
+    const filterDate = document.getElementById('wu-filter-date')?.value || '';
+    const list = document.getElementById('wu-history-list');
+    if (!list) return;
+
+    let filtered = workUpdates.filter(u => {
+        if (filterName !== 'all' && u.name !== filterName) return false;
+        if (filterDate && u.date !== filterDate) return false;
+        return true;
+    });
+
+    if (filtered.length === 0) {
+        list.innerHTML = `<div class="wu-empty"><i data-lucide="inbox" style="width:32px;height:32px;color:#cbd5e1;"></i><p>No work updates found.</p></div>`;
+        lucide.createIcons();
+        return;
+    }
+
+    // Group by date
+    const grouped = {};
+    filtered.forEach(u => { (grouped[u.date] = grouped[u.date] || []).push(u); });
+    const sortedDates = Object.keys(grouped).sort((a,b) => b.localeCompare(a));
+
+    list.innerHTML = sortedDates.map(date => `
+        <div class="wu-date-group">
+            <div class="wu-date-label"><i data-lucide="calendar" style="width:13px;height:13px;"></i> ${formatWuDate(date)}</div>
+            ${grouped[date].map(u => `
+                <div class="wu-entry">
+                    <img src="${u.avatar}" class="wu-avatar" alt="${u.name}">
+                    <div class="wu-entry-body">
+                        <div class="wu-entry-header">
+                            <span class="wu-entry-name">${u.name}</span>
+                            ${u.role ? `<span class="wu-entry-role">${u.role}</span>` : ''}
+                        </div>
+                        <p class="wu-entry-text">${u.text.replace(/\n/g, '<br>')}</p>
+                    </div>
+                    <button class="cert-delete-btn" onclick="deleteWorkUpdate(${u.id})" title="Delete">
+                        <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
+                    </button>
+                </div>
+            `).join('')}
+        </div>
+    `).join('');
+    lucide.createIcons();
 }
 
 // Add New Employee Logic
