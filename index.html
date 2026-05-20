@@ -2016,6 +2016,14 @@ body {
                         <h3 id="kpi-active-teams">0</h3>
                         <p class="trend">On track</p>
                     </div>
+                    <div class="kpi-card glass-panel clickable" onclick="openDailyUpdatesModal()">
+                        <div class="kpi-header">
+                            <i data-lucide="clipboard-list" style="color:#0891b2;"></i>
+                            <span>Daily Updates</span>
+                        </div>
+                        <h3 id="kpi-daily-updates">0</h3>
+                        <p class="trend positive"><i data-lucide="calendar-check"></i> Today</p>
+                    </div>
                 </div>
 
                 <div class="view-header-row">
@@ -2188,6 +2196,25 @@ body {
                 </div>
             </section>
         </main>
+    </div>
+
+    <!-- Daily Updates Modal -->
+    <div class="modal-overlay" id="daily-updates-modal" style="display:none;" onclick="closeDailyUpdatesModal(event)">
+        <div class="modal glass-panel teams-modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="details-header-info">
+                    <i data-lucide="clipboard-list" style="color:#0891b2;width:32px;height:32px;"></i>
+                    <div>
+                        <h2>Daily Work Updates</h2>
+                        <p id="daily-updates-date-label">Today's updates</p>
+                    </div>
+                </div>
+                <button class="icon-btn" onclick="closeDailyUpdatesModal()"><i data-lucide="x"></i></button>
+            </div>
+            <div class="details-content">
+                <div id="daily-updates-list"></div>
+            </div>
+        </div>
     </div>
 
     <!-- Avatar Edit Modal -->
@@ -2555,6 +2582,43 @@ function updateKPIs() {
     document.getElementById('kpi-total-team').textContent = employees.length;
     const activeTeams = [...new Set(employees.map(emp => emp.team))].filter(t => t && t !== 'Team' && t.trim() !== '').length;
     document.getElementById('kpi-active-teams').textContent = activeTeams;
+    const today = new Date().toISOString().slice(0, 10);
+    const todayCount = workUpdates.filter(u => u.date === today).length;
+    document.getElementById('kpi-daily-updates').textContent = todayCount;
+}
+
+function openDailyUpdatesModal() {
+    const today = new Date().toISOString().slice(0, 10);
+    const todayUpdates = workUpdates.filter(u => u.date === today);
+    const [y, m, d] = today.split('-').map(Number);
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const s = d>=11&&d<=13?'th':['th','st','nd','rd'][d%10]||'th';
+    document.getElementById('daily-updates-date-label').textContent = `${d}${s} ${months[m-1]} ${y}`;
+
+    const list = document.getElementById('daily-updates-list');
+    if (todayUpdates.length === 0) {
+        list.innerHTML = `<div class="wu-empty"><i data-lucide="inbox" style="width:32px;height:32px;color:#cbd5e1;"></i><p>No updates posted today.</p></div>`;
+    } else {
+        list.innerHTML = todayUpdates.map(u => `
+            <div class="wu-entry">
+                <img src="${u.avatar}" class="wu-avatar" alt="${u.name}">
+                <div class="wu-entry-body">
+                    <div class="wu-entry-header">
+                        <span class="wu-entry-name">${u.name}</span>
+                    </div>
+                    <p class="wu-entry-text">${u.text.replace(/\n/g,'<br>')}</p>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    document.getElementById('daily-updates-modal').style.display = 'flex';
+    lucide.createIcons();
+}
+
+function closeDailyUpdatesModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('daily-updates-modal').style.display = 'none';
 }
 
 // Filtering Logic
@@ -3050,6 +3114,7 @@ function submitWorkUpdate() {
     localStorage.setItem('workUpdates', JSON.stringify(workUpdates));
     document.getElementById('wu-text').value = '';
     renderWorkUpdates();
+    updateKPIs();
     lucide.createIcons();
 }
 
@@ -3058,6 +3123,7 @@ function deleteWorkUpdate(id) {
     workUpdates = workUpdates.filter(u => u.id !== id);
     localStorage.setItem('workUpdates', JSON.stringify(workUpdates));
     renderWorkUpdates();
+    updateKPIs();
 }
 
 function clearWuFilters() {
