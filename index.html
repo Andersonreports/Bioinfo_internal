@@ -105,6 +105,109 @@
     box-shadow: 0 2px 6px rgba(173, 20, 87, 0.3);
 }
 
+/* Header dropdowns */
+.hdr-dropdown-wrap {
+    position: relative;
+}
+
+.hdr-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    background: #fff;
+    border: 1.5px solid #f1f5f9;
+    border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+    min-width: 260px;
+    z-index: 3000;
+    overflow: hidden;
+}
+
+.hdr-dropdown-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.notif-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #f8f9fa;
+    font-size: 0.8rem;
+}
+
+.notif-item:last-child { border-bottom: none; }
+
+.notif-dot-icon {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ad1457;
+    flex-shrink: 0;
+    margin-top: 4px;
+}
+
+.notif-item-text { color: #374151; line-height: 1.4; }
+.notif-item-time { font-size: 0.7rem; color: #94a3b8; margin-top: 2px; }
+
+.notif-dot {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef5350;
+    border: 1.5px solid #fff;
+    display: none;
+}
+
+.settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid #f8f9fa;
+    font-size: 0.82rem;
+    color: #374151;
+}
+
+.settings-row:last-child { border-bottom: none; }
+
+.settings-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.3rem 0.75rem;
+    border-radius: 7px;
+    border: 1.5px solid #e2e8f0;
+    background: #f8f9fa;
+    color: #374151;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.18s;
+}
+
+.settings-btn:hover { background: #374151; color: #fff; border-color: #374151; }
+.settings-btn.danger { border-color: #fca5a5; color: #ef5350; background: #fff5f5; }
+.settings-btn.danger:hover { background: #ef5350; color: #fff; border-color: #ef5350; }
+
+.hdr-empty {
+    padding: 1rem;
+    color: #94a3b8;
+    font-size: 0.8rem;
+    text-align: center;
+}
+
 /* Horizontal Navigation Tabs - "Hanging Texts" Style */
 .nav-tabs {
     background: transparent; /* Removed separate rectangle */
@@ -2030,9 +2133,71 @@ body {
                 <h2>GenomicDesk</h2>
             </div>
             <div class="header-actions">
-                <button class="icon-btn"><i data-lucide="bell"></i></button>
-                <button class="icon-btn"><i data-lucide="settings"></i></button>
-                <div class="user-badge">AU</div>
+
+                <!-- Notifications -->
+                <div class="hdr-dropdown-wrap" id="notif-wrap">
+                    <button class="icon-btn" onclick="toggleHdrDropdown('notif-panel')" title="Notifications">
+                        <i data-lucide="bell"></i>
+                        <span class="notif-dot" id="notif-dot"></span>
+                    </button>
+                    <div class="hdr-dropdown" id="notif-panel" style="display:none;">
+                        <div class="hdr-dropdown-header">
+                            <span>Notifications</span>
+                            <button onclick="clearNotifications()" style="font-size:0.72rem;color:#ad1457;background:none;border:none;cursor:pointer;font-family:inherit;font-weight:600;">Clear all</button>
+                        </div>
+                        <div id="notif-list"><p class="hdr-empty">No new notifications.</p></div>
+                    </div>
+                </div>
+
+                <!-- Settings -->
+                <div class="hdr-dropdown-wrap" id="settings-wrap">
+                    <button class="icon-btn" onclick="toggleHdrDropdown('settings-panel')" title="Settings">
+                        <i data-lucide="settings"></i>
+                    </button>
+                    <div class="hdr-dropdown" id="settings-panel" style="display:none;min-width:220px;">
+                        <div class="hdr-dropdown-header"><span>Settings</span></div>
+                        <div class="settings-row">
+                            <span>Refresh Data</span>
+                            <button class="settings-btn" onclick="refreshData()"><i data-lucide="refresh-cw" style="width:13px;height:13px;"></i> Refresh</button>
+                        </div>
+                        <div class="settings-row">
+                            <span>Clear Work Updates</span>
+                            <button class="settings-btn danger" onclick="clearAllWorkUpdates()"><i data-lucide="trash-2" style="width:13px;height:13px;"></i> Clear</button>
+                        </div>
+                        <div class="settings-row">
+                            <span>Clear All Certificates</span>
+                            <button class="settings-btn danger" onclick="clearAllCertificates()"><i data-lucide="trash-2" style="width:13px;height:13px;"></i> Clear</button>
+                        </div>
+                        <div class="settings-row">
+                            <span>App Version</span>
+                            <span style="font-size:0.75rem;color:#94a3b8;">v1.0.0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User profile -->
+                <div class="hdr-dropdown-wrap" id="profile-wrap">
+                    <div class="user-badge" onclick="toggleHdrDropdown('profile-panel')" style="cursor:pointer;" title="Profile">AU</div>
+                    <div class="hdr-dropdown" id="profile-panel" style="display:none;min-width:200px;right:0;">
+                        <div class="hdr-dropdown-header" style="flex-direction:column;align-items:flex-start;gap:0.15rem;">
+                            <span style="font-weight:700;color:#1a1a1a;">Anderson</span>
+                            <span style="font-size:0.72rem;color:#94a3b8;">Admin · GenomicDesk</span>
+                        </div>
+                        <div class="settings-row" style="cursor:pointer;" onclick="switchView('manager')">
+                            <span><i data-lucide="layout-dashboard" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;"></i> Manager Dashboard</span>
+                        </div>
+                        <div class="settings-row" style="cursor:pointer;" onclick="switchView('employee')">
+                            <span><i data-lucide="user" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;"></i> Employee Dashboard</span>
+                        </div>
+                        <div class="settings-row" style="cursor:pointer;" onclick="switchView('tools')">
+                            <span><i data-lucide="wrench" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;"></i> Tools</span>
+                        </div>
+                        <div class="settings-row danger-row" style="cursor:pointer;" onclick="alert('Sign out is not available in this demo.')">
+                            <span style="color:#ef5350;"><i data-lucide="log-out" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;"></i> Sign Out</span>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
         <nav class="nav-tabs">
@@ -2481,6 +2646,82 @@ const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?forma
 
 let employees = [];
 
+// Header dropdown logic
+function toggleHdrDropdown(id) {
+    const panel = document.getElementById(id);
+    const isOpen = panel.style.display !== 'none';
+    // Close all dropdowns first
+    ['notif-panel','settings-panel','profile-panel'].forEach(p => {
+        const el = document.getElementById(p);
+        if (el) el.style.display = 'none';
+    });
+    if (!isOpen) {
+        panel.style.display = 'block';
+        if (id === 'notif-panel') renderNotifications();
+        lucide.createIcons();
+    }
+}
+
+document.addEventListener('click', e => {
+    if (!e.target.closest('.hdr-dropdown-wrap')) {
+        ['notif-panel','settings-panel','profile-panel'].forEach(p => {
+            const el = document.getElementById(p);
+            if (el) el.style.display = 'none';
+        });
+    }
+});
+
+function renderNotifications() {
+    const list = document.getElementById('notif-list');
+    const today = new Date().toISOString().slice(0,10);
+    const todayUpdates = workUpdates.filter(u => u.date === today);
+    if (todayUpdates.length === 0) {
+        list.innerHTML = `<p class="hdr-empty">No new notifications.</p>`;
+        document.getElementById('notif-dot').style.display = 'none';
+        return;
+    }
+    document.getElementById('notif-dot').style.display = 'block';
+    list.innerHTML = todayUpdates.slice(0,5).map(u => `
+        <div class="notif-item">
+            <div class="notif-dot-icon"></div>
+            <div>
+                <div class="notif-item-text"><strong>${u.name}</strong> posted a work update</div>
+                <div class="notif-item-text">${u.text.length > 60 ? u.text.slice(0,60)+'…' : u.text}</div>
+                <div class="notif-item-time">Today</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function clearNotifications() {
+    document.getElementById('notif-list').innerHTML = `<p class="hdr-empty">No new notifications.</p>`;
+    document.getElementById('notif-dot').style.display = 'none';
+}
+
+function refreshData() {
+    toggleHdrDropdown('settings-panel');
+    fetchAndRender();
+}
+
+function clearAllWorkUpdates() {
+    if (!confirm('Clear ALL work updates? This cannot be undone.')) return;
+    workUpdates = [];
+    localStorage.removeItem('workUpdates');
+    renderWorkUpdates();
+    updateKPIs();
+    toggleHdrDropdown('settings-panel');
+}
+
+function clearAllCertificates() {
+    if (!confirm('Clear ALL certificates for all employees? This cannot be undone.')) return;
+    employees.forEach(emp => {
+        emp.certificates = [];
+        localStorage.removeItem(`certs_${emp.employeeId}`);
+    });
+    toggleHdrDropdown('settings-panel');
+    alert('All certificates cleared.');
+}
+
 // View Switching Logic
 function switchView(viewName) {
     // Remove active from ALL nav tabs
@@ -2653,6 +2894,10 @@ function updateKPIs() {
             </div>
         `).join('');
     }
+    // Update notification dot
+    const today2 = new Date().toISOString().slice(0,10);
+    const dot = document.getElementById('notif-dot');
+    if (dot) dot.style.display = workUpdates.filter(u => u.date === today2).length > 0 ? 'block' : 'none';
 }
 
 function openDailyUpdatesModal() {
