@@ -1168,13 +1168,20 @@ body {
 .emp-subtab:hover { color: #ad1457; }
 .emp-subtab.active { color: #ad1457; border-bottom-color: #ad1457; }
 
+/* Work updates two-column layout */
+.wu-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+
 /* Work update form card */
 .work-update-form-card {
     background: #fff;
     border: 1.5px solid #f1f5f9;
     border-radius: 16px;
     padding: 1.5rem;
-    margin-bottom: 1.5rem;
     box-shadow: 0 4px 15px rgba(0,0,0,0.03);
 }
 
@@ -1189,8 +1196,12 @@ body {
 
 .work-update-form-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 1rem;
+}
+
+.work-update-form-grid .form-group[style*="span 2"] {
+    grid-column: span 1;
 }
 
 /* Work updates history */
@@ -1200,6 +1211,14 @@ body {
     border-radius: 16px;
     padding: 1.5rem;
     box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    max-height: 520px;
+    display: flex;
+    flex-direction: column;
+}
+
+#wu-history-list {
+    overflow-y: auto;
+    flex: 1;
 }
 
 .wu-history-header {
@@ -2080,6 +2099,7 @@ body {
 
                 <!-- Work Updates panel -->
                 <div id="emp-panel-updates" style="display:none;">
+                    <div class="wu-two-col">
 
                     <!-- Post update form -->
                     <div class="work-update-form-card">
@@ -2095,7 +2115,7 @@ body {
                                 <label>Date</label>
                                 <input type="date" id="wu-date">
                             </div>
-                            <div class="form-group" style="grid-column:span 2;">
+                            <div class="form-group">
                                 <label>Work Update</label>
                                 <textarea id="wu-text" rows="3" placeholder="Describe what you worked on today…" style="width:100%;box-sizing:border-box;resize:vertical;background:#fafafa;border:1.5px solid #f1f5f9;border-radius:10px;padding:0.75rem 1rem;font-family:inherit;font-size:0.92rem;outline:none;transition:border 0.2s;"></textarea>
                             </div>
@@ -2121,6 +2141,8 @@ body {
                         </div>
                         <div id="wu-history-list"></div>
                     </div>
+
+                    </div><!-- end wu-two-col -->
                 </div>
             </section>
 
