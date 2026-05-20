@@ -1989,7 +1989,11 @@ function openActiveTeamsModal() {
     const modalList = document.getElementById('teams-modal-list');
     if (!modalList) return;
 
-    modalList.innerHTML = Object.keys(teamsData).map(teamName => {
+    modalList.innerHTML = Object.keys(teamsData).sort((a, b) => {
+        const leaderA = teamsData[a].leader === 'N/A' ? 'zzz' : teamsData[a].leader.toLowerCase();
+        const leaderB = teamsData[b].leader === 'N/A' ? 'zzz' : teamsData[b].leader.toLowerCase();
+        return leaderA.localeCompare(leaderB);
+    }).map(teamName => {
         const team = teamsData[teamName];
         const leaderAvatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(team.leader)}&background=fce4ec&color=ad1457&bold=true`;
 
