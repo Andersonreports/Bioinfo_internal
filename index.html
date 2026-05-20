@@ -13,25 +13,25 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
 :root {
-    --bg-dark: #f0f4ff;
-    --bg-darker: #e8eef8;
-    --panel-bg: rgba(255,255,255,0.82);
-    --panel-border: rgba(99,143,210,0.18);
+    --bg-dark: #f8faf8;
+    --bg-darker: #f0f4f1;
+    --panel-bg: rgba(255,255,255,0.90);
+    --panel-border: rgba(13,148,136,0.15);
 
-    --primary: #1d4ed8;
-    --primary-light: #3b82f6;
-    --primary-hover: #1e40af;
-    --secondary: #0891b2;
-    --accent: #0ea5e9;
-    --accent-blue: #0284c7;
-    --accent-purple: #6366f1;
+    --primary: #0d9488;
+    --primary-light: #14b8a6;
+    --primary-hover: #0f766e;
+    --secondary: #059669;
+    --accent: #10b981;
+    --accent-blue: #0891b2;
+    --accent-purple: #7c3aed;
     --accent-gold: #d97706;
     --success: #059669;
     --warning: #d97706;
 
-    --brand: #0f2a5e;          /* deep navy - header */
-    --brand-accent: #1d8cf8;   /* bright blue accent */
-    --chip: #0891b2;           /* teal for badges/chips */
+    --brand: #0f172a;
+    --brand-accent: #14b8a6;
+    --chip: #0d9488;
 
     --text-main: #0f172a;
     --text-muted: #64748b;
@@ -39,10 +39,10 @@
     --font-main: 'Outfit', sans-serif;
 
     --glass-blur: blur(16px);
-    --shadow-sm: 0 2px 8px rgba(15,42,94,0.08);
-    --shadow-md: 0 4px 20px rgba(15,42,94,0.10);
-    --shadow-lg: 0 10px 40px rgba(15,42,94,0.14);
-    --shadow-card: 0 2px 12px rgba(29,78,216,0.07), 0 8px 32px rgba(15,42,94,0.06);
+    --shadow-sm: 0 2px 8px rgba(15,23,42,0.07);
+    --shadow-md: 0 4px 20px rgba(15,23,42,0.09);
+    --shadow-lg: 0 10px 40px rgba(15,23,42,0.12);
+    --shadow-card: 0 2px 12px rgba(13,148,136,0.07), 0 8px 32px rgba(15,42,94,0.06);
 
     --transition: all 0.3s ease;
 }
@@ -58,13 +58,13 @@
 }
 
 .title-bar {
-    background: linear-gradient(135deg, #0f2a5e 0%, #1a3f7a 60%, #1d4ed8 100%);
+    background: linear-gradient(135deg, #0f172a 0%, #134e4a 55%, #0d9488 100%);
     height: 62px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0 2rem;
-    box-shadow: 0 4px 24px rgba(15,42,94,0.28);
+    box-shadow: 0 4px 24px rgba(15,23,42,0.30);
 }
 
 .brand {
@@ -74,10 +74,10 @@
 }
 
 .brand-icon {
-    color: #60a5fa;
+    color: #5eead4;
     width: 30px;
     height: 30px;
-    filter: drop-shadow(0 0 8px rgba(96,165,250,0.6));
+    filter: drop-shadow(0 0 8px rgba(94,234,212,0.7));
 }
 
 .brand h2 {
@@ -86,7 +86,7 @@
     font-size: 1.5rem;
     letter-spacing: 3px;
     text-transform: uppercase;
-    text-shadow: 0 0 20px rgba(96,165,250,0.4);
+    text-shadow: 0 0 20px rgba(94,234,212,0.35);
 }
 
 .header-actions {
@@ -106,7 +106,7 @@
     justify-content: center;
     font-weight: 700;
     font-size: 0.9rem;
-    box-shadow: 0 2px 12px rgba(29,140,248,0.45);
+    box-shadow: 0 2px 12px rgba(13,148,136,0.45);
 }
 
 /* Header dropdowns */
@@ -153,7 +153,7 @@
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #1d4ed8;
+    background: #0d9488;
     flex-shrink: 0;
     margin-top: 4px;
 }
@@ -242,12 +242,12 @@
 
 .nav-tab:hover {
     background: transparent;
-    color: #1d4ed8;
+    color: #0d9488;
 }
 
 .nav-tab.active {
-    color: #1d4ed8;
-    border-bottom-color: #1d4ed8;
+    color: #0d9488;
+    border-bottom-color: #0d9488;
 }
 
 .nav-tab i {
@@ -438,7 +438,7 @@
 
 body {
     font-family: var(--font-main);
-    background: linear-gradient(145deg, #eef2ff 0%, #dbeafe 40%, #e0f2fe 70%, #f0fdf4 100%);
+    background: linear-gradient(145deg, #f8faf8 0%, #ecfdf5 35%, #f0fdfa 65%, #fafaf9 100%);
     color: var(--text-main);
     height: 100vh;
     overflow: hidden;
@@ -460,7 +460,7 @@ body {
     left: -8%;
     width: 520px;
     height: 520px;
-    background: radial-gradient(circle, #3b82f6 0%, transparent 70%);
+    background: radial-gradient(circle, #0d9488 0%, transparent 70%);
 }
 
 .orb-2 {
@@ -468,7 +468,7 @@ body {
     right: -8%;
     width: 600px;
     height: 600px;
-    background: radial-gradient(circle, #06b6d4 0%, transparent 70%);
+    background: radial-gradient(circle, #059669 0%, transparent 70%);
 }
 
 .orb-3 {
@@ -476,7 +476,7 @@ body {
     right: 20%;
     width: 300px;
     height: 300px;
-    background: radial-gradient(circle, #6366f1 0%, transparent 70%);
+    background: radial-gradient(circle, #134e4a 0%, transparent 70%);
     opacity: 0.10;
 }
 
@@ -487,7 +487,7 @@ body {
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(99,155,220,0.18);
     border-radius: 18px;
-    box-shadow: 0 4px 24px rgba(15,42,94,0.09), 0 1px 4px rgba(29,78,216,0.06);
+    box-shadow: 0 4px 24px rgba(15,42,94,0.09), 0 1px 4px rgba(13,148,136,0.06);
 }
 
 .mt-4 { margin-top: 1rem; }
@@ -678,9 +678,9 @@ body {
 }
 
 .modal .icon-btn:hover {
-    background: #1d4ed8;
+    background: #0d9488;
     color: #fff;
-    border-color: #1d4ed8;
+    border-color: #0d9488;
 }
 
 /* Views & Dashboards */
@@ -726,7 +726,7 @@ body {
 .btn-primary:hover {
     background: var(--primary-hover);
     transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(29,78,216,0.35);
+    box-shadow: 0 4px 16px rgba(13,148,136,0.35);
 }
 
 .btn-outline {
@@ -1027,7 +1027,7 @@ body {
     height: 100%;
     border-radius: 50%;
     border: 4px solid #f1f5f9;
-    border-top-color: #1d4ed8; /* Active theme color (Deep Pink) */
+    border-top-color: #0d9488; /* Active theme color (Deep Pink) */
     transform: rotate(-45deg);
 }
 
@@ -1044,7 +1044,7 @@ body {
     position: absolute;
     bottom: 2px;
     right: 2px;
-    background: #1d4ed8;
+    background: #0d9488;
     color: #fff;
     font-size: 0.65rem;
     font-weight: 700;
@@ -1081,7 +1081,7 @@ body {
 .icon-btn-small {
     background: #fff5f8;
     border: none;
-    color: #1d4ed8;
+    color: #0d9488;
     width: 32px;
     height: 32px;
     border-radius: 50%;
@@ -1095,7 +1095,7 @@ body {
 }
 
 .icon-btn-small:hover {
-    background: #1d4ed8;
+    background: #0d9488;
     color: #fff;
     transform: scale(1.1);
 }
@@ -1139,7 +1139,7 @@ body {
 }
 
 .team-modal-badge {
-    background: #1d4ed8;
+    background: #0d9488;
     color: #fff;
     align-self: flex-start;
     padding: 0.35rem 0.85rem;
@@ -1148,7 +1148,7 @@ body {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    box-shadow: 0 2px 6px rgba(29,78,216, 0.2);
+    box-shadow: 0 2px 6px rgba(13,148,136, 0.2);
 }
 
 .team-modal-leader {
@@ -1161,7 +1161,7 @@ body {
 
 .team-modal-leader-info h4 {
     font-size: 0.7rem;
-    color: #1d4ed8;
+    color: #0d9488;
     text-transform: uppercase;
     font-weight: 700;
     margin-bottom: 0.15rem;
@@ -1201,7 +1201,7 @@ body {
 .team-modal-member-badge:hover {
     background: #fff5f8;
     border-color: #1a3f7a;
-    color: #1d4ed8;
+    color: #0d9488;
 }
 
 /* Leader stat cards */
@@ -1222,14 +1222,14 @@ body {
 .leader-stat-card:hover {
     transform: translateY(-3px);
     border-color: #1a3f7a;
-    box-shadow: 0 8px 25px rgba(29,78,216,0.08);
+    box-shadow: 0 8px 25px rgba(13,148,136,0.08);
 }
 
 .leader-stat-avatar {
     width: 52px;
     height: 52px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #1d4ed8, #2563eb);
+    background: linear-gradient(135deg, #0d9488, #0d9488);
     color: #fff;
     display: flex;
     align-items: center;
@@ -1250,8 +1250,8 @@ body {
 .leader-stat-count {
     font-size: 0.75rem;
     font-weight: 600;
-    color: #1d4ed8;
-    background: #dbeafe;
+    color: #0d9488;
+    background: #ccfbf1;
     padding: 3px 10px;
     border-radius: 20px;
 }
@@ -1272,7 +1272,7 @@ body {
 }
 
 .kpi-card.clickable:hover {
-    border-color: #1d4ed8 !important;
+    border-color: #0d9488 !important;
     background: rgba(255, 255, 255, 0.9) !important;
 }
 
@@ -1302,7 +1302,7 @@ body {
     border-radius: 50%;
     object-fit: cover;
     flex-shrink: 0;
-    border: 1.5px solid #dbeafe;
+    border: 1.5px solid #ccfbf1;
 }
 
 .kpi-daily-text {
@@ -1337,7 +1337,7 @@ body {
 }
 
 .daily-updates-card:hover .kpi-daily-hint {
-    color: #1d4ed8;
+    color: #0d9488;
 }
 
 /* Employee sub-tabs */
@@ -1367,8 +1367,8 @@ body {
     border-radius: 0;
 }
 
-.emp-subtab:hover { color: #1d4ed8; }
-.emp-subtab.active { color: #1d4ed8; border-bottom-color: #1d4ed8; }
+.emp-subtab:hover { color: #0d9488; }
+.emp-subtab.active { color: #0d9488; border-bottom-color: #0d9488; }
 
 /* Work updates two-column layout */
 .wu-two-col {
@@ -1448,7 +1448,7 @@ body {
     gap: 0.4rem;
     font-size: 0.75rem;
     font-weight: 700;
-    color: #1d4ed8;
+    color: #0d9488;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 0.6rem;
@@ -1470,7 +1470,7 @@ body {
     border-radius: 50%;
     object-fit: cover;
     flex-shrink: 0;
-    border: 2px solid #dbeafe;
+    border: 2px solid #ccfbf1;
 }
 
 .wu-entry-body { flex: 1; }
@@ -1582,13 +1582,13 @@ body {
 }
 
 .tool-card-btn:hover {
-    background: #1d4ed8;
-    border-color: #1d4ed8;
+    background: #0d9488;
+    border-color: #0d9488;
     color: #fff;
 }
 
 .icon-btn-small:hover {
-    background: #1d4ed8;
+    background: #0d9488;
     color: #fff;
     transform: scale(1.1);
 }
@@ -1616,7 +1616,7 @@ body {
 .cert-viewer h4 {
     font-size: 0.85rem;
     margin-bottom: 0.5rem;
-    color: #1d4ed8;
+    color: #0d9488;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -1672,7 +1672,7 @@ body {
     background: #fff;
     border-radius: 20px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-    border: 1px solid #dbeafe;
+    border: 1px solid #ccfbf1;
     box-sizing: border-box;
 }
 
@@ -1682,7 +1682,7 @@ body {
     align-items: center;
     margin-bottom: 2rem;
     padding-bottom: 1rem;
-    border-bottom: 2px solid #dbeafe;
+    border-bottom: 2px solid #ccfbf1;
 }
 
 .modal-header h2 {
@@ -1710,7 +1710,7 @@ body {
 .form-group label {
     font-size: 0.8rem;
     font-weight: 700;
-    color: #1d4ed8;
+    color: #0d9488;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -1732,9 +1732,9 @@ body {
 
 .form-group input:focus,
 .form-group select:focus {
-    border-color: #1d4ed8;
+    border-color: #0d9488;
     background: #fff;
-    box-shadow: 0 0 0 3px rgba(29,78,216,0.08);
+    box-shadow: 0 0 0 3px rgba(13,148,136,0.08);
 }
 
 .form-group input::placeholder {
@@ -1768,7 +1768,7 @@ body {
     color: #374151;
     font-size: 0.9rem;
     padding: 0.4rem 0 0.4rem 1rem;
-    border-left: 3px solid #1d4ed8;
+    border-left: 3px solid #0d9488;
     background: transparent;
     border-radius: 0;
     font-weight: 400;
@@ -1777,7 +1777,7 @@ body {
 .details-list li:hover {
     transform: none;
     background: transparent;
-    color: #1d4ed8;
+    color: #0d9488;
 }
 
 .details-text-block {
@@ -1855,7 +1855,7 @@ body {
 
 .cert-simple-card:hover {
     border-color: #1a3f7a;
-    box-shadow: 0 4px 14px rgba(29,78,216,0.06);
+    box-shadow: 0 4px 14px rgba(13,148,136,0.06);
 }
 
 .cert-simple-top {
@@ -1911,13 +1911,13 @@ body {
 }
 
 .cert-file-btn.view {
-    background: #dbeafe;
-    color: #1d4ed8;
+    background: #ccfbf1;
+    color: #0d9488;
     border: 1px solid #1a3f7a;
 }
 
 .cert-file-btn.view:hover {
-    background: #1d4ed8;
+    background: #0d9488;
     color: #fff;
 }
 
@@ -1979,8 +1979,8 @@ body {
 }
 
 .avatar-edit-btn:hover {
-    background: #1d4ed8;
-    border-color: #1d4ed8;
+    background: #0d9488;
+    border-color: #0d9488;
     color: #fff;
 }
 
@@ -2096,7 +2096,7 @@ body {
 }
 
 .post-attachment-info i {
-    color: #1d4ed8;
+    color: #0d9488;
     width: 24px;
     height: 24px;
 }
@@ -2114,8 +2114,8 @@ body {
 
 .post-attachment-action {
     background: #fff5f8;
-    color: #1d4ed8;
-    border: 1.5px solid #dbeafe;
+    color: #0d9488;
+    border: 1.5px solid #ccfbf1;
     padding: 0.35rem 0.85rem;
     border-radius: 8px;
     font-size: 0.8rem;
@@ -2126,9 +2126,9 @@ body {
 }
 
 .post-attachment-action:hover {
-    background: #1d4ed8;
+    background: #0d9488;
     color: #fff;
-    border-color: #1d4ed8;
+    border-color: #0d9488;
 }
 
 .no-certs-post {
@@ -2179,7 +2179,7 @@ body {
                     <div class="hdr-dropdown" id="notif-panel" style="display:none;">
                         <div class="hdr-dropdown-header">
                             <span>Notifications</span>
-                            <button onclick="clearNotifications()" style="font-size:0.72rem;color:#1d4ed8;background:none;border:none;cursor:pointer;font-family:inherit;font-weight:600;">Clear all</button>
+                            <button onclick="clearNotifications()" style="font-size:0.72rem;color:#0d9488;background:none;border:none;cursor:pointer;font-family:inherit;font-weight:600;">Clear all</button>
                         </div>
                         <div id="notif-list"><p class="hdr-empty">No new notifications.</p></div>
                     </div>
@@ -2391,7 +2391,7 @@ body {
                                     <option value="all">All Employees</option>
                                 </select>
                                 <input type="date" id="wu-filter-date" onchange="renderWorkUpdates()" style="border:1.5px solid #f1f5f9;border-radius:8px;padding:0.4rem 0.75rem;font-size:0.82rem;font-family:inherit;background:#fff;color:#374151;">
-                                <button onclick="clearWuFilters()" style="font-size:0.78rem;color:#1d4ed8;background:none;border:none;cursor:pointer;font-family:inherit;font-weight:600;">Clear</button>
+                                <button onclick="clearWuFilters()" style="font-size:0.78rem;color:#0d9488;background:none;border:none;cursor:pointer;font-family:inherit;font-weight:600;">Clear</button>
                             </div>
                         </div>
                         <div id="wu-history-list"></div>
@@ -2431,7 +2431,7 @@ body {
                         <button class="tool-card-btn" onclick="window.open('https://andersonreports.github.io/Clinical-history/', '_blank')">Open Tracker</button>
                     </div>
                     <div class="tool-card">
-                        <div class="tool-card-icon" style="background: #dbeafe; color: #1d4ed8;">
+                        <div class="tool-card-icon" style="background: #ccfbf1; color: #0d9488;">
                             <i data-lucide="flask-conical"></i>
                         </div>
                         <div class="tool-card-body">
@@ -2475,7 +2475,7 @@ body {
 
             <!-- Preview -->
             <div style="display:flex;justify-content:center;margin-bottom:1.25rem;">
-                <img id="avatar-preview" src="" alt="Preview" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid #dbeafe;">
+                <img id="avatar-preview" src="" alt="Preview" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid #ccfbf1;">
             </div>
 
             <!-- Upload photo -->
@@ -2542,7 +2542,7 @@ body {
         <div class="modal glass-panel teams-modal" onclick="event.stopPropagation()">
             <div class="modal-header">
                 <div class="details-header-info">
-                    <i data-lucide="users" style="color: #1d4ed8; width: 32px; height: 32px;"></i>
+                    <i data-lucide="users" style="color: #0d9488; width: 32px; height: 32px;"></i>
                     <div>
                         <h2>Active Teams</h2>
                         <p>Overview of all active teams, leaders, and their members</p>
@@ -2659,7 +2659,7 @@ body {
         <div class="modal glass-panel view-certs-modal" onclick="event.stopPropagation()">
             <div class="modal-header">
                 <div class="details-header-info">
-                    <i data-lucide="award" style="color: #1d4ed8; width: 32px; height: 32px;"></i>
+                    <i data-lucide="award" style="color: #0d9488; width: 32px; height: 32px;"></i>
                     <div>
                         <h2 id="view-certs-title">Certificates & Achievements</h2>
                         <p id="view-certs-subtitle">Employee achievements in LinkedIn post style</p>
