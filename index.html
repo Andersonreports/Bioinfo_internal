@@ -1045,6 +1045,69 @@ body {
     color: #ad1457;
 }
 
+/* Leader stat cards */
+.leader-stat-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 1px solid #f1f5f9;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    text-align: center;
+    transition: all 0.25s ease;
+}
+
+.leader-stat-card:hover {
+    transform: translateY(-3px);
+    border-color: #f8bbd0;
+    box-shadow: 0 8px 25px rgba(173,20,87,0.08);
+}
+
+.leader-stat-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ad1457, #e91e8c);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+}
+
+.leader-stat-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    line-height: 1.2;
+}
+
+.leader-stat-count {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #ad1457;
+    background: #fce4ec;
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+
+.leader-stat-divider {
+    width: 100%;
+    height: 1px;
+    background: #f1f5f9;
+    margin: 0.2rem 0;
+}
+
+.leader-stat-card .team-modal-members-list {
+    justify-content: center;
+}
+
 .kpi-card.clickable {
     cursor: pointer;
 }
@@ -1964,54 +2027,37 @@ function closeDetailsModal(event) {
 }
 
 function openActiveTeamsModal() {
-    const teamsData = {};
-    
+    const leaderData = {};
+
     employees.forEach(emp => {
-        const teamName = emp.team ? emp.team.trim() : '';
-        if (!teamName || teamName.toLowerCase() === 'team' || teamName === 'N/A') return;
-        
-        if (!teamsData[teamName]) {
-            teamsData[teamName] = {
-                leader: 'N/A',
-                members: []
-            };
+        const leaderName = emp.teamLeader ? emp.teamLeader.trim() : '';
+        if (!leaderName || leaderName === 'N/A' || leaderName.toLowerCase() === 'team leader name' || leaderName === '') return;
+
+        if (!leaderData[leaderName]) {
+            leaderData[leaderName] = { members: [] };
         }
-        
-        if (emp.teamLeader && emp.teamLeader !== 'N/A' && emp.teamLeader.trim() !== '') {
-            teamsData[teamName].leader = emp.teamLeader.trim();
-        }
-        
+
         if (emp.name && emp.name.trim() !== '') {
-            teamsData[teamName].members.push(emp.name.trim());
+            leaderData[leaderName].members.push(emp.name.trim());
         }
     });
 
     const modalList = document.getElementById('teams-modal-list');
     if (!modalList) return;
 
-    modalList.innerHTML = Object.keys(teamsData).sort((a, b) => {
-        const leaderA = teamsData[a].leader === 'N/A' ? 'zzz' : teamsData[a].leader.toLowerCase();
-        const leaderB = teamsData[b].leader === 'N/A' ? 'zzz' : teamsData[b].leader.toLowerCase();
-        return leaderA.localeCompare(leaderB);
-    }).map(teamName => {
-        const team = teamsData[teamName];
-        const leaderAvatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(team.leader)}&background=fce4ec&color=ad1457&bold=true`;
+    const sortedLeaders = Object.keys(leaderData).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 
+    modalList.innerHTML = sortedLeaders.map(leaderName => {
+        const data = leaderData[leaderName];
+        const initials = leaderName.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
         return `
-            <div class="team-modal-card">
-                <div class="team-modal-badge">${teamName}</div>
-                <div class="team-modal-leader">
-                    <img src="${leaderAvatarUrl}" class="emp-avatar" style="width: 36px; height: 36px; border: 1.5px solid #fce4ec;" alt="${team.leader}">
-                    <div class="team-modal-leader-info">
-                        <h4>Team Leader</h4>
-                        <p>${team.leader}</p>
-                    </div>
-                </div>
-                <div class="team-modal-members">
-                    <h4>Members (${team.members.length})</h4>
-                    <div class="team-modal-members-list">
-                        ${team.members.map(m => `<span class="team-modal-member-badge">${m}</span>`).join('')}
-                    </div>
+            <div class="leader-stat-card">
+                <div class="leader-stat-avatar">${initials}</div>
+                <div class="leader-stat-name">${leaderName}</div>
+                <div class="leader-stat-count">${data.members.length} Member${data.members.length !== 1 ? 's' : ''}</div>
+                <div class="leader-stat-divider"></div>
+                <div class="team-modal-members-list">
+                    ${data.members.map(m => `<span class="team-modal-member-badge">${m}</span>`).join('')}
                 </div>
             </div>
         `;
