@@ -2316,6 +2316,25 @@ function deleteAllCerts() {
     renderEmployeeSpace();
 }
 
+function viewFileInNewTab(dataUrl) {
+    const [header, base64] = dataUrl.split(',');
+    const mime = header.match(/:(.*?);/)[1];
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const blob = new Blob([bytes], { type: mime });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+}
+
+function viewCertFile(empId, certId, field) {
+    const emp = employees.find(e => e.id === empId);
+    if (!emp) return;
+    const cert = emp.certificates.find(c => c.id === certId);
+    if (!cert || !cert[field] || !cert[field].data) return;
+    viewFileInNewTab(cert[field].data);
+}
+
 function readFileAsDataURL(file) {
     return new Promise((resolve) => {
         if (!file) {
@@ -2404,17 +2423,17 @@ function openViewCertsModal(empId) {
             }
 
             const certBtns = cert.certificate ? `
-                <a href="${cert.certificate.data}" target="_blank" class="cert-file-btn view">
+                <button type="button" class="cert-file-btn view" onclick="viewCertFile(${emp.id}, ${cert.id}, 'certificate')">
                     <i data-lucide="eye" style="width:14px;height:14px;"></i> View Certificate
-                </a>
+                </button>
                 <a href="${cert.certificate.data}" download="${cert.certificate.name}" class="cert-file-btn download">
                     <i data-lucide="download" style="width:14px;height:14px;"></i> Download
                 </a>` : '';
 
             const photoBtns = cert.photo && cert.photo.data ? `
-                <a href="${cert.photo.data}" target="_blank" class="cert-file-btn view">
+                <button type="button" class="cert-file-btn view" onclick="viewCertFile(${emp.id}, ${cert.id}, 'photo')">
                     <i data-lucide="image" style="width:14px;height:14px;"></i> View Photo
-                </a>` : '';
+                </button>` : '';
 
             return `
                 <div class="cert-simple-card" id="cert-post-${cert.id}">
