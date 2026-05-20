@@ -1392,6 +1392,97 @@ body {
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
 }
 
+/* Clean cert cards */
+.cert-simple-card {
+    background: #fff;
+    border: 1.5px solid #f1f5f9;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    transition: all 0.2s;
+}
+
+.cert-simple-card:hover {
+    border-color: #f8bbd0;
+    box-shadow: 0 4px 14px rgba(173,20,87,0.06);
+}
+
+.cert-simple-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.cert-simple-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.cert-simple-event {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.cert-simple-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 1rem;
+    font-size: 0.78rem;
+    color: #64748b;
+}
+
+.cert-simple-meta span {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.cert-simple-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.cert-file-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.35rem 0.85rem;
+    border-radius: 7px;
+    text-decoration: none;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.cert-file-btn.view {
+    background: #fce4ec;
+    color: #ad1457;
+    border: 1px solid #f8bbd0;
+}
+
+.cert-file-btn.view:hover {
+    background: #ad1457;
+    color: #fff;
+}
+
+.cert-file-btn.download {
+    background: #f1f5f9;
+    color: #374151;
+    border: 1px solid #e2e8f0;
+}
+
+.cert-file-btn.download:hover {
+    background: #374151;
+    color: #fff;
+}
+
 .post-header {
     display: flex;
     align-items: center;
@@ -2308,101 +2399,39 @@ function openViewCertsModal(empId) {
             if (parts.length === 3) {
                 const [year, month, day] = parts.map(Number);
                 const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-                const suffix = (d) => {
-                    if (d >= 11 && d <= 13) return 'th';
-                    switch (d % 10) {
-                        case 1: return 'st';
-                        case 2: return 'nd';
-                        case 3: return 'rd';
-                        default: return 'th';
-                    }
-                };
-                dateDisplay = `${day}${suffix(day)} ${months[month - 1]} ${year}`;
+                const suffix = (d) => { if (d>=11&&d<=13) return 'th'; switch(d%10){case 1:return 'st';case 2:return 'nd';case 3:return 'rd';default:return 'th';} };
+                dateDisplay = `${day}${suffix(day)} ${months[month-1]} ${year}`;
             }
 
-            let description = `Thrilled to share that I participated in the **${cert.eventName}** at **${cert.place}** on **${dateDisplay}**!`;
-            if (cert.award) {
-                description += `\n\nI am also proud to have received the **${cert.award}**! 🏆`;
-            }
+            const certBtns = cert.certificate ? `
+                <a href="${cert.certificate.data}" target="_blank" class="cert-file-btn view">
+                    <i data-lucide="eye" style="width:14px;height:14px;"></i> View Certificate
+                </a>
+                <a href="${cert.certificate.data}" download="${cert.certificate.name}" class="cert-file-btn download">
+                    <i data-lucide="download" style="width:14px;height:14px;"></i> Download
+                </a>` : '';
 
-            let mediaHtml = '';
-            if (cert.photo && cert.photo.data) {
-                mediaHtml = `
-                    <div class="post-media">
-                        <img src="${cert.photo.data}" alt="${cert.photo.name}" class="post-image">
-                        ${cert.certificate ? `
-                            <div class="post-attachment">
-                                <div class="post-attachment-info">
-                                    <i data-lucide="file-text"></i>
-                                    <div>
-                                        <div class="post-attachment-name">${cert.certificate.name}</div>
-                                        <div class="post-attachment-size">${cert.certificate.size}</div>
-                                    </div>
-                                </div>
-                                <a href="${cert.certificate.data}" download="${cert.certificate.name}" class="post-attachment-action">Download Certificate</a>
-                            </div>
-                        ` : ''}
-                    </div>
-                `;
-            } else if (cert.certificate) {
-                const isImage = cert.certificate.type && cert.certificate.type.startsWith('image/');
-                if (isImage) {
-                    mediaHtml = `
-                        <div class="post-media">
-                            <img src="${cert.certificate.data}" alt="${cert.certificate.name}" class="post-image">
-                            <div class="post-attachment">
-                                <div class="post-attachment-info">
-                                    <i data-lucide="file-text"></i>
-                                    <div>
-                                        <div class="post-attachment-name">${cert.certificate.name}</div>
-                                        <div class="post-attachment-size">${cert.certificate.size}</div>
-                                    </div>
-                                </div>
-                                <a href="${cert.certificate.data}" download="${cert.certificate.name}" class="post-attachment-action">Download Certificate</a>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    mediaHtml = `
-                        <div class="post-media">
-                            <div class="post-attachment" style="border-top: none;">
-                                <div class="post-attachment-info">
-                                    <i data-lucide="file-text"></i>
-                                    <div>
-                                        <div class="post-attachment-name">${cert.certificate.name}</div>
-                                        <div class="post-attachment-size">${cert.certificate.size}</div>
-                                    </div>
-                                </div>
-                                <a href="${cert.certificate.data}" download="${cert.certificate.name}" class="post-attachment-action">Download Certificate</a>
-                            </div>
-                        </div>
-                    `;
-                }
-            }
+            const photoBtns = cert.photo && cert.photo.data ? `
+                <a href="${cert.photo.data}" target="_blank" class="cert-file-btn view">
+                    <i data-lucide="image" style="width:14px;height:14px;"></i> View Photo
+                </a>` : '';
 
             return `
-                <div class="linkedin-post" id="cert-post-${cert.id}">
-                    <div class="post-header">
-                        <img src="${emp.avatar}" class="post-avatar" alt="${emp.name}">
-                        <div class="post-author-info">
-                            <span class="post-author-name">${emp.name}</span>
-                            <span class="post-author-headline">${emp.role}</span>
-                            <span class="post-meta">
-                                <span>${cert.place}</span>
-                                <span>•</span>
-                                <span>${dateDisplay}</span>
-                                <span>•</span>
-                                <i data-lucide="globe"></i>
-                            </span>
+                <div class="cert-simple-card" id="cert-post-${cert.id}">
+                    <div class="cert-simple-top">
+                        <div class="cert-simple-info">
+                            <div class="cert-simple-event">${cert.eventName}</div>
+                            <div class="cert-simple-meta">
+                                <span><i data-lucide="map-pin" style="width:13px;height:13px;"></i> ${cert.place}</span>
+                                <span><i data-lucide="calendar" style="width:13px;height:13px;"></i> ${dateDisplay}</span>
+                                ${cert.award ? `<span><i data-lucide="trophy" style="width:13px;height:13px;"></i> ${cert.award}</span>` : ''}
+                            </div>
                         </div>
-                        <button class="cert-delete-btn" onclick="deleteSingleCert(${emp.id}, ${cert.id})" title="Delete certificate">
-                            <i data-lucide="trash-2" style="width:15px;height:15px;"></i>
+                        <button class="cert-delete-btn" onclick="deleteSingleCert(${emp.id}, ${cert.id})" title="Delete">
+                            <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
                         </button>
                     </div>
-                    <div class="post-body">
-                        <p class="post-text">${description.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</p>
-                        ${mediaHtml}
-                    </div>
+                    ${(certBtns || photoBtns) ? `<div class="cert-simple-actions">${certBtns}${photoBtns}</div>` : ''}
                 </div>
             `;
         }).join('');
