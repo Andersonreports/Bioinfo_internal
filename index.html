@@ -1138,6 +1138,57 @@ body {
     background: rgba(255, 255, 255, 0.9) !important;
 }
 
+/* Daily updates KPI card */
+.daily-updates-card {
+    grid-column: span 1;
+}
+
+.kpi-daily-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    margin-top: 0.5rem;
+    max-height: 160px;
+    overflow-y: auto;
+}
+
+.kpi-daily-entry {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+}
+
+.kpi-daily-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1.5px solid #fce4ec;
+}
+
+.kpi-daily-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+}
+
+.kpi-daily-name {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.kpi-daily-update {
+    font-size: 0.72rem;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+}
+
 /* Employee sub-tabs */
 .emp-subtabs {
     display: flex;
@@ -2016,13 +2067,15 @@ body {
                         <h3 id="kpi-active-teams">0</h3>
                         <p class="trend">On track</p>
                     </div>
-                    <div class="kpi-card glass-panel clickable" onclick="openDailyUpdatesModal()">
+                    <div class="kpi-card glass-panel daily-updates-card">
                         <div class="kpi-header">
                             <i data-lucide="clipboard-list" style="color:#0891b2;"></i>
                             <span>Daily Updates</span>
+                            <span id="kpi-daily-date" style="margin-left:auto;font-size:0.72rem;color:#94a3b8;font-weight:500;"></span>
                         </div>
-                        <h3 id="kpi-daily-updates">0</h3>
-                        <p class="trend positive"><i data-lucide="calendar-check"></i> Today</p>
+                        <div id="kpi-daily-updates-list" class="kpi-daily-list">
+                            <p style="color:#94a3b8;font-size:0.8rem;">No updates today.</p>
+                        </div>
                     </div>
                 </div>
 
@@ -2583,8 +2636,27 @@ function updateKPIs() {
     const activeTeams = [...new Set(employees.map(emp => emp.team))].filter(t => t && t !== 'Team' && t.trim() !== '').length;
     document.getElementById('kpi-active-teams').textContent = activeTeams;
     const today = new Date().toISOString().slice(0, 10);
-    const todayCount = workUpdates.filter(u => u.date === today).length;
-    document.getElementById('kpi-daily-updates').textContent = todayCount;
+    const todayUpdates = workUpdates.filter(u => u.date === today);
+    const [ty, tm, td] = today.split('-').map(Number);
+    const mons = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const sf = td>=11&&td<=13?'th':['th','st','nd','rd'][td%10]||'th';
+    const dateLabel = document.getElementById('kpi-daily-date');
+    if (dateLabel) dateLabel.textContent = `${td}${sf} ${mons[tm-1]} ${ty}`;
+    const list = document.getElementById('kpi-daily-updates-list');
+    if (!list) return;
+    if (todayUpdates.length === 0) {
+        list.innerHTML = `<p style="color:#94a3b8;font-size:0.8rem;">No updates today.</p>`;
+    } else {
+        list.innerHTML = todayUpdates.map(u => `
+            <div class="kpi-daily-entry">
+                <img src="${u.avatar}" class="kpi-daily-avatar" alt="${u.name}">
+                <div class="kpi-daily-text">
+                    <span class="kpi-daily-name">${u.name}</span>
+                    <span class="kpi-daily-update">${u.text}</span>
+                </div>
+            </div>
+        `).join('');
+    }
 }
 
 function openDailyUpdatesModal() {
