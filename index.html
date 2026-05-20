@@ -1138,6 +1138,80 @@ body {
     background: rgba(255, 255, 255, 0.9) !important;
 }
 
+/* Tools view */
+.tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+    margin-top: 0.5rem;
+}
+
+.tool-card {
+    background: #fff;
+    border: 1.5px solid #f1f5f9;
+    border-radius: 16px;
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    transition: all 0.25s ease;
+}
+
+.tool-card:hover {
+    transform: translateY(-4px);
+    border-color: #e2e8f0;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.07);
+}
+
+.tool-card-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tool-card-icon i {
+    width: 26px;
+    height: 26px;
+}
+
+.tool-card-body h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 0.3rem;
+}
+
+.tool-card-body p {
+    font-size: 0.82rem;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+.tool-card-btn {
+    margin-top: auto;
+    align-self: flex-start;
+    background: #f8f9fa;
+    border: 1.5px solid #e2e8f0;
+    color: #374151;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.45rem 1.1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.tool-card-btn:hover {
+    background: #ad1457;
+    border-color: #ad1457;
+    color: #fff;
+}
+
 .icon-btn-small:hover {
     background: #ad1457;
     color: #fff;
@@ -1685,6 +1759,10 @@ body {
                 <i data-lucide="user"></i>
                 <span>Employee Dashboard</span>
             </button>
+            <button class="nav-tab" id="btn-tools-view" onclick="switchView('tools')">
+                <i data-lucide="wrench"></i>
+                <span>Tools</span>
+            </button>
         </nav>
     </header>
 
@@ -1784,6 +1862,48 @@ body {
                     <button class="btn-primary add-emp-btn" onclick="openAddEmployeeModal()">
                         <i data-lucide="plus"></i> Add New Employee
                     </button>
+                </div>
+            </section>
+
+            <!-- Tools View -->
+            <section id="tools-view" class="view-section" style="display: none;">
+                <div class="view-header">
+                    <div>
+                        <h1>Tools</h1>
+                        <p>Quick access to team tracking tools.</p>
+                    </div>
+                </div>
+                <div class="tools-grid">
+                    <div class="tool-card">
+                        <div class="tool-card-icon" style="background: #e3f2fd; color: #1565c0;">
+                            <i data-lucide="test-tube-2"></i>
+                        </div>
+                        <div class="tool-card-body">
+                            <h3>Sample Tracker</h3>
+                            <p>Track and manage biological sample status and workflows.</p>
+                        </div>
+                        <button class="tool-card-btn">Open Tracker</button>
+                    </div>
+                    <div class="tool-card">
+                        <div class="tool-card-icon" style="background: #e8f5e9; color: #2e7d32;">
+                            <i data-lucide="file-heart"></i>
+                        </div>
+                        <div class="tool-card-body">
+                            <h3>Clinical History Tracker</h3>
+                            <p>Manage and review patient clinical history records.</p>
+                        </div>
+                        <button class="tool-card-btn">Open Tracker</button>
+                    </div>
+                    <div class="tool-card">
+                        <div class="tool-card-icon" style="background: #fce4ec; color: #ad1457;">
+                            <i data-lucide="flask-conical"></i>
+                        </div>
+                        <div class="tool-card-body">
+                            <h3>CMC Tracker</h3>
+                            <p>Monitor Chemistry, Manufacturing and Controls progress.</p>
+                        </div>
+                        <button class="tool-card-btn">Open Tracker</button>
+                    </div>
                 </div>
             </section>
         </main>
