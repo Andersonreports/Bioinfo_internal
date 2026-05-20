@@ -2174,7 +2174,7 @@ body {
                             </div>
                             <div class="form-group">
                                 <label>Date</label>
-                                <input type="date" id="wu-date">
+                                <input type="date" id="wu-date" style="cursor:not-allowed;background:#f8f9fa;color:#64748b;">
                             </div>
                             <div class="form-group">
                                 <label>Work Update</label>
@@ -3162,8 +3162,13 @@ function populateWuNameDropdowns() {
 }
 
 function setDefaultWuDate() {
+    const today = new Date().toISOString().slice(0, 10);
     const d = document.getElementById('wu-date');
-    if (d && !d.value) d.value = new Date().toISOString().slice(0, 10);
+    if (!d) return;
+    d.value = today;
+    d.min = today;
+    d.max = today;
+    d.readOnly = true;
 }
 
 function submitWorkUpdate() {
