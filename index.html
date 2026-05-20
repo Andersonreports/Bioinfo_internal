@@ -1398,6 +1398,26 @@ body {
     gap: 0.75rem;
 }
 
+.cert-delete-btn {
+    margin-left: auto;
+    background: none;
+    border: 1.5px solid #ef9a9a;
+    color: #ef5350;
+    border-radius: 8px;
+    padding: 0.35rem 0.6rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.cert-delete-btn:hover {
+    background: #ef5350;
+    border-color: #ef5350;
+    color: #fff;
+}
+
 .post-avatar {
     width: 48px;
     height: 48px;
@@ -2361,7 +2381,7 @@ function openViewCertsModal(empId) {
             }
 
             return `
-                <div class="linkedin-post">
+                <div class="linkedin-post" id="cert-post-${cert.id}">
                     <div class="post-header">
                         <img src="${emp.avatar}" class="post-avatar" alt="${emp.name}">
                         <div class="post-author-info">
@@ -2375,6 +2395,9 @@ function openViewCertsModal(empId) {
                                 <i data-lucide="globe"></i>
                             </span>
                         </div>
+                        <button class="cert-delete-btn" onclick="deleteSingleCert(${emp.id}, ${cert.id})" title="Delete certificate">
+                            <i data-lucide="trash-2" style="width:15px;height:15px;"></i>
+                        </button>
                     </div>
                     <div class="post-body">
                         <p class="post-text">${description.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</p>
@@ -2392,6 +2415,27 @@ function openViewCertsModal(empId) {
 function closeViewCertsModal(event) {
     if (event && event.target !== event.currentTarget) return;
     document.getElementById('view-certs-modal').style.display = 'none';
+}
+
+function deleteSingleCert(empId, certId) {
+    const emp = employees.find(e => e.id === empId);
+    if (!emp) return;
+    if (!confirm('Delete this certificate? This cannot be undone.')) return;
+    emp.certificates = emp.certificates.filter(c => c.id !== certId);
+    try {
+        localStorage.setItem(`certs_${emp.employeeId}`, JSON.stringify(emp.certificates));
+    } catch (e) {}
+    const el = document.getElementById(`cert-post-${certId}`);
+    if (el) el.remove();
+    if (emp.certificates.length === 0) {
+        document.getElementById('certs-feed-container').innerHTML = `
+            <div class="no-certs-post">
+                <i data-lucide="award"></i>
+                <p>No certificates or achievements uploaded yet.</p>
+            </div>`;
+        lucide.createIcons();
+    }
+    renderEmployeeSpace();
 }
 
 // Add New Employee Logic
