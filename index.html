@@ -1210,6 +1210,7 @@ body {
     border-radius: 8px;
     font-weight: 500;
     transition: all 0.2s ease;
+    cursor: pointer;
 }
 
 .team-modal-member-badge:hover {
@@ -3047,7 +3048,7 @@ function openActiveTeamsModal() {
         }
 
         if (emp.name && emp.name.trim() !== '') {
-            leaderData[leaderName].members.push(emp.name.trim());
+            leaderData[leaderName].members.push({ name: emp.name.trim(), id: emp.id });
         }
     });
 
@@ -3066,7 +3067,7 @@ function openActiveTeamsModal() {
                 <div class="leader-stat-count">${data.members.length} Member${data.members.length !== 1 ? 's' : ''}</div>
                 <div class="leader-stat-divider"></div>
                 <div class="team-modal-members-list">
-                    ${data.members.map(m => `<span class="team-modal-member-badge">${m}</span>`).join('')}
+                    ${data.members.map(m => `<span class="team-modal-member-badge" onclick="openEmployeeDetails(${m.id})">${m.name}</span>`).join('')}
                 </div>
             </div>
         `;
