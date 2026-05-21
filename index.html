@@ -438,46 +438,60 @@
 
 body {
     font-family: var(--font-main);
-    background: linear-gradient(145deg, #f8faf8 0%, #ecfdf5 35%, #f0fdfa 65%, #fafaf9 100%);
+    background: linear-gradient(135deg, #e0f2fe 0%, #f0fdf4 35%, #eef2ff 65%, #fdf2f8 100%);
+    background-size: 300% 300%;
+    animation: gradientBG 15s ease infinite;
     color: var(--text-main);
     height: 100vh;
     overflow: hidden;
     position: relative;
 }
 
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
 /* Background Gradients */
 .bg-orb {
     position: fixed;
     border-radius: 50%;
-    filter: blur(90px);
+    filter: blur(100px);
     z-index: -1;
-    opacity: 0.18;
+    opacity: 0.35;
     pointer-events: none;
+    animation: orbFloat 20s infinite alternate ease-in-out;
+}
+
+@keyframes orbFloat {
+    0% { transform: translateY(0) scale(1); }
+    100% { transform: translateY(-40px) scale(1.15); }
 }
 
 .orb-1 {
-    top: -8%;
-    left: -8%;
-    width: 520px;
-    height: 520px;
-    background: radial-gradient(circle, #0d9488 0%, transparent 70%);
+    top: -10%;
+    left: -10%;
+    width: 550px;
+    height: 550px;
+    background: radial-gradient(circle, #38bdf8 0%, transparent 70%);
 }
 
 .orb-2 {
     bottom: -10%;
-    right: -8%;
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(circle, #059669 0%, transparent 70%);
+    right: -10%;
+    width: 650px;
+    height: 650px;
+    background: radial-gradient(circle, #a78bfa 0%, transparent 70%);
 }
 
 .orb-3 {
-    top: 40%;
-    right: 20%;
-    width: 300px;
-    height: 300px;
-    background: radial-gradient(circle, #134e4a 0%, transparent 70%);
-    opacity: 0.10;
+    top: 35%;
+    right: 25%;
+    width: 350px;
+    height: 350px;
+    background: radial-gradient(circle, #34d399 0%, transparent 70%);
+    opacity: 0.25;
 }
 
 /* Utilities */
@@ -485,9 +499,15 @@ body {
     background: rgba(255,255,255,0.88);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(99,155,220,0.18);
+    border: 1px solid rgba(255,255,255,1);
     border-radius: 18px;
-    box-shadow: 0 4px 24px rgba(15,42,94,0.09), 0 1px 4px rgba(13,148,136,0.06);
+    box-shadow: 0 4px 24px rgba(15,42,94,0.08), 0 1px 4px rgba(13,148,136,0.06);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass-panel:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 36px rgba(15,42,94,0.12), 0 4px 12px rgba(13,148,136,0.08);
 }
 
 .mt-4 { margin-top: 1rem; }
@@ -505,13 +525,7 @@ body {
 
 
 
-.brand h2 {
-    font-weight: 700;
-    font-size: 1.5rem;
-    background: linear-gradient(to right, var(--text-main), var(--text-muted));
-    -webkit-background-clip: text;
-    color: transparent;
-}
+
 
 
 
