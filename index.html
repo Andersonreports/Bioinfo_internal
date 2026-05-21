@@ -2168,6 +2168,181 @@ body {
     font-weight: 500;
 }
 
+/* ===== Employee Profile Side Panel ===== */
+#employee-details-modal {
+    /* Override modal-overlay: become a fixed right side panel */
+    left: auto;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 460px;
+    max-width: 50vw;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    z-index: 2500;
+    display: block;
+    padding: 0;
+    overflow: hidden;
+    align-items: unset;
+    justify-content: unset;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(105%);
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), visibility 0s 0.3s;
+}
+
+#employee-details-modal.panel-open {
+    visibility: visible;
+    pointer-events: all;
+    transform: translateX(0);
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), visibility 0s 0s;
+}
+
+.profile-panel {
+    display: grid;
+    grid-template-columns: 175px 1fr;
+    width: 100%;
+    height: 100%;
+    border-radius: 16px 0 0 16px;
+    overflow: hidden;
+    box-shadow: -8px 0 40px rgba(15,42,94,0.2);
+    border: 1px solid rgba(13,148,136,0.15);
+    border-right: none;
+    background: #fff;
+}
+
+.profile-left {
+    background: linear-gradient(160deg, #0f172a 0%, #134e4a 60%, #0d9488 100%);
+    padding: 1.75rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    text-align: center;
+    overflow-y: auto;
+}
+
+.profile-avatar-wrap {
+    margin-bottom: 0.25rem;
+}
+
+.profile-avatar-img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.25);
+    object-fit: cover;
+    background: #134e4a;
+}
+
+.profile-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.3;
+}
+
+.profile-role {
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.7);
+    font-weight: 500;
+}
+
+.profile-badges {
+    margin-top: 0.2rem;
+}
+
+.profile-badge-id {
+    font-size: 0.68rem;
+    background: rgba(94,234,212,0.15);
+    color: #5eead4;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    border: 1px solid rgba(94,234,212,0.3);
+    display: inline-block;
+}
+
+.profile-meta-list {
+    width: 100%;
+    margin-top: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.profile-meta-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.1rem;
+    padding: 0.45rem 0.6rem;
+    background: rgba(255,255,255,0.06);
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.profile-meta-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: rgba(94,234,212,0.8);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.profile-meta-value {
+    font-size: 0.73rem;
+    color: rgba(255,255,255,0.88);
+    font-weight: 500;
+    word-break: break-all;
+}
+
+.profile-right {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    background: #fff;
+}
+
+.profile-right-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.1rem 1.1rem 0.75rem;
+    border-bottom: 1px solid #f1f5f9;
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 1;
+}
+
+.profile-right-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.profile-section {
+    padding: 0.9rem 1.1rem 0;
+}
+
+.profile-section:last-child {
+    padding-bottom: 1.5rem;
+}
+
+.profile-section-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #0d9488;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
 </style>
 </head>
 <body>
@@ -2512,40 +2687,58 @@ body {
         </div>
     </div>
 
-    <!-- Employee Details Modal -->
-    <div class="modal-overlay" id="employee-details-modal" style="display: none;" onclick="closeDetailsModal(event)">
-        <div class="modal glass-panel details-modal" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <div class="details-header-info">
-                    <img id="details-avatar" src="" alt="Avatar" class="details-avatar">
-                    <div>
-                        <h2 id="details-name">Employee Name</h2>
-                        <p id="details-role">Role</p>
+    <!-- Employee Profile Side Panel -->
+    <div class="modal-overlay" id="employee-details-modal">
+        <div class="profile-panel glass-panel" onclick="event.stopPropagation()">
+            <!-- Left Column: Avatar + Quick Info -->
+            <div class="profile-left">
+                <div class="profile-avatar-wrap">
+                    <img id="details-avatar" src="" alt="Avatar" class="profile-avatar-img">
+                </div>
+                <h2 id="details-name" class="profile-name"></h2>
+                <p id="details-role" class="profile-role"></p>
+                <div class="profile-badges">
+                    <span class="profile-badge-id" id="details-id-badge"></span>
+                </div>
+                <div class="profile-meta-list">
+                    <div class="profile-meta-item">
+                        <span class="profile-meta-label">Team</span>
+                        <span class="profile-meta-value" id="details-team"></span>
+                    </div>
+                    <div class="profile-meta-item">
+                        <span class="profile-meta-label">Team Leader</span>
+                        <span class="profile-meta-value" id="details-leader"></span>
+                    </div>
+                    <div class="profile-meta-item">
+                        <span class="profile-meta-label">Date of Joining</span>
+                        <span class="profile-meta-value" id="details-doj"></span>
+                    </div>
+                    <div class="profile-meta-item">
+                        <span class="profile-meta-label">Email</span>
+                        <span class="profile-meta-value" id="details-email"></span>
+                    </div>
+                    <div class="profile-meta-item">
+                        <span class="profile-meta-label">Employee ID</span>
+                        <span class="profile-meta-value" id="details-id"></span>
                     </div>
                 </div>
-                <button class="icon-btn" onclick="closeDetailsModal()"><i data-lucide="x"></i></button>
             </div>
-            <div class="details-content">
-                <table class="details-table">
-                    <tr><th>Employee ID</th><td id="details-id"></td></tr>
-                    <tr><th>Team</th><td id="details-team"></td></tr>
-                    <tr><th>Team Leader</th><td id="details-leader"></td></tr>
-                    <tr><th>Date of Joining</th><td id="details-doj"></td></tr>
-                    <tr><th>Email</th><td id="details-email"></td></tr>
-                </table>
-                
-                <div class="details-section">
-                    <h3>Work Responsibilities</h3>
+            <!-- Right Column: Work Details -->
+            <div class="profile-right">
+                <div class="profile-right-header">
+                    <h3 class="profile-right-title">Employee Profile</h3>
+                    <button class="icon-btn" onclick="closeDetailsModal()"><i data-lucide="x"></i></button>
+                </div>
+                <div class="profile-section">
+                    <div class="profile-section-title"><i data-lucide="briefcase" style="width:15px;height:15px;"></i> Work Responsibilities</div>
                     <div id="details-work" class="details-text-block"></div>
                 </div>
-                
-                <div class="details-section">
-                    <h3>Analysis Types</h3>
+                <div class="profile-section">
+                    <div class="profile-section-title"><i data-lucide="flask-conical" style="width:15px;height:15px;"></i> Analysis Types</div>
                     <div id="details-analysis" class="details-text-block"></div>
                 </div>
-
-                <div class="details-section">
-                    <h3>Report / Sample Types</h3>
+                <div class="profile-section">
+                    <div class="profile-section-title"><i data-lucide="test-tube-2" style="width:15px;height:15px;"></i> Report / Sample Types</div>
                     <div id="details-samples" class="details-text-block"></div>
                 </div>
             </div>
@@ -3004,14 +3197,20 @@ function handleFilterChange() {
 }
 
 // Modal Logic
+function openMemberProfile(id) {
+    // Keep the teams modal open as the left panel; profile slides in from the right
+    openEmployeeDetails(id);
+}
+
 function openEmployeeDetails(id) {
-    const emp = employees.find(e => e.id === id);
+    const emp = employees.find(e => e.id == id);
     if (!emp) return;
 
     document.getElementById('details-avatar').src = emp.avatar;
     document.getElementById('details-name').textContent = emp.name;
     document.getElementById('details-role').textContent = emp.role;
     document.getElementById('details-id').textContent = emp.employeeId;
+    document.getElementById('details-id-badge').textContent = emp.employeeId;
     document.getElementById('details-team').textContent = emp.team;
     document.getElementById('details-leader').textContent = emp.teamLeader;
     document.getElementById('details-doj').textContent = formatDate(emp.doj);
@@ -3019,7 +3218,7 @@ function openEmployeeDetails(id) {
 
     // Helper to render lists
     const renderList = (text) => {
-        if (!text) return 'N/A';
+        if (!text) return '<p style="color:#94a3b8;font-size:0.85rem;">N/A</p>';
         const items = text.split(',').map(item => item.trim()).filter(item => item !== "");
         return `<ul class="details-list">${items.map(item => `<li>${item}</li>`).join('')}</ul>`;
     };
@@ -3028,12 +3227,12 @@ function openEmployeeDetails(id) {
     document.getElementById('details-analysis').innerHTML = renderList(emp.analysis);
     document.getElementById('details-samples').innerHTML = renderList(emp.samples);
 
-    document.getElementById('employee-details-modal').style.display = 'flex';
+    document.getElementById('employee-details-modal').classList.add('panel-open');
+    lucide.createIcons();
 }
 
 function closeDetailsModal(event) {
-    if (event && event.target !== event.currentTarget) return;
-    document.getElementById('employee-details-modal').style.display = 'none';
+    document.getElementById('employee-details-modal').classList.remove('panel-open');
 }
 
 function openActiveTeamsModal() {
@@ -3067,7 +3266,7 @@ function openActiveTeamsModal() {
                 <div class="leader-stat-count">${data.members.length} Member${data.members.length !== 1 ? 's' : ''}</div>
                 <div class="leader-stat-divider"></div>
                 <div class="team-modal-members-list">
-                    ${data.members.map(m => `<span class="team-modal-member-badge" onclick="openEmployeeDetails(${m.id})">${m.name}</span>`).join('')}
+                    ${data.members.map(m => `<span class="team-modal-member-badge" onclick="openMemberProfile(${m.id})">${m.name}</span>`).join('')}
                 </div>
             </div>
         `;
