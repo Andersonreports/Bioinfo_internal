@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -2363,7 +2363,7 @@ body {
                             <div class="form-group">
                                 <label>Your Name</label>
                                 <select id="wu-name">
-                                    <option value="">Select your nameâ€¦</option>
+                                    <option value="">Select your name</option>
                                 </select>
                             </div>
                             <div class="form-group">
@@ -2372,7 +2372,7 @@ body {
                             </div>
                             <div class="form-group">
                                 <label>Work Update</label>
-                                <textarea id="wu-text" rows="3" placeholder="Describe what you worked on todayâ€¦" style="width:100%;box-sizing:border-box;resize:vertical;background:#fafafa;border:1.5px solid #f1f5f9;border-radius:10px;padding:0.75rem 1rem;font-family:inherit;font-size:0.92rem;outline:none;transition:border 0.2s;"></textarea>
+                                <textarea id="wu-text" rows="3" placeholder="Describe what you worked on today..." style="width:100%;box-sizing:border-box;resize:vertical;background:#fafafa;border:1.5px solid #f1f5f9;border-radius:10px;padding:0.75rem 1rem;font-family:inherit;font-size:0.92rem;outline:none;transition:border 0.2s;"></textarea>
                             </div>
                         </div>
                         <div style="display:flex;justify-content:flex-end;margin-top:0.75rem;">
@@ -2722,7 +2722,7 @@ function renderNotifications() {
             <div class="notif-dot-icon"></div>
             <div>
                 <div class="notif-item-text"><strong>${u.name}</strong> posted a work update</div>
-                <div class="notif-item-text">${u.text.length > 60 ? u.text.slice(0,60)+'â€¦' : u.text}</div>
+                <div class="notif-item-text">${u.text.length > 60 ? u.text.slice(0,60)+'...' : u.text}</div>
                 <div class="notif-item-time">Today</div>
             </div>
         </div>
@@ -3432,7 +3432,7 @@ function populateWuNameDropdowns() {
         const sel = document.getElementById(id);
         if (!sel) return;
         const isFilter = id === 'wu-filter-name';
-        const first = isFilter ? '<option value="all">All Employees</option>' : '<option value="">Select your nameâ€¦</option>';
+        const first = isFilter ? '<option value="all">All Employees</option>' : '<option value="">Select your name</option>';
         sel.innerHTML = first + names.map(n => `<option value="${n}">${n}</option>`).join('');
     });
 }
