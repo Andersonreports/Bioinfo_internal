@@ -977,9 +977,60 @@ body {
 /* Employee Space Specifics */
 .employee-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+    align-content: start;
+}
+
+.mgr-main-row {
+    display: grid;
+    grid-template-columns: 1fr 340px;
     gap: 1.5rem;
+    align-items: start;
     margin-bottom: 2rem;
+}
+
+.ach-wall-panel {
+    background: #fff;
+    border: 1.5px solid #f1f5f9;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    display: flex;
+    flex-direction: column;
+    max-height: 700px;
+    min-height: 300px;
+    overflow: hidden;
+}
+
+.ach-wall-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 1.25rem 0.75rem;
+    border-bottom: 1.5px solid #f1f5f9;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #0f172a;
+    flex-shrink: 0;
+}
+
+.ach-wall-scroll {
+    overflow-y: auto;
+    padding: 0.85rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    flex: 1;
+}
+
+.ach-wall-scroll::-webkit-scrollbar { width: 4px; }
+.ach-wall-scroll::-webkit-scrollbar-track { background: transparent; }
+.ach-wall-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
+
+@media (max-width: 1100px) {
+    .mgr-main-row { grid-template-columns: 1fr; }
+    .employee-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+    .ach-wall-panel { max-height: 400px; }
 }
 
 .emp-card {
@@ -2192,21 +2243,17 @@ body {
     gap: 1.1rem;
 }
 .ach-card {
-    background: #fff;
+    background: #f8fafc;
     border: 1.5px solid #f1f5f9;
-    border-radius: 16px;
-    padding: 1.1rem 1.25rem;
+    border-radius: 12px;
+    padding: 0.9rem 1rem;
     display: flex;
     flex-direction: column;
-    gap: 0.65rem;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.03);
-    transition: all 0.22s ease;
+    gap: 0.55rem;
+    transition: border-color 0.2s;
+    flex-shrink: 0;
 }
-.ach-card:hover {
-    border-color: #ccfbf1;
-    box-shadow: 0 8px 22px rgba(13,148,136,0.07);
-    transform: translateY(-2px);
-}
+.ach-card:hover { border-color: #ccfbf1; }
 .ach-card-author {
     display: flex;
     align-items: center;
@@ -3003,21 +3050,22 @@ body {
                     </div>
                 </div>
 
-                <!-- Circular Stat Cards Container -->
-                <div id="employee-cards-container" class="employee-grid">
-                    <!-- Populated by JS -->
-                </div>
+                <!-- Side-by-side: employee cards + achievements wall -->
+                <div class="mgr-main-row">
+                    <!-- Circular Stat Cards Container -->
+                    <div id="employee-cards-container" class="employee-grid">
+                        <!-- Populated by JS -->
+                    </div>
 
-                <!-- Achievements Wall -->
-                <div class="achievements-wall-section">
-                    <div class="ach-wall-header">
-                        <div class="ach-wall-title">
-                            <i data-lucide="trophy" style="width:20px;height:20px;color:#f59e0b;"></i>
+                    <!-- Achievements Wall Panel -->
+                    <div class="ach-wall-panel">
+                        <div class="ach-wall-panel-header">
+                            <i data-lucide="trophy" style="width:17px;height:17px;color:#f59e0b;flex-shrink:0;"></i>
                             Achievements Wall
                         </div>
-                    </div>
-                    <div class="ach-grid" id="achievements-wall">
-                        <!-- Populated by JS -->
+                        <div class="ach-wall-scroll" id="achievements-wall">
+                            <!-- Populated by JS -->
+                        </div>
                     </div>
                 </div>
             </section>
@@ -4523,8 +4571,7 @@ function renderAchievementsWall() {
     });
 
     if (!allCerts.length) {
-        wall.innerHTML = `<div class="ach-wall-empty">No achievements uploaded yet. Employees can upload certificates from the Employee Dashboard.</div>`;
-        lucide.createIcons();
+        wall.innerHTML = `<div style="text-align:center;color:#94a3b8;font-size:0.82rem;padding:2rem 1rem;line-height:1.6;">No achievements uploaded yet.<br>Employees can upload from the Employee Dashboard.</div>`;
         return;
     }
 
