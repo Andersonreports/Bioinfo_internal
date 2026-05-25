@@ -3637,6 +3637,50 @@ const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?forma
 
 let employees = [];
 
+// --- Field normalisation helpers ---
+// Split a comma-separated field string without breaking on commas inside parentheses
+function splitFieldItems(text) {
+    if (!text || text.trim() === '' || text.trim() === 'N/A') return [];
+    const items = [];
+    let current = '';
+    let depth = 0;
+    for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (c === '(') depth++;
+        else if (c === ')') { if (depth > 0) depth--; }
+        if (c === ',' && depth === 0) {
+            const t = current.trim();
+            if (t) items.push(t);
+            current = '';
+        } else {
+            current += c;
+        }
+    }
+    const t = current.trim();
+    if (t) items.push(t);
+    return items;
+}
+
+// Fix stray/unmatched parentheses and capitalise first letter
+function normalizeItem(raw) {
+    let s = raw.trim();
+    if (!s) return '';
+    // Balance unmatched closing parens at the end
+    const opens  = (s.match(/\(/g) || []).length;
+    const closes = (s.match(/\)/g) || []).length;
+    if (closes > opens) s = s.replace(/\)(\s*)$/, '$1').trim(); // remove trailing stray )
+    if (opens  > closes) s += ')';                               // close unclosed (
+    // Sentence case – capitalise only the first character
+    s = s.charAt(0).toUpperCase() + s.slice(1);
+    return s;
+}
+
+function renderFieldList(text) {
+    const items = splitFieldItems(text).map(normalizeItem).filter(Boolean);
+    if (!items.length) return '<p style="color:#94a3b8;font-size:0.85rem;">N/A</p>';
+    return `<ul class="details-list">${items.map(i => `<li>${i}</li>`).join('')}</ul>`;
+}
+
 // Header dropdown logic
 function toggleHdrDropdown(id) {
     const panel = document.getElementById(id);
@@ -3964,16 +4008,9 @@ function openEmployeeDetails(id) {
     document.getElementById('details-doj').textContent = formatDate(emp.doj);
     document.getElementById('details-email').textContent = emp.email;
 
-    // Helper to render lists
-    const renderList = (text) => {
-        if (!text) return '<p style="color:#94a3b8;font-size:0.85rem;">N/A</p>';
-        const items = text.split(',').map(item => item.trim()).filter(item => item !== "");
-        return `<ul class="details-list">${items.map(item => `<li>${item}</li>`).join('')}</ul>`;
-    };
-
-    document.getElementById('details-work').innerHTML = renderList(emp.work);
-    document.getElementById('details-analysis').innerHTML = renderList(emp.analysis);
-    document.getElementById('details-samples').innerHTML = renderList(emp.samples);
+    document.getElementById('details-work').innerHTML = renderFieldList(emp.work);
+    document.getElementById('details-analysis').innerHTML = renderFieldList(emp.analysis);
+    document.getElementById('details-samples').innerHTML = renderFieldList(emp.samples);
 
     document.getElementById('employee-details-modal').classList.add('panel-open');
     lucide.createIcons();
