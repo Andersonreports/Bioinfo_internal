@@ -2168,6 +2168,142 @@ body {
     font-weight: 500;
 }
 
+/* ===== Achievements Wall ===== */
+.achievements-wall-section {
+    margin-top: 2rem;
+}
+.ach-wall-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+.ach-wall-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.ach-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.1rem;
+}
+.ach-card {
+    background: #fff;
+    border: 1.5px solid #f1f5f9;
+    border-radius: 16px;
+    padding: 1.1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.03);
+    transition: all 0.22s ease;
+}
+.ach-card:hover {
+    border-color: #ccfbf1;
+    box-shadow: 0 8px 22px rgba(13,148,136,0.07);
+    transform: translateY(-2px);
+}
+.ach-card-author {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+.ach-card-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #ccfbf1;
+    flex-shrink: 0;
+}
+.ach-card-name {
+    font-weight: 700;
+    font-size: 0.88rem;
+    color: #0f172a;
+}
+.ach-card-role {
+    font-size: 0.75rem;
+    color: #64748b;
+}
+.ach-card-event {
+    font-size: 0.93rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.3;
+}
+.ach-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+.ach-meta-tag {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.76rem;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+    border-radius: 20px;
+    padding: 0.18rem 0.55rem;
+}
+.ach-award-tag {
+    background: #fef9c3;
+    color: #854d0e;
+    border-color: #fef08a;
+    font-weight: 600;
+}
+.ach-card-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 0.6rem;
+}
+.ach-wall-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.9rem;
+    padding: 2.5rem;
+    background: #fff;
+    border: 1.5px dashed #e2e8f0;
+    border-radius: 16px;
+}
+
+/* Employee Dashboard: cert upload */
+.emp-cert-section {
+    margin-top: 1.25rem;
+}
+.emp-cert-card {
+    background: #fff;
+    border: 1.5px solid #f1f5f9;
+    border-radius: 16px;
+    padding: 1.35rem 1.5rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+}
+.emp-cert-card h3 {
+    font-size: 0.97rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.emp-cert-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
+    margin-bottom: 1rem;
+}
+.emp-cert-grid .form-group.col-span-2 { grid-column: span 2; }
+@media (max-width: 600px) { .emp-cert-grid { grid-template-columns: 1fr; } .emp-cert-grid .form-group.col-span-2 { grid-column: span 1; } }
+
 /* ===== Employee Profile Side Panel ===== */
 #employee-details-modal {
     left: auto;
@@ -2871,6 +3007,19 @@ body {
                 <div id="employee-cards-container" class="employee-grid">
                     <!-- Populated by JS -->
                 </div>
+
+                <!-- Achievements Wall -->
+                <div class="achievements-wall-section">
+                    <div class="ach-wall-header">
+                        <div class="ach-wall-title">
+                            <i data-lucide="trophy" style="width:20px;height:20px;color:#f59e0b;"></i>
+                            Achievements Wall
+                        </div>
+                    </div>
+                    <div class="ach-grid" id="achievements-wall">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
             </section>
 
             <!-- Employee View (Employee Space) -->
@@ -2930,6 +3079,50 @@ body {
                     </div>
 
                     </div><!-- end wu-two-col -->
+                </div>
+
+                <!-- Certificate / Achievement Upload -->
+                <div class="emp-cert-section">
+                    <div class="emp-cert-card">
+                        <h3><i data-lucide="award" style="width:16px;height:16px;color:#f59e0b;"></i>Upload Certificate / Achievement</h3>
+                        <div class="emp-cert-grid">
+                            <div class="form-group col-span-2">
+                                <label>Your Name</label>
+                                <select id="cert-emp-name-sel">
+                                    <option value="">Select your name</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-span-2">
+                                <label>Event Name</label>
+                                <input type="text" id="emp-cert-event-name" placeholder="e.g. Clinical Genomics Summit 2026">
+                            </div>
+                            <div class="form-group">
+                                <label>Event Date</label>
+                                <input type="date" id="emp-cert-event-date">
+                            </div>
+                            <div class="form-group">
+                                <label>Place</label>
+                                <input type="text" id="emp-cert-place" placeholder="e.g. Chennai, India">
+                            </div>
+                            <div class="form-group col-span-2">
+                                <label>Award / Achievement <span style="color:#94a3b8;font-weight:400;">(optional)</span></label>
+                                <input type="text" id="emp-cert-award" placeholder="e.g. Best Poster Award">
+                            </div>
+                            <div class="form-group">
+                                <label>Certificate File <span style="color:#94a3b8;font-size:0.78rem;">(PDF or Image)</span></label>
+                                <input type="file" id="emp-cert-file" accept=".pdf,image/*">
+                            </div>
+                            <div class="form-group">
+                                <label>Photo <span style="color:#94a3b8;font-weight:400;">(optional)</span></label>
+                                <input type="file" id="emp-cert-photo" accept="image/*">
+                            </div>
+                        </div>
+                        <div style="display:flex;justify-content:flex-end;">
+                            <button class="btn-primary" onclick="submitEmpCert()" style="display:flex;align-items:center;gap:0.4rem;">
+                                <i data-lucide="upload-cloud" style="width:15px;height:15px;"></i> Upload Achievement
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -3617,6 +3810,7 @@ async function fetchData() {
         updateKPIs();
         renderEmployees();
         renderEmployeeSpace();
+        renderAchievementsWall();
         populateWuNameDropdowns();
         setDefaultWuDate();
         renderWorkUpdates();
@@ -3852,9 +4046,6 @@ function renderEmployeeSpace(data = employees) {
                 <div class="stat-progress"></div>
                 <img src="${emp.avatar}" alt="${emp.name}" class="stat-avatar">
                 <div class="stat-badge">${emp.team}</div>
-                <button class="avatar-edit-btn" onclick="event.stopPropagation(); openAvatarModal(${emp.id})" title="Edit profile picture">
-                    <i data-lucide="camera" style="width:13px;height:13px;"></i>
-                </button>
             </div>
             <div class="stat-info">
                 <h3>${emp.name}</h3>
@@ -3862,15 +4053,6 @@ function renderEmployeeSpace(data = employees) {
                 <div class="stat-meta">
                     <span>${emp.employeeId}</span>
                 </div>
-            </div>
-            
-            <div class="emp-card-actions" onclick="event.stopPropagation()">
-                <button class="icon-btn-small" onclick="openCertModal(${emp.id})" title="Upload Certificate">
-                    <i data-lucide="upload-cloud"></i>
-                </button>
-                <button class="icon-btn-small" onclick="openViewCertsModal(${emp.id})" title="View Certificates">
-                    <i data-lucide="eye"></i>
-                </button>
             </div>
         </div>
     `).join('');
@@ -3984,6 +4166,7 @@ async function handleCertUpload(event) {
     alert(`Certificate uploaded successfully for ${emp.name}!`);
     closeCertModal();
     renderEmployeeSpace();
+    renderAchievementsWall();
 }
 
 function openViewCertsModal(empId) {
@@ -4077,6 +4260,7 @@ function deleteSingleCert(empId, certId) {
         lucide.createIcons();
     }
     renderEmployeeSpace();
+    renderAchievementsWall();
 }
 
 // Avatar Edit Logic
@@ -4171,7 +4355,7 @@ function switchEmpSubtab(tab) {
 
 function populateWuNameDropdowns() {
     const names = employees.map(e => e.name).sort();
-    ['wu-name', 'wu-filter-name'].forEach(id => {
+    ['wu-name', 'wu-filter-name', 'cert-emp-name-sel'].forEach(id => {
         const sel = document.getElementById(id);
         if (!sel) return;
         const isFilter = id === 'wu-filter-name';
@@ -4324,6 +4508,116 @@ function handleAddEmployee(event) {
     updateKPIs();
     renderEmployees();
     renderEmployeeSpace();
+}
+
+// Achievements Wall
+function renderAchievementsWall() {
+    const wall = document.getElementById('achievements-wall');
+    if (!wall) return;
+
+    const allCerts = [];
+    employees.forEach(emp => {
+        (emp.certificates || []).forEach(cert => {
+            allCerts.push({ emp, cert });
+        });
+    });
+
+    if (!allCerts.length) {
+        wall.innerHTML = `<div class="ach-wall-empty">No achievements uploaded yet. Employees can upload certificates from the Employee Dashboard.</div>`;
+        lucide.createIcons();
+        return;
+    }
+
+    allCerts.sort((a, b) => {
+        const da = a.cert.date || '0000-00-00';
+        const db = b.cert.date || '0000-00-00';
+        return db.localeCompare(da);
+    });
+
+    const fmtCertDate = (d) => {
+        if (!d) return '';
+        const [y, m, dd] = d.split('-').map(Number);
+        const mons = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const sf = (n) => n>=11&&n<=13?'th':['th','st','nd','rd'][n%10]||'th';
+        return `${dd}${sf(dd)} ${mons[m-1]} ${y}`;
+    };
+
+    wall.innerHTML = allCerts.map(({ emp, cert }) => {
+        const dateDisplay = fmtCertDate(cert.date);
+        const certBtn = cert.certificate && cert.certificate.data
+            ? `<button class="cert-file-btn view" onclick="viewCertFile(${emp.id},${cert.id},'certificate')"><i data-lucide="eye" style="width:13px;height:13px;"></i> View</button>
+               <a class="cert-file-btn download" href="${cert.certificate.data}" download="${cert.certificate.name}"><i data-lucide="download" style="width:13px;height:13px;"></i> Download</a>`
+            : '';
+        const photoBtn = cert.photo && cert.photo.data
+            ? `<button class="cert-file-btn view" onclick="viewCertFile(${emp.id},${cert.id},'photo')"><i data-lucide="image" style="width:13px;height:13px;"></i> Photo</button>`
+            : '';
+        return `
+            <div class="ach-card">
+                <div class="ach-card-author">
+                    <img src="${emp.avatar}" alt="${emp.name}" class="ach-card-avatar">
+                    <div>
+                        <div class="ach-card-name">${emp.name}</div>
+                        <div class="ach-card-role">${emp.role}</div>
+                    </div>
+                </div>
+                <div class="ach-card-event">${cert.eventName}</div>
+                <div class="ach-card-meta">
+                    ${cert.place ? `<span class="ach-meta-tag"><i data-lucide="map-pin" style="width:11px;height:11px;"></i>${cert.place}</span>` : ''}
+                    ${dateDisplay ? `<span class="ach-meta-tag"><i data-lucide="calendar" style="width:11px;height:11px;"></i>${dateDisplay}</span>` : ''}
+                    ${cert.award ? `<span class="ach-meta-tag ach-award-tag"><i data-lucide="trophy" style="width:11px;height:11px;"></i>${cert.award}</span>` : ''}
+                </div>
+                ${certBtn || photoBtn ? `<div class="ach-card-actions">${certBtn}${photoBtn}</div>` : ''}
+            </div>`;
+    }).join('');
+
+    lucide.createIcons();
+}
+
+async function submitEmpCert() {
+    const name = document.getElementById('cert-emp-name-sel').value;
+    const eventName = document.getElementById('emp-cert-event-name').value.trim();
+    const eventDate = document.getElementById('emp-cert-event-date').value;
+    const place = document.getElementById('emp-cert-place').value.trim();
+    const award = document.getElementById('emp-cert-award').value.trim();
+    const fileInput = document.getElementById('emp-cert-file');
+    const photoInput = document.getElementById('emp-cert-photo');
+
+    if (!name) { alert('Please select your name.'); return; }
+    if (!eventName) { alert('Please enter the event name.'); return; }
+    if (!eventDate) { alert('Please select the event date.'); return; }
+    if (!place) { alert('Please enter the place.'); return; }
+    if (!fileInput.files[0]) { alert('Please attach the certificate file.'); return; }
+
+    const emp = employees.find(e => e.name === name);
+    if (!emp) return;
+
+    const certFile = await readFileAsDataURL(fileInput.files[0]);
+    const photoFile = await readFileAsDataURL(photoInput.files[0] || null);
+
+    const newCert = {
+        id: Date.now(),
+        eventName, date: eventDate, place, award,
+        certificate: certFile, photo: photoFile
+    };
+
+    emp.certificates.unshift(newCert);
+    try {
+        localStorage.setItem(`certs_${emp.employeeId}`, JSON.stringify(emp.certificates));
+    } catch(e) {
+        alert('Warning: LocalStorage limit exceeded; saved in memory only.');
+    }
+
+    // Clear form
+    document.getElementById('cert-emp-name-sel').value = '';
+    document.getElementById('emp-cert-event-name').value = '';
+    document.getElementById('emp-cert-event-date').value = '';
+    document.getElementById('emp-cert-place').value = '';
+    document.getElementById('emp-cert-award').value = '';
+    fileInput.value = '';
+    photoInput.value = '';
+
+    alert(`Achievement uploaded for ${emp.name}!`);
+    renderAchievementsWall();
 }
 
 // Directory — replaced below; stub kept to avoid reference errors during load
