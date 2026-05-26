@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
 :root {
     --bg-dark: #f8faf8;
@@ -3613,36 +3614,15 @@ body {
             <div class="login-title">Welcome Back</div>
             <div class="login-subtitle">Sign in to your account</div>
 
-            <div class="login-role-tabs">
-                <button class="login-role-tab active" onclick="selectLoginRole('admin')">Admin</button>
-                <button class="login-role-tab" onclick="selectLoginRole('manager')">Manager</button>
-                <button class="login-role-tab" onclick="selectLoginRole('employee')">Employee</button>
-            </div>
-
-            <!-- Admin form -->
-            <div class="login-form active" id="login-form-admin">
-                <label for="login-admin-pass">Password</label>
-                <input type="password" id="login-admin-pass" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')handleLogin()">
-            </div>
-
-            <!-- Manager form -->
-            <div class="login-form" id="login-form-manager">
-                <label for="login-mgr-pass">Password</label>
-                <input type="password" id="login-mgr-pass" placeholder="Enter manager password" onkeydown="if(event.key==='Enter')handleLogin()">
-            </div>
-
-            <!-- Employee form -->
-            <div class="login-form" id="login-form-employee">
-                <label for="login-emp-select">Select Employee</label>
-                <select id="login-emp-select">
-                    <option value="">Loading employees…</option>
-                </select>
-                <label for="login-emp-pin">PIN</label>
-                <input type="password" id="login-emp-pin" placeholder="Enter your PIN" maxlength="8" onkeydown="if(event.key==='Enter')handleLogin()">
+            <div class="login-form active">
+                <label for="login-email">Email</label>
+                <input type="email" id="login-email" placeholder="you@genomicdesk.com" autocomplete="email" onkeydown="if(event.key==='Enter')document.getElementById('login-password').focus()">
+                <label for="login-password">Password</label>
+                <input type="password" id="login-password" placeholder="Enter password" autocomplete="current-password" onkeydown="if(event.key==='Enter')handleLogin()">
             </div>
 
             <div class="login-error" id="login-error"></div>
-            <button class="login-btn" onclick="handleLogin()">Sign In</button>
+            <button class="login-btn" id="login-btn" onclick="handleLogin()">Sign In</button>
         </div>
     </div>
 
@@ -6229,70 +6209,68 @@ function closeChangeHeroModal() {
 }
 
 // ===== AUTH =====
+// ===== SUPABASE =====
+const SUPABASE_URL  = 'https://boghqathvnkygdzxnzkh.supabase.co';
+const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJvZ2hxYXRodm5reWdkenhuemtoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NzAzODAsImV4cCI6MjA5NTM0NjM4MH0.c9KemDmU7d4YGhkizU3TZx-hYaXSftazb-5RuHgV0Rs';
+const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const AUTH_SESSION_KEY = 'auth_session';
 
 function getSession() {
     try { return JSON.parse(localStorage.getItem(AUTH_SESSION_KEY)); } catch(e) { return null; }
 }
-function setSession(session) {
-    localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(session));
-}
-function clearSession() {
-    localStorage.removeItem(AUTH_SESSION_KEY);
-}
+function setSession(s) { localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(s)); }
+function clearSession() { localStorage.removeItem(AUTH_SESSION_KEY); }
 
-function getAdminPass()  { return localStorage.getItem('auth_admin_pass') || 'admin123'; }
-function getMgrPass()    { return localStorage.getItem('auth_mgr_pass')   || 'manager123'; }
-function getEmpPin(id)   { return localStorage.getItem('auth_emp_pin_' + id) || '1234'; }
-
-let _currentLoginRole = 'admin';
-
-function selectLoginRole(role) {
-    _currentLoginRole = role;
-    document.querySelectorAll('.login-role-tab').forEach((btn, i) => {
-        const roles = ['admin','manager','employee'];
-        btn.classList.toggle('active', roles[i] === role);
-    });
-    document.querySelectorAll('.login-form').forEach(f => f.classList.remove('active'));
-    const form = document.getElementById('login-form-' + role);
-    if (form) form.classList.add('active');
-    document.getElementById('login-error').textContent = '';
-}
-
-function handleLogin() {
+async function handleLogin() {
     const errEl = document.getElementById('login-error');
+    const btn   = document.getElementById('login-btn');
     errEl.textContent = '';
-    const role = _currentLoginRole;
 
-    if (role === 'admin') {
-        const pass = document.getElementById('login-admin-pass').value;
-        if (pass !== getAdminPass()) { errEl.textContent = 'Incorrect password.'; return; }
-        setSession({ role: 'admin', employeeId: null, name: 'Admin' });
-        hideLoginOverlay();
-        initApp(getSession());
+    const email    = (document.getElementById('login-email').value || '').trim();
+    const password = document.getElementById('login-password').value || '';
 
-    } else if (role === 'manager') {
-        const pass = document.getElementById('login-mgr-pass').value;
-        if (pass !== getMgrPass()) { errEl.textContent = 'Incorrect password.'; return; }
-        setSession({ role: 'manager', employeeId: null, name: 'Manager' });
-        hideLoginOverlay();
-        initApp(getSession());
+    if (!email || !password) { errEl.textContent = 'Please enter your email and password.'; return; }
 
-    } else if (role === 'employee') {
-        const select = document.getElementById('login-emp-select');
-        const empId = select.value;
-        if (!empId) { errEl.textContent = 'Please select an employee.'; return; }
-        const pin = document.getElementById('login-emp-pin').value;
-        if (pin !== getEmpPin(empId)) { errEl.textContent = 'Incorrect PIN.'; return; }
-        const emp = employees.find(e => e.employeeId === empId);
-        const name = emp ? emp.name : empId;
-        setSession({ role: 'employee', employeeId: empId, name: name });
-        hideLoginOverlay();
-        initApp(getSession());
+    btn.textContent = 'Signing in…';
+    btn.disabled = true;
+
+    const { data, error } = await _sb.auth.signInWithPassword({ email, password });
+
+    if (error) {
+        errEl.textContent = error.message === 'Invalid login credentials'
+            ? 'Incorrect email or password.' : error.message;
+        btn.textContent = 'Sign In';
+        btn.disabled = false;
+        return;
     }
+
+    // Fetch role from user_profiles table
+    const { data: profile, error: pErr } = await _sb
+        .from('user_profiles')
+        .select('role, employee_id, name')
+        .eq('id', data.user.id)
+        .single();
+
+    if (pErr || !profile) {
+        errEl.textContent = 'Account has no role assigned. Contact your admin.';
+        btn.textContent = 'Sign In';
+        btn.disabled = false;
+        await _sb.auth.signOut();
+        return;
+    }
+
+    const session = { role: profile.role, employeeId: profile.employee_id || null, name: profile.name || email.split('@')[0] };
+    setSession(session);
+    hideLoginOverlay();
+    initApp(session);
+
+    btn.textContent = 'Sign In';
+    btn.disabled = false;
 }
 
-function doLogout() {
+async function doLogout() {
+    await _sb.auth.signOut();
     clearSession();
     location.reload();
 }
@@ -6305,17 +6283,6 @@ function showLoginOverlay() {
 function hideLoginOverlay() {
     const ov = document.getElementById('login-overlay');
     if (ov) ov.style.display = 'none';
-}
-
-function populateLoginEmpDropdown() {
-    const select = document.getElementById('login-emp-select');
-    if (!select) return;
-    if (!employees.length) {
-        select.innerHTML = '<option value="">No employees loaded</option>';
-        return;
-    }
-    select.innerHTML = '<option value="">-- Select your name --</option>' +
-        employees.map(e => `<option value="${e.employeeId}">${e.name}</option>`).join('');
 }
 
 function applyRoleVisibility(role) {
@@ -6505,41 +6472,41 @@ function safeParseJSON(str, fallback) {
 // (render hooks for home/profile are handled inside switchView below)
 
 // Initialize
-document.addEventListener('DOMContentLoaded', () => {
-    // Check for existing session
-    const session = getSession();
-
+document.addEventListener('DOMContentLoaded', async () => {
     loadDirData();
     renderAlbum();
     lucide.createIcons();
 
     const addForm = document.getElementById('add-emp-form');
-    if(addForm) {
-        addForm.addEventListener('submit', handleAddEmployee);
-    }
-
+    if (addForm) addForm.addEventListener('submit', handleAddEmployee);
     const certForm = document.getElementById('cert-upload-form');
-    if(certForm) {
-        certForm.addEventListener('submit', handleCertUpload);
-    }
+    if (certForm) certForm.addEventListener('submit', handleCertUpload);
 
-    if (session) {
-        // Session exists — go straight in, then fetch data
-        initApp(session);
-        fetchData().then(() => {
-            // Re-render employee-specific views after data loads
-            if (session.role === 'employee') {
-                renderHomeTab();
-                renderProfileTab();
-                populateLoginEmpDropdown();
-            }
-        });
+    // Check for an active Supabase session (persists across page refreshes)
+    const { data: { session: sbSession } } = await _sb.auth.getSession();
+
+    if (sbSession) {
+        const { data: profile } = await _sb
+            .from('user_profiles')
+            .select('role, employee_id, name')
+            .eq('id', sbSession.user.id)
+            .single();
+
+        if (profile) {
+            const session = { role: profile.role, employeeId: profile.employee_id || null, name: profile.name || sbSession.user.email };
+            setSession(session);
+            initApp(session);
+            fetchData().then(() => {
+                if (session.role === 'employee') { renderHomeTab(); renderProfileTab(); }
+            });
+        } else {
+            await _sb.auth.signOut();
+            showLoginOverlay();
+            fetchData();
+        }
     } else {
-        // No session — show login overlay, fetch data in background for dropdown
         showLoginOverlay();
-        fetchData().then(() => {
-            populateLoginEmpDropdown();
-        });
+        fetchData();
     }
 });
 
