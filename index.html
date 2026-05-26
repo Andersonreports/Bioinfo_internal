@@ -2841,6 +2841,287 @@ body {
 }
 .dir-form-grid .form-group.col-span-2 { grid-column: span 2; }
 
+/* ===== AUTH / LOGIN OVERLAY ===== */
+.login-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg,#0f172a 0%,#134e4a 55%,#0d9488 100%);
+    padding: 1rem;
+}
+.login-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.35);
+}
+.login-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    margin-bottom: 1.25rem;
+}
+.login-brand-icon {
+    color: #0d9488;
+    width: 32px;
+    height: 32px;
+}
+.login-brand-text {
+    font-weight: 800;
+    font-size: 1.4rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #0f172a;
+}
+.login-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #0f172a;
+    text-align: center;
+    margin-bottom: 0.25rem;
+}
+.login-subtitle {
+    font-size: 0.82rem;
+    color: #64748b;
+    text-align: center;
+    margin-bottom: 1.25rem;
+}
+.login-role-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    background: #f1f5f9;
+    border-radius: 12px;
+    padding: 0.3rem;
+}
+.login-role-tab {
+    flex: 1;
+    padding: 0.5rem 0;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    color: #64748b;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s;
+}
+.login-role-tab.active {
+    background: #0d9488;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(13,148,136,0.35);
+}
+.login-form { display: none; }
+.login-form.active { display: block; }
+.login-form label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.3rem;
+    margin-top: 0.75rem;
+}
+.login-form input,
+.login-form select {
+    width: 100%;
+    padding: 0.65rem 0.85rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    color: #0f172a;
+    background: #f8fafc;
+    box-sizing: border-box;
+    transition: border-color 0.18s;
+}
+.login-form input:focus,
+.login-form select:focus {
+    outline: none;
+    border-color: #0d9488;
+    background: #fff;
+}
+.login-btn {
+    width: 100%;
+    margin-top: 1.25rem;
+    padding: 0.75rem;
+    background: linear-gradient(135deg,#0d9488,#059669);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.18s;
+}
+.login-btn:hover { opacity: 0.88; }
+.login-error {
+    color: #ef4444;
+    font-size: 0.78rem;
+    margin-top: 0.5rem;
+    text-align: center;
+    min-height: 1.1rem;
+}
+
+/* ===== HOME TAB ===== */
+.home-welcome-card {
+    background: linear-gradient(135deg,#0f172a 0%,#134e4a 60%,#0d9488 100%);
+    border-radius: 20px;
+    padding: 2rem 2.5rem;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 32px rgba(13,148,136,0.18);
+}
+.home-welcome-avatar {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid rgba(255,255,255,0.3);
+    flex-shrink: 0;
+}
+.home-welcome-info h2 {
+    color: #fff;
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin-bottom: 0.2rem;
+}
+.home-welcome-info p {
+    color: #ccfbf1;
+    font-size: 0.9rem;
+    margin-bottom: 0.15rem;
+}
+.home-welcome-meta {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+}
+.home-meta-chip {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    border-radius: 20px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+.home-ach-section {
+    background: #fff;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-card);
+}
+.home-ach-section h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 1rem;
+}
+
+/* ===== PROFILE TAB ===== */
+.profile-edit-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+@media (max-width: 720px) {
+    .profile-edit-grid { grid-template-columns: 1fr; }
+    .home-welcome-card { flex-direction: column; text-align: center; }
+    .home-welcome-meta { justify-content: center; }
+}
+.profile-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-card);
+}
+.profile-card h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1.5px solid #f1f5f9;
+}
+.profile-field {
+    margin-bottom: 0.9rem;
+}
+.profile-field label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.3rem;
+}
+.profile-field input,
+.profile-field textarea {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 9px;
+    font-family: inherit;
+    font-size: 0.88rem;
+    color: #0f172a;
+    background: #f8fafc;
+    box-sizing: border-box;
+    transition: border-color 0.18s;
+}
+.profile-field input:focus,
+.profile-field textarea:focus {
+    outline: none;
+    border-color: #0d9488;
+    background: #fff;
+}
+.profile-field input[readonly],
+.profile-field input[disabled] {
+    background: #f1f5f9;
+    color: #94a3b8;
+    cursor: default;
+}
+.profile-field textarea {
+    resize: vertical;
+    min-height: 90px;
+}
+.profile-save-btn {
+    margin-top: 1rem;
+    padding: 0.65rem 2rem;
+    background: linear-gradient(135deg,#0d9488,#059669);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.18s;
+}
+.profile-save-btn:hover { opacity: 0.88; }
+.profile-avatar-edit-wrap {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+.profile-avatar-edit-img {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #ccfbf1;
+}
+
 /* ===== ALBUM TAB ===== */
 .album-view { padding-bottom: 3rem; }
 
@@ -3321,7 +3602,50 @@ body {
     <div class="bg-orb orb-1"></div>
     <div class="bg-orb orb-2"></div>
     <div class="bg-orb orb-3"></div>
-    
+
+    <!-- Login Overlay -->
+    <div class="login-overlay" id="login-overlay" style="display:none;">
+        <div class="login-card">
+            <div class="login-brand">
+                <i data-lucide="dna" class="login-brand-icon"></i>
+                <span class="login-brand-text">GenomicDesk</span>
+            </div>
+            <div class="login-title">Welcome Back</div>
+            <div class="login-subtitle">Sign in to your account</div>
+
+            <div class="login-role-tabs">
+                <button class="login-role-tab active" onclick="selectLoginRole('admin')">Admin</button>
+                <button class="login-role-tab" onclick="selectLoginRole('manager')">Manager</button>
+                <button class="login-role-tab" onclick="selectLoginRole('employee')">Employee</button>
+            </div>
+
+            <!-- Admin form -->
+            <div class="login-form active" id="login-form-admin">
+                <label for="login-admin-pass">Password</label>
+                <input type="password" id="login-admin-pass" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')handleLogin()">
+            </div>
+
+            <!-- Manager form -->
+            <div class="login-form" id="login-form-manager">
+                <label for="login-mgr-pass">Password</label>
+                <input type="password" id="login-mgr-pass" placeholder="Enter manager password" onkeydown="if(event.key==='Enter')handleLogin()">
+            </div>
+
+            <!-- Employee form -->
+            <div class="login-form" id="login-form-employee">
+                <label for="login-emp-select">Select Employee</label>
+                <select id="login-emp-select">
+                    <option value="">Loading employees…</option>
+                </select>
+                <label for="login-emp-pin">PIN</label>
+                <input type="password" id="login-emp-pin" placeholder="Enter your PIN" maxlength="8" onkeydown="if(event.key==='Enter')handleLogin()">
+            </div>
+
+            <div class="login-error" id="login-error"></div>
+            <button class="login-btn" onclick="handleLogin()">Sign In</button>
+        </div>
+    </div>
+
     <!-- Top Navigation System (MS Word Style) -->
     <header class="app-header">
         <div class="title-bar">
@@ -3374,11 +3698,11 @@ body {
 
                 <!-- User profile -->
                 <div class="hdr-dropdown-wrap" id="profile-wrap">
-                    <div class="user-badge" onclick="toggleHdrDropdown('profile-panel')" style="cursor:pointer;" title="Profile">AU</div>
+                    <div class="user-badge" id="header-user-badge" onclick="toggleHdrDropdown('profile-panel')" style="cursor:pointer;" title="Profile">GD</div>
                     <div class="hdr-dropdown" id="profile-panel" style="display:none;min-width:200px;right:0;">
                         <div class="hdr-dropdown-header" style="flex-direction:column;align-items:flex-start;gap:0.15rem;">
-                            <span style="font-weight:700;color:#1a1a1a;">Anderson</span>
-                            <span style="font-size:0.72rem;color:#94a3b8;">Admin Â· GenomicDesk</span>
+                            <span id="header-profile-name" style="font-weight:700;color:#1a1a1a;">GenomicDesk</span>
+                            <span id="header-profile-role" style="font-size:0.72rem;color:#94a3b8;">Not signed in</span>
                         </div>
                         <div class="settings-row" style="cursor:pointer;" onclick="switchView('manager')">
                             <span><i data-lucide="layout-dashboard" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;"></i> Manager Dashboard</span>
@@ -3389,7 +3713,7 @@ body {
                         <div class="settings-row" style="cursor:pointer;" onclick="switchView('tools')">
                             <span><i data-lucide="wrench" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;"></i> Tools</span>
                         </div>
-                        <div class="settings-row danger-row" style="cursor:pointer;" onclick="alert('Sign out is not available in this demo.')">
+                        <div class="settings-row danger-row" style="cursor:pointer;" onclick="doLogout()">
                             <span style="color:#ef5350;"><i data-lucide="log-out" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;"></i> Sign Out</span>
                         </div>
                     </div>
@@ -3398,6 +3722,10 @@ body {
             </div>
         </div>
         <nav class="nav-tabs">
+            <button class="nav-tab" id="btn-home-view" onclick="switchView('home')">
+                <i data-lucide="home"></i>
+                <span>Home</span>
+            </button>
             <button class="nav-tab active" id="btn-manager-view" onclick="switchView('manager')">
                 <i data-lucide="layout-dashboard"></i>
                 <span>Manager Dashboard</span>
@@ -3417,6 +3745,10 @@ body {
             <button class="nav-tab" id="btn-album-view" onclick="switchView('album')">
                 <i data-lucide="images"></i>
                 <span>Album</span>
+            </button>
+            <button class="nav-tab" id="btn-profile-view" onclick="switchView('profile')">
+                <i data-lucide="user-circle"></i>
+                <span>My Profile</span>
             </button>
         </nav>
     </header>
@@ -3815,6 +4147,89 @@ body {
                     <div class="album-empty-state" id="album-empty-state">No photos added yet. Click "Add Photo" to get started.</div>
                 </div>
             </section>
+
+            <!-- Home View (Employee only) -->
+            <section id="home-view" class="view-section" style="display:none;">
+                <div class="view-header">
+                    <h1>Home</h1>
+                    <p>Your personal dashboard.</p>
+                </div>
+                <div id="home-welcome-card-wrap"></div>
+                <div class="home-ach-section" id="home-ach-section" style="display:none;">
+                    <h3>Your Achievements</h3>
+                    <div id="home-ach-list"></div>
+                </div>
+            </section>
+
+            <!-- Profile View (Employee only) -->
+            <section id="profile-view" class="view-section" style="display:none;">
+                <div class="view-header">
+                    <h1>My Profile</h1>
+                    <p>Update your information and preferences.</p>
+                </div>
+                <div class="profile-edit-grid">
+                    <!-- Left column -->
+                    <div class="profile-card">
+                        <h3>Personal Details</h3>
+                        <div class="profile-avatar-edit-wrap">
+                            <img id="profile-avatar-img" src="" alt="Avatar" class="profile-avatar-edit-img">
+                            <button class="settings-btn" onclick="openProfileAvatarModal()" style="font-size:0.8rem;">Change Photo</button>
+                        </div>
+                        <div class="profile-field">
+                            <label>Display Name</label>
+                            <input type="text" id="profile-name" readonly>
+                        </div>
+                        <div class="profile-field">
+                            <label>Employee ID</label>
+                            <input type="text" id="profile-emp-id" readonly>
+                        </div>
+                        <div class="profile-field">
+                            <label>Role</label>
+                            <input type="text" id="profile-role" readonly>
+                        </div>
+                        <div class="profile-field">
+                            <label>Team</label>
+                            <input type="text" id="profile-team" readonly>
+                        </div>
+                        <div class="profile-field">
+                            <label>Date of Joining</label>
+                            <input type="text" id="profile-doj" readonly>
+                        </div>
+                        <div class="profile-field">
+                            <label>Email</label>
+                            <input type="email" id="profile-email">
+                        </div>
+                        <div class="profile-field">
+                            <label>Phone Number</label>
+                            <input type="text" id="profile-phone" placeholder="Enter your phone number">
+                        </div>
+                        <div class="profile-field">
+                            <label>Change PIN (leave blank to keep current)</label>
+                            <input type="password" id="profile-new-pin" placeholder="New PIN" maxlength="8">
+                        </div>
+                    </div>
+
+                    <!-- Right column -->
+                    <div class="profile-card">
+                        <h3>Work Details</h3>
+                        <div class="profile-field">
+                            <label>Work Responsibilities</label>
+                            <textarea id="profile-work" placeholder="Work Responsibilities (comma-separated)"></textarea>
+                        </div>
+                        <div class="profile-field">
+                            <label>Analysis Types</label>
+                            <textarea id="profile-analysis" placeholder="Analysis Types (comma-separated)"></textarea>
+                        </div>
+                        <div class="profile-field">
+                            <label>Report/Sample Types</label>
+                            <textarea id="profile-samples" placeholder="Report/sample types (comma-separated)"></textarea>
+                        </div>
+                        <button class="profile-save-btn" onclick="saveProfileChanges()">Save Changes</button>
+                        <div class="login-error" id="profile-save-msg" style="color:#059669;"></div>
+                    </div>
+                </div>
+            </section>
+
         </main>
     </div>
 
@@ -4321,7 +4736,7 @@ function clearNotifications() {
 
 function refreshData() {
     toggleHdrDropdown('settings-panel');
-    fetchAndRender();
+    fetchData();
 }
 
 function clearAllWorkUpdates() {
@@ -4359,7 +4774,9 @@ function switchView(viewName) {
         targetSection.offsetHeight;
         targetSection.style.animation = null;
     }
-    if (viewName === 'album') renderAlbum();
+    if (viewName === 'album')   renderAlbum();
+    if (viewName === 'home')    renderHomeTab();
+    if (viewName === 'profile') renderProfileTab();
 }
 
 // Sidebar Logic
@@ -4582,8 +4999,12 @@ function openMemberProfile(id) {
 }
 
 function openEmployeeDetails(id) {
-    const emp = employees.find(e => e.id == id);
-    if (!emp) return;
+    const baseEmp = employees.find(e => e.id == id);
+    if (!baseEmp) return;
+    // Merge localStorage overrides on top of sheet data
+    const over = safeParseJSON(localStorage.getItem('emp_override_' + baseEmp.employeeId), {});
+    const emp = Object.assign({}, baseEmp, over);
+    emp.avatar = localStorage.getItem('avatar_' + baseEmp.employeeId) || baseEmp.avatar;
 
     document.getElementById('details-avatar').src = emp.avatar;
     document.getElementById('details-name').textContent = emp.name;
@@ -5807,13 +6228,291 @@ function closeChangeHeroModal() {
     document.getElementById('album-hero-modal').style.display = 'none';
 }
 
+// ===== AUTH =====
+const AUTH_SESSION_KEY = 'auth_session';
+
+function getSession() {
+    try { return JSON.parse(localStorage.getItem(AUTH_SESSION_KEY)); } catch(e) { return null; }
+}
+function setSession(session) {
+    localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(session));
+}
+function clearSession() {
+    localStorage.removeItem(AUTH_SESSION_KEY);
+}
+
+function getAdminPass()  { return localStorage.getItem('auth_admin_pass') || 'admin123'; }
+function getMgrPass()    { return localStorage.getItem('auth_mgr_pass')   || 'manager123'; }
+function getEmpPin(id)   { return localStorage.getItem('auth_emp_pin_' + id) || '1234'; }
+
+let _currentLoginRole = 'admin';
+
+function selectLoginRole(role) {
+    _currentLoginRole = role;
+    document.querySelectorAll('.login-role-tab').forEach((btn, i) => {
+        const roles = ['admin','manager','employee'];
+        btn.classList.toggle('active', roles[i] === role);
+    });
+    document.querySelectorAll('.login-form').forEach(f => f.classList.remove('active'));
+    const form = document.getElementById('login-form-' + role);
+    if (form) form.classList.add('active');
+    document.getElementById('login-error').textContent = '';
+}
+
+function handleLogin() {
+    const errEl = document.getElementById('login-error');
+    errEl.textContent = '';
+    const role = _currentLoginRole;
+
+    if (role === 'admin') {
+        const pass = document.getElementById('login-admin-pass').value;
+        if (pass !== getAdminPass()) { errEl.textContent = 'Incorrect password.'; return; }
+        setSession({ role: 'admin', employeeId: null, name: 'Admin' });
+        hideLoginOverlay();
+        initApp(getSession());
+
+    } else if (role === 'manager') {
+        const pass = document.getElementById('login-mgr-pass').value;
+        if (pass !== getMgrPass()) { errEl.textContent = 'Incorrect password.'; return; }
+        setSession({ role: 'manager', employeeId: null, name: 'Manager' });
+        hideLoginOverlay();
+        initApp(getSession());
+
+    } else if (role === 'employee') {
+        const select = document.getElementById('login-emp-select');
+        const empId = select.value;
+        if (!empId) { errEl.textContent = 'Please select an employee.'; return; }
+        const pin = document.getElementById('login-emp-pin').value;
+        if (pin !== getEmpPin(empId)) { errEl.textContent = 'Incorrect PIN.'; return; }
+        const emp = employees.find(e => e.employeeId === empId);
+        const name = emp ? emp.name : empId;
+        setSession({ role: 'employee', employeeId: empId, name: name });
+        hideLoginOverlay();
+        initApp(getSession());
+    }
+}
+
+function doLogout() {
+    clearSession();
+    location.reload();
+}
+
+function showLoginOverlay() {
+    const ov = document.getElementById('login-overlay');
+    if (ov) { ov.style.display = 'flex'; lucide.createIcons(); }
+}
+
+function hideLoginOverlay() {
+    const ov = document.getElementById('login-overlay');
+    if (ov) ov.style.display = 'none';
+}
+
+function populateLoginEmpDropdown() {
+    const select = document.getElementById('login-emp-select');
+    if (!select) return;
+    if (!employees.length) {
+        select.innerHTML = '<option value="">No employees loaded</option>';
+        return;
+    }
+    select.innerHTML = '<option value="">-- Select your name --</option>' +
+        employees.map(e => `<option value="${e.employeeId}">${e.name}</option>`).join('');
+}
+
+function applyRoleVisibility(role) {
+    // Tab visibility map: tab-id -> {admin, manager, employee}
+    const vis = {
+        'btn-home-view':      { admin: false, manager: false, employee: true  },
+        'btn-manager-view':   { admin: true,  manager: true,  employee: false },
+        'btn-employee-view':  { admin: true,  manager: false, employee: true  },
+        'btn-tools-view':     { admin: true,  manager: true,  employee: true  },
+        'btn-directory-view': { admin: true,  manager: false, employee: false },
+        'btn-album-view':     { admin: true,  manager: true,  employee: true  },
+        'btn-profile-view':   { admin: false, manager: false, employee: true  },
+    };
+    Object.entries(vis).forEach(([id, rules]) => {
+        const btn = document.getElementById(id);
+        if (btn) btn.style.display = rules[role] ? '' : 'none';
+    });
+}
+
+function initApp(session) {
+    // Update header
+    const badge = document.getElementById('header-user-badge');
+    const nameEl = document.getElementById('header-profile-name');
+    const roleEl = document.getElementById('header-profile-role');
+    if (badge) badge.textContent = session.name.slice(0,2).toUpperCase();
+    if (nameEl) nameEl.textContent = session.name;
+    if (roleEl) roleEl.textContent = session.role.charAt(0).toUpperCase() + session.role.slice(1) + ' · GenomicDesk';
+
+    applyRoleVisibility(session.role);
+
+    // Switch to first visible tab for this role
+    const firstTab = {
+        admin:    'manager',
+        manager:  'manager',
+        employee: 'home',
+    }[session.role] || 'manager';
+
+    switchView(firstTab);
+
+    // Render role-specific views
+    if (session.role === 'employee') {
+        renderHomeTab();
+        renderProfileTab();
+    }
+}
+
+// ===== HOME TAB =====
+function renderHomeTab() {
+    const session = getSession();
+    if (!session || session.role !== 'employee') return;
+    const empId = session.employeeId;
+    const baseEmp = employees.find(e => e.employeeId === empId);
+    if (!baseEmp) {
+        document.getElementById('home-welcome-card-wrap').innerHTML =
+            '<p style="color:#94a3b8;">Employee data not yet loaded. Please wait a moment.</p>';
+        return;
+    }
+    const over = safeParseJSON(localStorage.getItem('emp_override_' + empId), {});
+    const emp = Object.assign({}, baseEmp, over);
+    // avatar may have been updated via localStorage
+    emp.avatar = localStorage.getItem('avatar_' + empId) || baseEmp.avatar;
+
+    const wrap = document.getElementById('home-welcome-card-wrap');
+    wrap.innerHTML = `
+        <div class="home-welcome-card">
+            <img src="${emp.avatar}" alt="${emp.name}" class="home-welcome-avatar">
+            <div class="home-welcome-info">
+                <h2>Welcome, ${emp.name.split(' ')[0]}!</h2>
+                <p>${emp.role}</p>
+                <div class="home-welcome-meta">
+                    <span class="home-meta-chip">${emp.team}</span>
+                    <span class="home-meta-chip">DOJ: ${formatDate(emp.doj)}</span>
+                    <span class="home-meta-chip">${emp.employeeId}</span>
+                </div>
+            </div>
+        </div>`;
+
+    // Achievements
+    const certs = emp.certificates || [];
+    const achSection = document.getElementById('home-ach-section');
+    const achList    = document.getElementById('home-ach-list');
+    if (certs.length === 0) {
+        achSection.style.display = 'none';
+    } else {
+        achSection.style.display = 'block';
+        const fmtCertDate = (d) => {
+            if (!d) return '';
+            const [y, m, dd] = d.split('-').map(Number);
+            const mons = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const sf = (n) => n>=11&&n<=13?'th':['th','st','nd','rd'][n%10]||'th';
+            return `${dd}${sf(dd)} ${mons[m-1]} ${y}`;
+        };
+        achList.innerHTML = certs.map(cert => `
+            <div class="ach-card">
+                <div class="ach-card-author">
+                    <img src="${emp.avatar}" alt="${emp.name}" class="ach-card-avatar">
+                    <div>
+                        <div class="ach-card-name">${emp.name}</div>
+                        <div class="ach-card-role">${emp.role}</div>
+                    </div>
+                </div>
+                <div class="ach-card-event">${cert.eventName}</div>
+                <div class="ach-card-meta">
+                    ${cert.place ? `<span class="ach-meta-tag"><i data-lucide="map-pin" style="width:11px;height:11px;"></i>${cert.place}</span>` : ''}
+                    ${cert.date  ? `<span class="ach-meta-tag"><i data-lucide="calendar" style="width:11px;height:11px;"></i>${fmtCertDate(cert.date)}</span>` : ''}
+                    ${cert.award ? `<span class="ach-meta-tag ach-award-tag"><i data-lucide="trophy" style="width:11px;height:11px;"></i>${cert.award}</span>` : ''}
+                </div>
+            </div>`).join('');
+        lucide.createIcons();
+    }
+    lucide.createIcons();
+}
+
+// ===== PROFILE TAB =====
+function renderProfileTab() {
+    const session = getSession();
+    if (!session || session.role !== 'employee') return;
+    const empId = session.employeeId;
+    const baseEmp = employees.find(e => e.employeeId === empId);
+    if (!baseEmp) return;
+
+    const over = safeParseJSON(localStorage.getItem('emp_override_' + empId), {});
+    const emp = Object.assign({}, baseEmp, over);
+    emp.avatar = localStorage.getItem('avatar_' + empId) || baseEmp.avatar;
+
+    const el = (id) => document.getElementById(id);
+    if (el('profile-avatar-img')) el('profile-avatar-img').src = emp.avatar;
+    if (el('profile-name'))     el('profile-name').value     = emp.name;
+    if (el('profile-emp-id'))   el('profile-emp-id').value   = emp.employeeId;
+    if (el('profile-role'))     el('profile-role').value     = emp.role;
+    if (el('profile-team'))     el('profile-team').value     = emp.team;
+    if (el('profile-doj'))      el('profile-doj').value      = formatDate(emp.doj);
+    if (el('profile-email'))    el('profile-email').value    = over.email    || emp.email || '';
+    if (el('profile-phone'))    el('profile-phone').value    = over.phone    || '';
+    if (el('profile-work'))     el('profile-work').value     = over.work     || emp.work    || '';
+    if (el('profile-analysis')) el('profile-analysis').value = over.analysis || emp.analysis || '';
+    if (el('profile-samples'))  el('profile-samples').value  = over.samples  || emp.samples  || '';
+    if (el('profile-new-pin'))  el('profile-new-pin').value  = '';
+}
+
+function openProfileAvatarModal() {
+    const session = getSession();
+    if (!session || !session.employeeId) return;
+    const emp = employees.find(e => e.employeeId === session.employeeId);
+    if (emp) openAvatarModal(emp.id);
+}
+
+function saveProfileChanges() {
+    const session = getSession();
+    if (!session || session.role !== 'employee') return;
+    const empId = session.employeeId;
+
+    const el = (id) => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
+    const over = safeParseJSON(localStorage.getItem('emp_override_' + empId), {});
+
+    over.email    = el('profile-email');
+    over.phone    = el('profile-phone');
+    over.work     = el('profile-work');
+    over.analysis = el('profile-analysis');
+    over.samples  = el('profile-samples');
+
+    const newPin = el('profile-new-pin');
+    if (newPin) {
+        localStorage.setItem('auth_emp_pin_' + empId, newPin);
+        document.getElementById('profile-new-pin').value = '';
+    }
+
+    localStorage.setItem('emp_override_' + empId, JSON.stringify(over));
+
+    // Merge override into in-memory employee object
+    const baseEmp = employees.find(e => e.employeeId === empId);
+    if (baseEmp) Object.assign(baseEmp, over);
+
+    // Show feedback
+    const msg = document.getElementById('profile-save-msg');
+    if (msg) { msg.textContent = 'Changes saved!'; setTimeout(() => { msg.textContent = ''; }, 3000); }
+
+    // Re-render home tab too
+    renderHomeTab();
+}
+
+function safeParseJSON(str, fallback) {
+    if (!str) return fallback;
+    try { return JSON.parse(str); } catch(e) { return fallback; }
+}
+
+// (render hooks for home/profile are handled inside switchView below)
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    fetchData();
+    // Check for existing session
+    const session = getSession();
+
     loadDirData();
     renderAlbum();
     lucide.createIcons();
-    
+
     const addForm = document.getElementById('add-emp-form');
     if(addForm) {
         addForm.addEventListener('submit', handleAddEmployee);
@@ -5822,6 +6521,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const certForm = document.getElementById('cert-upload-form');
     if(certForm) {
         certForm.addEventListener('submit', handleCertUpload);
+    }
+
+    if (session) {
+        // Session exists — go straight in, then fetch data
+        initApp(session);
+        fetchData().then(() => {
+            // Re-render employee-specific views after data loads
+            if (session.role === 'employee') {
+                renderHomeTab();
+                renderProfileTab();
+                populateLoginEmpDropdown();
+            }
+        });
+    } else {
+        // No session — show login overlay, fetch data in background for dropdown
+        showLoginOverlay();
+        fetchData().then(() => {
+            populateLoginEmpDropdown();
+        });
     }
 });
 
