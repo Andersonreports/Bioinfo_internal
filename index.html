@@ -2938,6 +2938,62 @@ body {
 }
 .album-hero-change-btn:hover { background: #fff; }
 
+/* Adjust mode */
+.album-hero-section.adjusting { cursor: grab; user-select: none; }
+.album-hero-section.adjusting:active { cursor: grabbing; }
+.album-hero-section.adjusting .album-hero-overlay { display: none; }
+
+.album-hero-adjust-bar {
+    display: none;
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.25rem;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.62) 0%, transparent 100%);
+    z-index: 10;
+}
+.album-hero-adjust-bar.active { display: flex; }
+
+.album-hero-adjust-hint {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: rgba(255,255,255,0.88);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.album-hero-adjust-actions { display: flex; gap: 0.5rem; }
+
+.album-hero-save-btn {
+    background: #0d9488;
+    color: #fff;
+    border: none;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 0.4rem 0.95rem;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.album-hero-save-btn:hover { background: #0f766e; }
+
+.album-hero-cancel-btn {
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.3);
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 0.4rem 0.95rem;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.album-hero-cancel-btn:hover { background: rgba(255,255,255,0.28); }
+
 /* Stacks grid */
 .album-months-label {
     font-size: 0.78rem;
@@ -3730,10 +3786,26 @@ body {
                         <p>No hero photo set yet.<br>Add a photo and set it as the hero.</p>
                     </div>
                     <img id="album-hero-img" class="album-hero-img" src="" alt="Hero" style="display:none;">
+                    <!-- Adjust bar (shown only in adjust mode) -->
+                    <div class="album-hero-adjust-bar" id="album-hero-adjust-bar">
+                        <span class="album-hero-adjust-hint">
+                            <i data-lucide="move" style="width:14px;height:14px;"></i> Drag to reposition
+                        </span>
+                        <div class="album-hero-adjust-actions">
+                            <button class="album-hero-cancel-btn" onclick="exitHeroAdjustMode(false)">Cancel</button>
+                            <button class="album-hero-save-btn" onclick="exitHeroAdjustMode(true)">Save Position</button>
+                        </div>
+                    </div>
+                    <!-- Normal overlay (hidden in adjust mode) -->
                     <div class="album-hero-overlay">
-                        <button class="album-hero-change-btn" onclick="openChangeHeroModal()">
-                            <i data-lucide="image-plus" style="width:14px;height:14px;"></i> Change Hero Photo
-                        </button>
+                        <div style="display:flex;gap:0.5rem;">
+                            <button class="album-hero-change-btn" onclick="enterHeroAdjustMode()">
+                                <i data-lucide="move" style="width:14px;height:14px;"></i> Adjust
+                            </button>
+                            <button class="album-hero-change-btn" onclick="openChangeHeroModal()">
+                                <i data-lucide="image-plus" style="width:14px;height:14px;"></i> Change Photo
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -5399,10 +5471,11 @@ function deleteDirSys(id) {
 }
 
 // ===== ALBUM =====
-const ALBUM_PHOTOS_KEY = 'album_photos';
-const ALBUM_HERO_KEY   = 'album_hero';
+const ALBUM_PHOTOS_KEY   = 'album_photos';
+const ALBUM_HERO_KEY     = 'album_hero';
+const ALBUM_HERO_POS_KEY = 'album_hero_pos';
 
-let albumPendingFiles = []; // { dataUrl, name } accumulated before save
+let albumPendingFiles = [];
 
 function getAlbumPhotos() {
     try { return JSON.parse(localStorage.getItem(ALBUM_PHOTOS_KEY)) || []; } catch { return []; }
@@ -5410,6 +5483,117 @@ function getAlbumPhotos() {
 function setAlbumPhotos(arr) { localStorage.setItem(ALBUM_PHOTOS_KEY, JSON.stringify(arr)); }
 function getAlbumHero() { return localStorage.getItem(ALBUM_HERO_KEY) || ''; }
 function setAlbumHero(src) { localStorage.setItem(ALBUM_HERO_KEY, src); }
+function getAlbumHeroPos() {
+    try { return JSON.parse(localStorage.getItem(ALBUM_HERO_POS_KEY)) || { x: 50, y: 50 }; } catch { return { x: 50, y: 50 }; }
+}
+function setAlbumHeroPos(pos) { localStorage.setItem(ALBUM_HERO_POS_KEY, JSON.stringify(pos)); }
+
+// --- Hero adjust mode ---
+let _heroAdjust = {
+    active: false,
+    startX: 0, startY: 0,
+    posX: 50, posY: 50,
+    savedPos: { x: 50, y: 50 }
+};
+
+function enterHeroAdjustMode() {
+    const img     = document.getElementById('album-hero-img');
+    const section = document.getElementById('album-hero-section');
+    const bar     = document.getElementById('album-hero-adjust-bar');
+    if (!img || img.style.display === 'none') return;
+
+    const saved = getAlbumHeroPos();
+    _heroAdjust.posX = saved.x;
+    _heroAdjust.posY = saved.y;
+    _heroAdjust.savedPos = { ...saved };
+    _heroAdjust.active = true;
+
+    img.style.objectPosition = `${_heroAdjust.posX}% ${_heroAdjust.posY}%`;
+    section.classList.add('adjusting');
+    bar.classList.add('active');
+    lucide.createIcons();
+
+    section.addEventListener('mousedown',  _heroMouseDown);
+    section.addEventListener('touchstart', _heroTouchStart, { passive: true });
+}
+
+function exitHeroAdjustMode(save) {
+    const img     = document.getElementById('album-hero-img');
+    const section = document.getElementById('album-hero-section');
+    const bar     = document.getElementById('album-hero-adjust-bar');
+    _heroAdjust.active = false;
+
+    section.removeEventListener('mousedown',  _heroMouseDown);
+    section.removeEventListener('touchstart', _heroTouchStart);
+    document.removeEventListener('mousemove', _heroMouseMove);
+    document.removeEventListener('mouseup',   _heroMouseUp);
+    document.removeEventListener('touchmove', _heroTouchMove);
+    document.removeEventListener('touchend',  _heroTouchEnd);
+
+    if (save) {
+        setAlbumHeroPos({ x: _heroAdjust.posX, y: _heroAdjust.posY });
+    } else {
+        if (img) img.style.objectPosition = `${_heroAdjust.savedPos.x}% ${_heroAdjust.savedPos.y}%`;
+    }
+
+    section.classList.remove('adjusting');
+    bar.classList.remove('active');
+}
+
+function _heroMouseDown(e) {
+    if (!_heroAdjust.active) return;
+    e.preventDefault();
+    _heroAdjust.startX = e.clientX;
+    _heroAdjust.startY = e.clientY;
+    document.addEventListener('mousemove', _heroMouseMove);
+    document.addEventListener('mouseup',   _heroMouseUp);
+}
+
+function _heroMouseMove(e) {
+    _applyHeroDrag(e.clientX, e.clientY);
+}
+
+function _heroMouseUp() {
+    document.removeEventListener('mousemove', _heroMouseMove);
+    document.removeEventListener('mouseup',   _heroMouseUp);
+}
+
+function _heroTouchStart(e) {
+    if (!_heroAdjust.active || !e.touches[0]) return;
+    _heroAdjust.startX = e.touches[0].clientX;
+    _heroAdjust.startY = e.touches[0].clientY;
+    document.addEventListener('touchmove', _heroTouchMove, { passive: false });
+    document.addEventListener('touchend',  _heroTouchEnd);
+}
+
+function _heroTouchMove(e) {
+    e.preventDefault();
+    _applyHeroDrag(e.touches[0].clientX, e.touches[0].clientY);
+}
+
+function _heroTouchEnd() {
+    document.removeEventListener('touchmove', _heroTouchMove);
+    document.removeEventListener('touchend',  _heroTouchEnd);
+}
+
+function _applyHeroDrag(clientX, clientY) {
+    const section = document.getElementById('album-hero-section');
+    const img     = document.getElementById('album-hero-img');
+    if (!section || !img) return;
+
+    const rect = section.getBoundingClientRect();
+    const dx = clientX - _heroAdjust.startX;
+    const dy = clientY - _heroAdjust.startY;
+
+    // Sensitivity: map pixel delta to % — larger image = finer control
+    const sensitivity = 0.07;
+    _heroAdjust.posX = Math.min(100, Math.max(0, _heroAdjust.posX - dx * sensitivity));
+    _heroAdjust.posY = Math.min(100, Math.max(0, _heroAdjust.posY - dy * sensitivity));
+
+    img.style.objectPosition = `${_heroAdjust.posX}% ${_heroAdjust.posY}%`;
+    _heroAdjust.startX = clientX;
+    _heroAdjust.startY = clientY;
+}
 
 function renderAlbum() {
     renderAlbumHero();
@@ -5419,11 +5603,13 @@ function renderAlbum() {
 
 function renderAlbumHero() {
     const src = getAlbumHero();
+    const pos = getAlbumHeroPos();
     const img   = document.getElementById('album-hero-img');
     const empty = document.getElementById('album-hero-empty');
     if (!img) return;
     if (src) {
         img.src = src;
+        img.style.objectPosition = `${pos.x}% ${pos.y}%`;
         img.style.display = 'block';
         if (empty) empty.style.display = 'none';
     } else {
@@ -5596,6 +5782,7 @@ function closePhotoViewer() {
 
 function setAsHero(src) {
     setAlbumHero(src);
+    setAlbumHeroPos({ x: 50, y: 50 });
     renderAlbumHero();
 }
 
