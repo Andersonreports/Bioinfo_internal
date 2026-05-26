@@ -3250,8 +3250,6 @@ body {
                                     <th>User</th>
                                     <th>Mail ID</th>
                                     <th>Password</th>
-                                    <th>Passcode 1</th>
-                                    <th>Passcode 2</th>
                                     <th style="width:60px;"></th>
                                 </tr>
                             </thead>
@@ -4716,8 +4714,9 @@ function renderDirMailTable(type) {
     const tbody = document.getElementById(type === 'emp' ? 'emp-mail-tbody' : 'office-mail-tbody');
     if (!tbody) return;
     const rows = getDirData(DIR_MAIL_KEYS[type]);
+    const isOffice = type === 'office';
     if (!rows.length) {
-        tbody.innerHTML = `<tr class="dir-empty-row"><td colspan="7">No entries yet. Click "Add Row" to begin.</td></tr>`;
+        tbody.innerHTML = `<tr class="dir-empty-row"><td colspan="${isOffice ? 5 : 7}">No entries yet. Click "Add Row" to begin.</td></tr>`;
         lucide.createIcons(); return;
     }
     tbody.innerHTML = rows.map((r, i) => {
@@ -4730,8 +4729,8 @@ function renderDirMailTable(type) {
                 ${r.mail ? `<button class="dir-tb-btn" onclick="copyDirVal(event,'${safeMail}')" title="Copy"><i data-lucide="copy" style="width:13px;height:13px;"></i></button>` : ''}
             </div></td>
             <td>${maskedCell(r.password, r.id, 'pw')}</td>
-            <td>${maskedCell(r.passcode1, r.id, 'pc1')}</td>
-            <td>${maskedCell(r.passcode2, r.id, 'pc2')}</td>
+            ${isOffice ? '' : `<td>${maskedCell(r.passcode1, r.id, 'pc1')}</td>
+            <td>${maskedCell(r.passcode2, r.id, 'pc2')}</td>`}
             <td><div class="dir-row-actions">
                 <button class="dir-tb-btn" onclick="openDirMailModal('${type}','${r.id}')" title="Edit"><i data-lucide="pencil" style="width:14px;height:14px;"></i></button>
                 <button class="dir-tb-btn del" onclick="deleteDirMail('${type}','${r.id}')" title="Delete"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
