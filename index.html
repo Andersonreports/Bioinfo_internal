@@ -2841,6 +2841,423 @@ body {
 }
 .dir-form-grid .form-group.col-span-2 { grid-column: span 2; }
 
+/* ===== ALBUM TAB ===== */
+.album-view { padding-bottom: 3rem; }
+
+.album-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+}
+
+.album-top-bar h1 { font-size: 1.8rem; font-weight: 700; color: #0f172a; }
+.album-top-bar p  { font-size: 0.88rem; color: #64748b; margin-top: 0.15rem; }
+
+.album-add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #0d9488;
+    color: #fff;
+    border: none;
+    padding: 0.6rem 1.25rem;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 14px rgba(13,148,136,0.25);
+}
+.album-add-btn:hover { background: #0f766e; transform: translateY(-1px); }
+
+/* Hero section */
+.album-hero-section {
+    position: relative;
+    width: 100%;
+    border-radius: 18px;
+    overflow: hidden;
+    background: #e2e8f0;
+    margin-bottom: 2rem;
+    min-height: 320px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 32px rgba(15,23,42,0.10);
+}
+
+.album-hero-img {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+    display: block;
+}
+
+.album-hero-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    color: #94a3b8;
+    padding: 4rem 2rem;
+    text-align: center;
+}
+
+.album-hero-empty svg { opacity: 0.4; }
+.album-hero-empty p { font-size: 0.9rem; }
+
+.album-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.45) 0%, transparent 55%);
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    padding: 1.25rem 1.5rem;
+    opacity: 0;
+    transition: opacity 0.25s;
+}
+
+.album-hero-section:hover .album-hero-overlay { opacity: 1; }
+
+.album-hero-change-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(255,255,255,0.92);
+    border: none;
+    color: #0f172a;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.album-hero-change-btn:hover { background: #fff; }
+
+/* Stacks grid */
+.album-months-label {
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #64748b;
+    margin-bottom: 1.1rem;
+}
+
+.album-stacks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 2rem 1.5rem;
+}
+
+.album-stack-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.7rem;
+    cursor: pointer;
+}
+
+.album-stack {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4/3;
+}
+
+/* Layered card effect */
+.album-stack::before,
+.album-stack::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    background: #e2e8f0;
+    transition: transform 0.25s ease;
+}
+
+.album-stack::before {
+    transform: rotate(-4deg) scale(0.97);
+    background: #cbd5e1;
+    z-index: 0;
+}
+
+.album-stack::after {
+    transform: rotate(2deg) scale(0.985);
+    background: #dde4ee;
+    z-index: 1;
+}
+
+.album-stack-wrap:hover .album-stack::before { transform: rotate(-7deg) scale(0.97); }
+.album-stack-wrap:hover .album-stack::after  { transform: rotate(4deg)  scale(0.985); }
+
+.album-stack-cover {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.14);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.album-stack-wrap:hover .album-stack-cover {
+    transform: translateY(-5px);
+    box-shadow: 0 14px 32px rgba(0,0,0,0.18);
+}
+
+.album-stack-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.album-stack-cover-empty {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #e0f2fe 0%, #ccfbf1 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+}
+
+.album-stack-count {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 3;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    backdrop-filter: blur(4px);
+}
+
+.album-stack-label {
+    text-align: center;
+}
+
+.album-stack-month {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.album-stack-year {
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+.album-empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #94a3b8;
+    font-size: 0.9rem;
+}
+
+/* Album Lightbox (month view) */
+.album-lb-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10,15,30,0.82);
+    backdrop-filter: blur(8px);
+    z-index: 3000;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.album-lb-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    flex-shrink: 0;
+}
+
+.album-lb-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.album-lb-close {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.album-lb-close:hover { background: rgba(255,255,255,0.25); }
+
+.album-lb-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+    overflow-y: auto;
+    padding: 0 1.5rem 1.5rem;
+    flex: 1;
+}
+
+.album-lb-thumb {
+    aspect-ratio: 4/3;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.2s;
+}
+
+.album-lb-thumb:hover { transform: scale(1.03); }
+
+.album-lb-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.album-lb-thumb-date {
+    position: absolute;
+    bottom: 6px;
+    left: 8px;
+    background: rgba(0,0,0,0.52);
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+    backdrop-filter: blur(4px);
+}
+
+/* Set-hero overlay on each thumb */
+.album-lb-thumb-actions {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.38);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+.album-lb-thumb:hover .album-lb-thumb-actions { opacity: 1; }
+
+.album-lb-thumb-btn {
+    background: rgba(255,255,255,0.9);
+    border: none;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.3rem 0.6rem;
+    cursor: pointer;
+    color: #0f172a;
+    font-family: inherit;
+    transition: background 0.2s;
+}
+.album-lb-thumb-btn:hover { background: #fff; }
+.album-lb-thumb-btn.danger { color: #ef5350; }
+.album-lb-thumb-btn.danger:hover { background: #ef5350; color: #fff; }
+
+/* Full photo viewer */
+.album-photo-viewer {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 4000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.album-photo-viewer img {
+    max-width: 92vw;
+    max-height: 92vh;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+.album-photo-viewer-close {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: #fff;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1.2rem;
+}
+.album-photo-viewer-close:hover { background: rgba(255,255,255,0.28); }
+
+/* Add Photo Modal */
+.album-add-modal {
+    max-width: 480px !important;
+}
+
+.album-dropzone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 2rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #f8fafc;
+    position: relative;
+}
+.album-dropzone:hover, .album-dropzone.dragover {
+    border-color: #0d9488;
+    background: #f0fdfa;
+}
+.album-dropzone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+}
+.album-dropzone-icon { color: #94a3b8; margin-bottom: 0.5rem; }
+.album-dropzone p { font-size: 0.85rem; color: #64748b; }
+.album-dropzone small { font-size: 0.75rem; color: #94a3b8; }
+
+.album-preview-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.album-preview-thumb {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 2px solid #ccfbf1;
+}
+
 </style>
 </head>
 <body>
@@ -2940,6 +3357,10 @@ body {
             <button class="nav-tab" id="btn-directory-view" onclick="switchView('directory')">
                 <i data-lucide="book-user"></i>
                 <span>Directory</span>
+            </button>
+            <button class="nav-tab" id="btn-album-view" onclick="switchView('album')">
+                <i data-lucide="images"></i>
+                <span>Album</span>
             </button>
         </nav>
     </header>
@@ -3288,7 +3709,102 @@ body {
                     </div>
                 </div>
             </section>
+
+            <!-- Album View -->
+            <section id="album-view" class="view-section album-view" style="display: none;">
+                <!-- Top bar -->
+                <div class="album-top-bar">
+                    <div>
+                        <h1>Album</h1>
+                        <p>Team photos organised by date.</p>
+                    </div>
+                    <button class="album-add-btn" onclick="openAddPhotoModal()">
+                        <i data-lucide="plus" style="width:16px;height:16px;"></i> Add Photo
+                    </button>
+                </div>
+
+                <!-- Hero Photo -->
+                <div class="album-hero-section" id="album-hero-section">
+                    <div class="album-hero-empty" id="album-hero-empty">
+                        <i data-lucide="image" style="width:56px;height:56px;"></i>
+                        <p>No hero photo set yet.<br>Add a photo and set it as the hero.</p>
+                    </div>
+                    <img id="album-hero-img" class="album-hero-img" src="" alt="Hero" style="display:none;">
+                    <div class="album-hero-overlay">
+                        <button class="album-hero-change-btn" onclick="openChangeHeroModal()">
+                            <i data-lucide="image-plus" style="width:14px;height:14px;"></i> Change Hero Photo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Month Stacks -->
+                <div class="album-months-label">Photos by Month</div>
+                <div class="album-stacks-grid" id="album-stacks-grid">
+                    <div class="album-empty-state" id="album-empty-state">No photos added yet. Click "Add Photo" to get started.</div>
+                </div>
+            </section>
         </main>
+    </div>
+
+    <!-- Album: Add Photo Modal -->
+    <div class="modal-overlay" id="album-add-modal" style="display:none;" onclick="closeAddPhotoModal(event)">
+        <div class="modal glass-panel album-add-modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="details-header-info">
+                    <i data-lucide="image-plus" style="color:#0d9488;width:24px;height:24px;"></i>
+                    <h2>Add Photo</h2>
+                </div>
+                <button class="icon-btn" onclick="closeAddPhotoModal()"><i data-lucide="x"></i></button>
+            </div>
+            <div class="form-grid" style="grid-template-columns:1fr;gap:1.1rem;">
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" id="album-photo-date">
+                </div>
+                <div class="form-group">
+                    <label>Photos</label>
+                    <div class="album-dropzone" id="album-dropzone">
+                        <input type="file" id="album-file-input" accept="image/*" multiple onchange="handleAlbumFileSelect(this.files)">
+                        <div class="album-dropzone-icon"><i data-lucide="upload-cloud" style="width:36px;height:36px;"></i></div>
+                        <p>Click or drag photos here</p>
+                        <small>Multiple images supported · JPG, PNG, WEBP</small>
+                    </div>
+                    <div class="album-preview-strip" id="album-preview-strip"></div>
+                </div>
+                <div class="form-group" style="flex-direction:row;align-items:center;gap:0.6rem;">
+                    <input type="checkbox" id="album-set-hero" style="width:auto;accent-color:#0d9488;">
+                    <label style="text-transform:none;font-size:0.88rem;font-weight:600;color:#374151;margin:0;">Set first photo as Hero</label>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-outline" onclick="closeAddPhotoModal()">Cancel</button>
+                <button class="btn-primary" onclick="handleAddPhoto()">Save Photos</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Album: Month Lightbox -->
+    <div class="album-lb-overlay" id="album-lb-overlay" style="display:none;">
+        <div class="album-lb-header">
+            <span class="album-lb-title" id="album-lb-title">May 2025</span>
+            <button class="album-lb-close" onclick="closeAlbumLightbox()"><i data-lucide="x" style="width:18px;height:18px;"></i></button>
+        </div>
+        <div class="album-lb-grid" id="album-lb-grid"></div>
+    </div>
+
+    <!-- Album: Full photo viewer -->
+    <div class="album-photo-viewer" id="album-photo-viewer" style="display:none;" onclick="closePhotoViewer()">
+        <img id="album-photo-viewer-img" src="" alt="">
+        <button class="album-photo-viewer-close" onclick="closePhotoViewer()"><i data-lucide="x" style="width:18px;height:18px;"></i></button>
+    </div>
+
+    <!-- Album: Change Hero Modal (pick from existing photos) -->
+    <div class="album-lb-overlay" id="album-hero-modal" style="display:none;">
+        <div class="album-lb-header">
+            <span class="album-lb-title">Choose Hero Photo</span>
+            <button class="album-lb-close" onclick="closeChangeHeroModal()"><i data-lucide="x" style="width:18px;height:18px;"></i></button>
+        </div>
+        <div class="album-lb-grid" id="album-hero-pick-grid"></div>
     </div>
 
     <!-- Directory: Mail Entry Modal -->
@@ -3771,6 +4287,7 @@ function switchView(viewName) {
         targetSection.offsetHeight;
         targetSection.style.animation = null;
     }
+    if (viewName === 'album') renderAlbum();
 }
 
 // Sidebar Logic
@@ -4881,10 +5398,233 @@ function deleteDirSys(id) {
     renderDirSysTable();
 }
 
+// ===== ALBUM =====
+const ALBUM_PHOTOS_KEY = 'album_photos';
+const ALBUM_HERO_KEY   = 'album_hero';
+
+let albumPendingFiles = []; // { dataUrl, name } accumulated before save
+
+function getAlbumPhotos() {
+    try { return JSON.parse(localStorage.getItem(ALBUM_PHOTOS_KEY)) || []; } catch { return []; }
+}
+function setAlbumPhotos(arr) { localStorage.setItem(ALBUM_PHOTOS_KEY, JSON.stringify(arr)); }
+function getAlbumHero() { return localStorage.getItem(ALBUM_HERO_KEY) || ''; }
+function setAlbumHero(src) { localStorage.setItem(ALBUM_HERO_KEY, src); }
+
+function renderAlbum() {
+    renderAlbumHero();
+    renderAlbumStacks();
+    lucide.createIcons();
+}
+
+function renderAlbumHero() {
+    const src = getAlbumHero();
+    const img   = document.getElementById('album-hero-img');
+    const empty = document.getElementById('album-hero-empty');
+    if (!img) return;
+    if (src) {
+        img.src = src;
+        img.style.display = 'block';
+        if (empty) empty.style.display = 'none';
+    } else {
+        img.style.display = 'none';
+        if (empty) empty.style.display = 'flex';
+    }
+}
+
+function renderAlbumStacks() {
+    const grid  = document.getElementById('album-stacks-grid');
+    const emptyEl = document.getElementById('album-empty-state');
+    if (!grid) return;
+    const photos = getAlbumPhotos();
+
+    if (!photos.length) {
+        grid.innerHTML = '<div class="album-empty-state">No photos added yet. Click "Add Photo" to get started.</div>';
+        lucide.createIcons();
+        return;
+    }
+
+    // Group by YYYY-MM
+    const groups = {};
+    photos.forEach(p => {
+        const key = p.date ? p.date.slice(0, 7) : 'unknown';
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(p);
+    });
+
+    // Sort months descending
+    const sortedKeys = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+
+    const monthNames = ['January','February','March','April','May','June',
+                        'July','August','September','October','November','December'];
+
+    grid.innerHTML = sortedKeys.map(key => {
+        const photos = groups[key];
+        const cover  = photos[0];
+        let [year, mon] = key.split('-');
+        const monthLabel = monthNames[parseInt(mon, 10) - 1] || mon;
+        return `
+        <div class="album-stack-wrap" onclick="openAlbumLightbox('${key}')">
+            <div class="album-stack">
+                <div class="album-stack-cover">
+                    <img src="${cover.src}" alt="${cover.name || ''}">
+                    <span class="album-stack-count">${photos.length} photo${photos.length > 1 ? 's' : ''}</span>
+                </div>
+            </div>
+            <div class="album-stack-label">
+                <div class="album-stack-month">${monthLabel}</div>
+                <div class="album-stack-year">${year}</div>
+            </div>
+        </div>`;
+    }).join('');
+    lucide.createIcons();
+}
+
+// --- Add Photo Modal ---
+function openAddPhotoModal() {
+    albumPendingFiles = [];
+    document.getElementById('album-photo-date').value = new Date().toISOString().slice(0, 10);
+    document.getElementById('album-preview-strip').innerHTML = '';
+    document.getElementById('album-set-hero').checked = false;
+    const fi = document.getElementById('album-file-input');
+    if (fi) fi.value = '';
+    document.getElementById('album-add-modal').style.display = 'flex';
+    lucide.createIcons();
+}
+
+function closeAddPhotoModal(e) {
+    if (e && e.target !== document.getElementById('album-add-modal')) return;
+    document.getElementById('album-add-modal').style.display = 'none';
+}
+
+function handleAlbumFileSelect(files) {
+    if (!files || !files.length) return;
+    const strip = document.getElementById('album-preview-strip');
+    Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = ev => {
+            albumPendingFiles.push({ dataUrl: ev.target.result, name: file.name });
+            const img = document.createElement('img');
+            img.src = ev.target.result;
+            img.className = 'album-preview-thumb';
+            strip.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+function handleAddPhoto() {
+    if (!albumPendingFiles.length) { alert('Please select at least one photo.'); return; }
+    const date    = document.getElementById('album-photo-date').value || new Date().toISOString().slice(0, 10);
+    const setHero = document.getElementById('album-set-hero').checked;
+    const photos  = getAlbumPhotos();
+
+    albumPendingFiles.forEach((f, i) => {
+        photos.unshift({ id: Date.now() + i, src: f.dataUrl, name: f.name, date });
+    });
+    setAlbumPhotos(photos);
+
+    if (setHero) setAlbumHero(albumPendingFiles[0].dataUrl);
+
+    document.getElementById('album-add-modal').style.display = 'none';
+    albumPendingFiles = [];
+    renderAlbum();
+}
+
+// --- Month Lightbox ---
+function openAlbumLightbox(monthKey) {
+    const photos = getAlbumPhotos().filter(p => (p.date || '').slice(0, 7) === monthKey);
+    const monthNames = ['January','February','March','April','May','June',
+                        'July','August','September','October','November','December'];
+    const [year, mon] = monthKey.split('-');
+    const label = `${monthNames[parseInt(mon, 10) - 1]} ${year}`;
+
+    document.getElementById('album-lb-title').textContent = label;
+    document.getElementById('album-lb-grid').innerHTML = photos.map(p => {
+        const safeSrc  = p.src.replace(/'/g, "\\'");
+        const safeDate = (p.date || '').replace(/'/g, "\\'");
+        return `
+        <div class="album-lb-thumb">
+            <img src="${p.src}" alt="${p.name || ''}">
+            <span class="album-lb-thumb-date">${formatAlbumDate(p.date)}</span>
+            <div class="album-lb-thumb-actions">
+                <button class="album-lb-thumb-btn" onclick="event.stopPropagation();openPhotoViewer('${safeSrc}')">View</button>
+                <button class="album-lb-thumb-btn" onclick="event.stopPropagation();setAsHero('${safeSrc}')">Set Hero</button>
+                <button class="album-lb-thumb-btn danger" onclick="event.stopPropagation();deleteAlbumPhoto(${p.id},'${monthKey}')">Delete</button>
+            </div>
+        </div>`;
+    }).join('');
+    document.getElementById('album-lb-overlay').style.display = 'flex';
+    lucide.createIcons();
+}
+
+function closeAlbumLightbox() {
+    document.getElementById('album-lb-overlay').style.display = 'none';
+}
+
+function formatAlbumDate(dateStr) {
+    if (!dateStr) return '';
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const mons = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${d} ${mons[m - 1]} ${y}`;
+}
+
+function deleteAlbumPhoto(id, monthKey) {
+    if (!confirm('Delete this photo?')) return;
+    const photos = getAlbumPhotos().filter(p => p.id !== id);
+    setAlbumPhotos(photos);
+    // If hero was this photo, clear it
+    const hero = getAlbumHero();
+    const deleted = getAlbumPhotos().find(p => p.id === id); // already filtered out
+    renderAlbum();
+    if (photos.filter(p => (p.date || '').slice(0, 7) === monthKey).length) {
+        openAlbumLightbox(monthKey);
+    } else {
+        closeAlbumLightbox();
+    }
+}
+
+// --- Full photo viewer ---
+function openPhotoViewer(src) {
+    document.getElementById('album-photo-viewer-img').src = src;
+    document.getElementById('album-photo-viewer').style.display = 'flex';
+}
+
+function closePhotoViewer() {
+    document.getElementById('album-photo-viewer').style.display = 'none';
+}
+
+function setAsHero(src) {
+    setAlbumHero(src);
+    renderAlbumHero();
+}
+
+// --- Change Hero Modal ---
+function openChangeHeroModal() {
+    const photos = getAlbumPhotos();
+    document.getElementById('album-hero-pick-grid').innerHTML = photos.length
+        ? photos.map(p => {
+            const safeSrc = p.src.replace(/'/g, "\\'");
+            return `
+            <div class="album-lb-thumb" onclick="setAsHero('${safeSrc}');closeChangeHeroModal()">
+                <img src="${p.src}" alt="${p.name || ''}">
+                <span class="album-lb-thumb-date">${formatAlbumDate(p.date)}</span>
+            </div>`;
+          }).join('')
+        : '<p style="color:#94a3b8;padding:2rem;text-align:center;grid-column:1/-1;">No photos added yet.</p>';
+    document.getElementById('album-hero-modal').style.display = 'flex';
+    lucide.createIcons();
+}
+
+function closeChangeHeroModal() {
+    document.getElementById('album-hero-modal').style.display = 'none';
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     fetchData();
     loadDirData();
+    renderAlbum();
     lucide.createIcons();
     
     const addForm = document.getElementById('add-emp-form');
