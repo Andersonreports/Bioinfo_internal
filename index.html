@@ -2523,7 +2523,7 @@ body {
     font-size: 0.76rem;
     color: rgba(255,255,255,0.92);
     font-weight: 600;
-    word-break: break-word;
+    word-break: break-all;
     line-height: 1.35;
 }
 
@@ -3824,7 +3824,7 @@ function parseCSV(csv) {
                 employeeId: obj['Employee ID'] || `GEN-${100 + i}`,
                 name: obj['Name'],
                 role: obj['Role'] || 'Bioinformatician',
-                email: `${obj['Name'].toLowerCase().replace(/\s+/g, '.')}@genomicdesk.com`,
+                email: obj['Email'] || obj['Email ID'] || obj['email'] || `${obj['Name'].toLowerCase().replace(/\s+/g, '.')}@genomicdesk.com`,
                 doj: obj['Date of Joining'] || 'N/A',
                 team: obj['Team'] || 'Primary',
                 teamLeader: obj['Team Leader name'] || 'N/A',
