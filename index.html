@@ -2963,6 +2963,67 @@ body {
     transition: opacity 0.18s;
 }
 .login-btn:hover { opacity: 0.88; }
+.login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Set-password overlay (password reset flow) */
+.setpw-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg,#0f172a 0%,#134e4a 55%,#0d9488 100%);
+    padding: 1rem;
+}
+.setpw-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 2.25rem 2rem;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+.setpw-icon {
+    width: 52px;
+    height: 52px;
+    background: linear-gradient(135deg,#0d9488,#059669);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.1rem;
+    color: #fff;
+}
+.setpw-title {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #0f172a;
+    text-align: center;
+    margin-bottom: 0.35rem;
+}
+.setpw-sub {
+    font-size: 0.85rem;
+    color: #64748b;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+.setpw-rule {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    margin-top: 0.35rem;
+}
+.setpw-success {
+    color: #059669;
+    font-size: 0.82rem;
+    text-align: center;
+    margin-top: 0.5rem;
+    font-weight: 600;
+}
+
 .login-error {
     color: #ef4444;
     font-size: 0.78rem;
@@ -3623,6 +3684,29 @@ body {
 
             <div class="login-error" id="login-error"></div>
             <button class="login-btn" id="login-btn" onclick="handleLogin()">Sign In</button>
+        </div>
+    </div>
+
+    <!-- Set Password Overlay (shown when user arrives via password-reset link) -->
+    <div class="setpw-overlay" id="setpw-overlay" style="display:none;">
+        <div class="setpw-card">
+            <div class="setpw-icon">
+                <i data-lucide="key-round" style="width:26px;height:26px;"></i>
+            </div>
+            <div class="setpw-title">Set Your Password</div>
+            <div class="setpw-sub">Choose a password to secure your GenomicDesk account.</div>
+
+            <div class="login-form active" style="gap:0.9rem;">
+                <label for="setpw-new">New Password</label>
+                <input type="password" id="setpw-new" placeholder="Min. 8 characters" autocomplete="new-password" onkeydown="if(event.key==='Enter')document.getElementById('setpw-confirm').focus()">
+                <label for="setpw-confirm">Confirm Password</label>
+                <input type="password" id="setpw-confirm" placeholder="Re-enter password" autocomplete="new-password" onkeydown="if(event.key==='Enter')handleSetPassword()">
+                <p class="setpw-rule">At least 8 characters. You can change it later from your profile.</p>
+            </div>
+
+            <div class="login-error" id="setpw-error"></div>
+            <div class="setpw-success" id="setpw-success" style="display:none;">Password set! Signing you in…</div>
+            <button class="login-btn" id="setpw-btn" onclick="handleSetPassword()">Set Password & Sign In</button>
         </div>
     </div>
 
@@ -6285,6 +6369,55 @@ function hideLoginOverlay() {
     if (ov) ov.style.display = 'none';
 }
 
+// ===== PASSWORD RESET FLOW =====
+async function handleSetPassword() {
+    const errEl     = document.getElementById('setpw-error');
+    const successEl = document.getElementById('setpw-success');
+    const btn       = document.getElementById('setpw-btn');
+    errEl.textContent = '';
+    successEl.style.display = 'none';
+
+    const pw1 = document.getElementById('setpw-new').value;
+    const pw2 = document.getElementById('setpw-confirm').value;
+
+    if (pw1.length < 8)  { errEl.textContent = 'Password must be at least 8 characters.'; return; }
+    if (pw1 !== pw2)     { errEl.textContent = 'Passwords do not match.'; return; }
+
+    btn.textContent = 'Saving…';
+    btn.disabled = true;
+
+    const { error } = await _sb.auth.updateUser({ password: pw1 });
+
+    if (error) {
+        errEl.textContent = error.message;
+        btn.textContent = 'Set Password & Sign In';
+        btn.disabled = false;
+        return;
+    }
+
+    successEl.style.display = 'block';
+
+    // After setting password, fetch profile and enter the app
+    const { data: { user } } = await _sb.auth.getUser();
+    if (user) {
+        const { data: profile } = await _sb
+            .from('user_profiles')
+            .select('role, employee_id, name')
+            .eq('id', user.id)
+            .single();
+
+        if (profile) {
+            const session = { role: profile.role, employeeId: profile.employee_id || null, name: profile.name || user.email };
+            setSession(session);
+            document.getElementById('setpw-overlay').style.display = 'none';
+            initApp(session);
+            fetchData().then(() => {
+                if (session.role === 'employee') { renderHomeTab(); renderProfileTab(); }
+            });
+        }
+    }
+}
+
 function applyRoleVisibility(role) {
     // Tab visibility map: tab-id -> {admin, manager, employee}
     const vis = {
@@ -6481,6 +6614,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (addForm) addForm.addEventListener('submit', handleAddEmployee);
     const certForm = document.getElementById('cert-upload-form');
     if (certForm) certForm.addEventListener('submit', handleCertUpload);
+
+    // Listen for PASSWORD_RECOVERY event (user clicked reset-password email link)
+    _sb.auth.onAuthStateChange((event) => {
+        if (event === 'PASSWORD_RECOVERY') {
+            document.getElementById('login-overlay').style.display = 'none';
+            const ov = document.getElementById('setpw-overlay');
+            if (ov) { ov.style.display = 'flex'; lucide.createIcons(); }
+        }
+    });
 
     // Check for an active Supabase session (persists across page refreshes)
     const { data: { session: sbSession } } = await _sb.auth.getSession();
