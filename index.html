@@ -6320,7 +6320,7 @@ function initApp(session) {
     }
 }
 
-// Resolve employee for the current session — tries employeeId first, then email.
+// Resolve employee for the current session — tries employeeId, then email, then name.
 function resolveSessionEmployee(session) {
     if (!session) return null;
     if (session.employeeId) {
@@ -6331,6 +6331,15 @@ function resolveSessionEmployee(session) {
         const target = session.email.trim().toLowerCase();
         const byEmail = employees.find(e => (e.email || '').trim().toLowerCase() === target);
         if (byEmail) return byEmail;
+    }
+    if (session.name) {
+        const target = session.name.trim().toLowerCase();
+        const byName = employees.find(e => (e.name || '').trim().toLowerCase() === target);
+        if (byName) return byName;
+    }
+    console.log('resolveSessionEmployee: no match found. Session:', session, 'Employees in system:', employees.length);
+    if (employees.length > 0) {
+        console.log('Available employees (name, email):', employees.map(e => `${e.name} (${e.email})`).join('; '));
     }
     return null;
 }
@@ -6406,8 +6415,26 @@ function renderHomeTab() {
 function renderProfileTab() {
     const session = getSession();
     if (!session || session.role !== 'employee') return;
+
+    // Show loading message if employees data hasn't loaded yet
+    if (employees.length === 0) {
+        ['profile-name','profile-emp-id','profile-role','profile-team','profile-doj','profile-email'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        return;
+    }
+
     const baseEmp = resolveSessionEmployee(session);
-    if (!baseEmp) return;
+    if (!baseEmp) {
+        console.warn('Employee not found for session:', session);
+        // Clear fields and show message
+        ['profile-name','profile-emp-id','profile-role','profile-team','profile-doj','profile-email'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        return;
+    }
 
     const empId = baseEmp.employeeId;
     const over = safeParseJSON(localStorage.getItem('emp_override_' + empId), {});
