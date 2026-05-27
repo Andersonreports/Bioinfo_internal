@@ -3652,32 +3652,6 @@ body {
                     </div>
                 </div>
 
-                <!-- Settings -->
-                <div class="hdr-dropdown-wrap" id="settings-wrap">
-                    <button class="icon-btn" onclick="toggleHdrDropdown('settings-panel')" title="Settings">
-                        <i data-lucide="settings"></i>
-                    </button>
-                    <div class="hdr-dropdown" id="settings-panel" style="display:none;min-width:220px;">
-                        <div class="hdr-dropdown-header"><span>Settings</span></div>
-                        <div class="settings-row">
-                            <span>Refresh Data</span>
-                            <button class="settings-btn" onclick="refreshData()"><i data-lucide="refresh-cw" style="width:13px;height:13px;"></i> Refresh</button>
-                        </div>
-                        <div class="settings-row">
-                            <span>Clear Work Updates</span>
-                            <button class="settings-btn danger" onclick="clearAllWorkUpdates()"><i data-lucide="trash-2" style="width:13px;height:13px;"></i> Clear</button>
-                        </div>
-                        <div class="settings-row">
-                            <span>Clear All Certificates</span>
-                            <button class="settings-btn danger" onclick="clearAllCertificates()"><i data-lucide="trash-2" style="width:13px;height:13px;"></i> Clear</button>
-                        </div>
-                        <div class="settings-row">
-                            <span>App Version</span>
-                            <span style="font-size:0.75rem;color:#94a3b8;">v1.0.0</span>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- User profile -->
                 <div class="hdr-dropdown-wrap" id="profile-wrap">
                     <div class="user-badge" id="header-user-badge" onclick="toggleHdrDropdown('profile-panel')" style="cursor:pointer;" title="Profile">GD</div>
@@ -4159,23 +4133,23 @@ body {
                         </div>
                         <div class="profile-field">
                             <label>Display Name</label>
-                            <input type="text" id="profile-name" readonly>
+                            <input type="text" id="profile-name" readonly tabindex="-1">
                         </div>
                         <div class="profile-field">
                             <label>Employee ID</label>
-                            <input type="text" id="profile-emp-id" readonly>
+                            <input type="text" id="profile-emp-id" readonly tabindex="-1">
                         </div>
                         <div class="profile-field">
                             <label>Role</label>
-                            <input type="text" id="profile-role" readonly>
+                            <input type="text" id="profile-role" readonly tabindex="-1">
                         </div>
                         <div class="profile-field">
                             <label>Team</label>
-                            <input type="text" id="profile-team" readonly>
+                            <input type="text" id="profile-team" readonly tabindex="-1">
                         </div>
                         <div class="profile-field">
                             <label>Date of Joining</label>
-                            <input type="text" id="profile-doj" readonly>
+                            <input type="text" id="profile-doj" readonly tabindex="-1">
                         </div>
                         <div class="profile-field">
                             <label>Email</label>
@@ -4667,9 +4641,10 @@ function renderFieldList(text) {
 // Header dropdown logic
 function toggleHdrDropdown(id) {
     const panel = document.getElementById(id);
+    if (!panel) return;
     const isOpen = panel.style.display !== 'none';
     // Close all dropdowns first
-    ['notif-panel','settings-panel','profile-panel'].forEach(p => {
+    ['notif-panel','profile-panel'].forEach(p => {
         const el = document.getElementById(p);
         if (el) el.style.display = 'none';
     });
@@ -4682,7 +4657,7 @@ function toggleHdrDropdown(id) {
 
 document.addEventListener('click', e => {
     if (!e.target.closest('.hdr-dropdown-wrap')) {
-        ['notif-panel','settings-panel','profile-panel'].forEach(p => {
+        ['notif-panel','profile-panel'].forEach(p => {
             const el = document.getElementById(p);
             if (el) el.style.display = 'none';
         });
@@ -5391,6 +5366,16 @@ function saveAvatarChange() {
 
     closeAvatarModal();
     renderEmployeeSpace();
+
+    // Refresh employee-facing views if this avatar belongs to the signed-in user
+    const session = getSession();
+    if (session && session.role === 'employee') {
+        const sessionEmp = resolveSessionEmployee(session);
+        if (sessionEmp && sessionEmp.id === emp.id) {
+            renderHomeTab();
+            renderProfileTab();
+        }
+    }
 }
 
 // Work Updates Logic
@@ -6262,7 +6247,7 @@ async function handleLogin() {
         return;
     }
 
-    const session = { role: profile.role, employeeId: profile.employee_id || null, name: profile.name || email.split('@')[0] };
+    const session = { role: profile.role, employeeId: profile.employee_id || null, name: profile.name || email.split('@')[0], email: data.user.email || email };
     setSession(session);
     hideLoginOverlay();
     initApp(session);
@@ -6332,17 +6317,32 @@ function initApp(session) {
     }
 }
 
+// Resolve employee for the current session — tries employeeId first, then email.
+function resolveSessionEmployee(session) {
+    if (!session) return null;
+    if (session.employeeId) {
+        const byId = employees.find(e => e.employeeId === session.employeeId);
+        if (byId) return byId;
+    }
+    if (session.email) {
+        const target = session.email.trim().toLowerCase();
+        const byEmail = employees.find(e => (e.email || '').trim().toLowerCase() === target);
+        if (byEmail) return byEmail;
+    }
+    return null;
+}
+
 // ===== HOME TAB =====
 function renderHomeTab() {
     const session = getSession();
     if (!session || session.role !== 'employee') return;
-    const empId = session.employeeId;
-    const baseEmp = employees.find(e => e.employeeId === empId);
+    const baseEmp = resolveSessionEmployee(session);
     if (!baseEmp) {
         document.getElementById('home-welcome-card-wrap').innerHTML =
             '<p style="color:#94a3b8;">Employee data not yet loaded. Please wait a moment.</p>';
         return;
     }
+    const empId = baseEmp.employeeId;
     const over = safeParseJSON(localStorage.getItem('emp_override_' + empId), {});
     const emp = Object.assign({}, baseEmp, over);
     // avatar may have been updated via localStorage
@@ -6403,10 +6403,10 @@ function renderHomeTab() {
 function renderProfileTab() {
     const session = getSession();
     if (!session || session.role !== 'employee') return;
-    const empId = session.employeeId;
-    const baseEmp = employees.find(e => e.employeeId === empId);
+    const baseEmp = resolveSessionEmployee(session);
     if (!baseEmp) return;
 
+    const empId = baseEmp.employeeId;
     const over = safeParseJSON(localStorage.getItem('emp_override_' + empId), {});
     const emp = Object.assign({}, baseEmp, over);
     emp.avatar = localStorage.getItem('avatar_' + empId) || baseEmp.avatar;
@@ -6428,15 +6428,21 @@ function renderProfileTab() {
 
 function openProfileAvatarModal() {
     const session = getSession();
-    if (!session || !session.employeeId) return;
-    const emp = employees.find(e => e.employeeId === session.employeeId);
-    if (emp) openAvatarModal(emp.id);
+    if (!session) return;
+    const emp = resolveSessionEmployee(session);
+    if (!emp) {
+        alert('Your employee record is still loading. Please wait a moment and try again.');
+        return;
+    }
+    openAvatarModal(emp.id);
 }
 
 function saveProfileChanges() {
     const session = getSession();
     if (!session || session.role !== 'employee') return;
-    const empId = session.employeeId;
+    const baseEmp = resolveSessionEmployee(session);
+    if (!baseEmp) return;
+    const empId = baseEmp.employeeId;
 
     const el = (id) => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
     const over = safeParseJSON(localStorage.getItem('emp_override_' + empId), {});
@@ -6456,8 +6462,7 @@ function saveProfileChanges() {
     localStorage.setItem('emp_override_' + empId, JSON.stringify(over));
 
     // Merge override into in-memory employee object
-    const baseEmp = employees.find(e => e.employeeId === empId);
-    if (baseEmp) Object.assign(baseEmp, over);
+    Object.assign(baseEmp, over);
 
     // Show feedback
     const msg = document.getElementById('profile-save-msg');
@@ -6496,7 +6501,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             .single();
 
         if (profile) {
-            const session = { role: profile.role, employeeId: profile.employee_id || null, name: profile.name || sbSession.user.email };
+            const session = { role: profile.role, employeeId: profile.employee_id || null, name: profile.name || sbSession.user.email, email: sbSession.user.email };
             setSession(session);
             initApp(session);
             fetchData().then(() => {
