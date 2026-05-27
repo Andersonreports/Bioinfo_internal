@@ -3041,10 +3041,10 @@ body {
 }
 
 .home-calendar-col {
-    flex: 0 0 380px;
+    flex: 0 0 600px;
     background: #fff;
     border-radius: 16px;
-    padding: 1.5rem;
+    padding: 1.75rem;
     box-shadow: var(--shadow-card);
 }
 
@@ -3054,7 +3054,7 @@ body {
     border-radius: 16px;
     padding: 1.5rem;
     box-shadow: var(--shadow-card);
-    max-height: 600px;
+    max-height: 750px;
     overflow-y: auto;
 }
 
@@ -3067,10 +3067,14 @@ body {
     border-bottom: 1.5px solid #f1f5f9;
 }
 
+.calendar-header h3 {
+    font-size: 1.2rem !important;
+}
+
 .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 0.4rem;
+    gap: 0.5rem;
     margin-bottom: 1.5rem;
 }
 
@@ -3078,17 +3082,17 @@ body {
     text-align: center;
     font-weight: 700;
     color: #94a3b8;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     text-transform: uppercase;
-    padding: 0.5rem 0;
+    padding: 0.6rem 0;
     letter-spacing: 0.5px;
 }
 
 .calendar-day-cell {
     aspect-ratio: 1;
-    padding: 0.4rem;
+    padding: 0.6rem;
     border: 1.5px solid #e2e8f0;
-    border-radius: 8px;
+    border-radius: 10px;
     cursor: pointer;
     position: relative;
     background: #f8fafc;
@@ -3097,7 +3101,12 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    font-size: 0.8rem;
+    font-size: 1rem;
+    min-height: 65px;
+}
+
+.calendar-day-cell .calendar-day-number {
+    font-size: 1.05rem;
 }
 
 .calendar-day-cell:hover:not(.other-month) {
@@ -3135,9 +3144,67 @@ body {
 }
 
 .calendar-leave-dot {
-    width: 5px;
-    height: 5px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
+}
+
+.leave-history-section {
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1.5px solid #f1f5f9;
+}
+
+.leave-history-section h4 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #0f172a;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.75rem;
+}
+
+.leave-history-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.75rem;
+    background: #f8fafc;
+    border-radius: 8px;
+    margin-bottom: 0.4rem;
+    font-size: 0.85rem;
+}
+
+.leave-history-item .leave-color-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.leave-history-item .leave-remove-btn {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+}
+
+.leave-history-item .leave-remove-btn:hover {
+    background: #fee2e2;
+}
+
+.leave-info-note {
+    background: #fef3c7;
+    border-left: 3px solid #f59e0b;
+    padding: 0.75rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    color: #78350f;
+    margin-bottom: 1rem;
+    line-height: 1.4;
 }
 
 /* ===== PROFILE TAB ===== */
@@ -4224,6 +4291,10 @@ body {
                         </div>
                         <div class="calendar-grid" id="home-calendar-grid"></div>
                         <div id="home-leave-request-btn-wrap"></div>
+                        <div class="leave-history-section" id="home-leave-history-section" style="display:none;">
+                            <h4 id="home-leave-history-title">Leave History</h4>
+                            <div id="home-leave-history-list"></div>
+                        </div>
                     </div>
                     <!-- Right: Work Updates -->
                     <div class="home-updates-col">
@@ -4511,15 +4582,18 @@ body {
         </div>
     </div>
 
-    <!-- Leave Request Modal (Employees) -->
+    <!-- Log Approved Leave Modal (Employees) -->
     <div class="modal-overlay" id="leave-request-modal" style="display:none;" onclick="closeLeaveRequestModal(event)">
         <div class="modal glass-panel" style="max-width:500px;" onclick="event.stopPropagation()">
             <div class="modal-header">
                 <div class="details-header-info">
                     <i data-lucide="calendar" style="color:#0d9488;width:24px;height:24px;"></i>
-                    <h2>Request Leave</h2>
+                    <h2>Log Approved Leave</h2>
                 </div>
                 <button class="icon-btn" onclick="closeLeaveRequestModal()"><i data-lucide="x"></i></button>
+            </div>
+            <div class="leave-info-note">
+                <strong>Note:</strong> Get approval from your Team Leader and Manager via Telegram first. Then log your approved leave here so other employees and managers can see your availability.
             </div>
             <div style="margin-bottom:1.5rem;">
                 <label style="font-size:0.8rem;font-weight:700;color:#0d9488;text-transform:uppercase;display:block;margin-bottom:0.5rem;">Start Date</label>
@@ -4529,13 +4603,9 @@ body {
                 <label style="font-size:0.8rem;font-weight:700;color:#0d9488;text-transform:uppercase;display:block;margin-bottom:0.5rem;">End Date</label>
                 <input type="date" id="leave-end-date" style="width:100%;padding:0.75rem;border:1.5px solid #e2e8f0;border-radius:10px;box-sizing:border-box;">
             </div>
-            <div style="margin-bottom:1.5rem;padding:1rem;background:#f0fdfc;border-radius:10px;font-size:0.9rem;color:#0f172a;">
-                <div><strong>Selected Leave Dates:</strong></div>
-                <div id="leave-dates-preview" style="margin-top:0.5rem;color:#64748b;font-size:0.85rem;">Select dates above</div>
-            </div>
             <div class="modal-actions">
                 <button type="button" class="btn-outline" onclick="closeLeaveRequestModal()">Cancel</button>
-                <button type="button" class="btn-primary" onclick="saveLeaveRequest()">Save Leave</button>
+                <button type="button" class="btn-primary" onclick="saveLeaveRequest()">Log Leave</button>
             </div>
         </div>
     </div>
@@ -6590,17 +6660,93 @@ function renderHomeTab() {
     // Render calendar for all roles
     renderCalendar();
 
-    // Add leave request button for employees
+    // Add leave log button for employees
     const leaveButtonWrap = document.getElementById('home-leave-request-btn-wrap');
     if (session.role === 'employee') {
         leaveButtonWrap.innerHTML = `<button class="btn-primary" style="width:100%;margin-top:1rem;" onclick="openLeaveRequestModal()">
-            <i data-lucide="calendar-plus" style="width:14px;height:14px;margin-right:0.5rem;vertical-align:middle;"></i> Request Leave
+            <i data-lucide="calendar-plus" style="width:14px;height:14px;margin-right:0.5rem;vertical-align:middle;"></i> Log Approved Leave
         </button>`;
     } else {
         leaveButtonWrap.innerHTML = '';
     }
 
+    // Render leave history
+    renderLeaveHistory(session);
+
     lucide.createIcons();
+}
+
+function renderLeaveHistory(session) {
+    const section = document.getElementById('home-leave-history-section');
+    const title = document.getElementById('home-leave-history-title');
+    const list = document.getElementById('home-leave-history-list');
+    if (!section || !list) return;
+
+    let historyItems = [];
+
+    if (session.role === 'employee') {
+        // Show only this employee's leaves
+        const emp = resolveSessionEmployee(session);
+        if (!emp || !leaves[emp.employeeId] || leaves[emp.employeeId].length === 0) {
+            section.style.display = 'none';
+            return;
+        }
+        title.textContent = 'My Leave History';
+        const myLeaves = (leaves[emp.employeeId] || []).slice().sort((a, b) => b.localeCompare(a));
+        historyItems = myLeaves.map(date => ({
+            date,
+            empId: emp.employeeId,
+            name: emp.name,
+            canRemove: true
+        }));
+    } else {
+        // Admin/Manager: show all employees' leaves
+        const allLeaves = [];
+        Object.entries(leaves).forEach(([empId, dates]) => {
+            const emp = employees.find(e => e.employeeId === empId);
+            const name = emp ? emp.name : empId;
+            dates.forEach(date => allLeaves.push({ date, empId, name, canRemove: false }));
+        });
+        if (allLeaves.length === 0) {
+            section.style.display = 'none';
+            return;
+        }
+        title.textContent = 'All Leave History';
+        historyItems = allLeaves.sort((a, b) => b.date.localeCompare(a.date));
+    }
+
+    const formatLeaveDate = (d) => {
+        const [y, m, dd] = d.split('-').map(Number);
+        const mons = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const sf = (n) => n>=11&&n<=13?'th':['th','st','nd','rd'][n%10]||'th';
+        return `${dd}${sf(dd)} ${mons[m-1]} ${y}`;
+    };
+
+    section.style.display = 'block';
+    list.innerHTML = historyItems.slice(0, 50).map(item => `
+        <div class="leave-history-item">
+            <div class="leave-color-dot" style="background:${getEmployeeLeaveColor(item.empId)};"></div>
+            <div style="flex:1;">
+                <div style="font-weight:600;color:#0f172a;">${formatLeaveDate(item.date)}</div>
+                ${session.role !== 'employee' ? `<div style="font-size:0.75rem;color:#64748b;">${item.name}</div>` : ''}
+            </div>
+            ${item.canRemove ? `<button class="leave-remove-btn" onclick="removeLeaveDate('${item.empId}', '${item.date}')" title="Remove">
+                <i data-lucide="x" style="width:14px;height:14px;"></i>
+            </button>` : ''}
+        </div>
+    `).join('');
+    lucide.createIcons();
+}
+
+function removeLeaveDate(empId, date) {
+    if (!confirm(`Remove leave on ${date}?`)) return;
+    if (leaves[empId]) {
+        leaves[empId] = leaves[empId].filter(d => d !== date);
+        if (leaves[empId].length === 0) delete leaves[empId];
+        localStorage.setItem('leaves', JSON.stringify(leaves));
+        renderCalendar();
+        renderLeaveHistory(getSession());
+    }
 }
 
 // ===== PROFILE TAB =====
@@ -6619,12 +6765,24 @@ function renderProfileTab() {
 
     const baseEmp = resolveSessionEmployee(session);
     if (!baseEmp) {
-        console.warn('Employee not found for session:', session);
-        // Clear fields and show message
-        ['profile-name','profile-emp-id','profile-role','profile-team','profile-doj','profile-email'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.value = '';
-        });
+        console.warn('Employee not found for session — using session data only:', session);
+        // Use session data as fallback so the profile is not blank
+        const el = (id) => document.getElementById(id);
+        if (el('profile-name'))   el('profile-name').value   = session.name || '';
+        if (el('profile-emp-id')) el('profile-emp-id').value = session.employeeId || 'Not assigned';
+        if (el('profile-role'))   el('profile-role').value   = '';
+        if (el('profile-team'))   el('profile-team').value   = '';
+        if (el('profile-doj'))    el('profile-doj').value    = '';
+        if (el('profile-email'))  el('profile-email').value  = session.email || '';
+        if (el('profile-phone'))  el('profile-phone').value  = '';
+        if (el('profile-work'))   el('profile-work').value   = '';
+        if (el('profile-analysis')) el('profile-analysis').value = '';
+        if (el('profile-samples'))  el('profile-samples').value  = '';
+        const saveMsg = el('profile-save-msg');
+        if (saveMsg) {
+            saveMsg.style.color = '#f59e0b';
+            saveMsg.textContent = 'Your employee record is not linked yet. Contact admin to complete your profile.';
+        }
         return;
     }
 
@@ -6885,11 +7043,11 @@ function saveLeaveRequest() {
     // Clear form
     document.getElementById('leave-start-date').value = '';
     document.getElementById('leave-end-date').value = '';
-    document.getElementById('leave-dates-preview').textContent = 'Select dates above';
 
     closeLeaveRequestModal();
     renderCalendar();
-    alert('Leave request saved!');
+    renderLeaveHistory(getSession());
+    alert('Leave logged successfully! Other employees and managers can now see your availability.');
 }
 
 function showLeaveDetailModal(dateISO, empIds) {
