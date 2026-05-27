@@ -6558,23 +6558,42 @@ function initApp(session) {
     }
 }
 
-// Resolve employee for the current session — tries employeeId, then email, then name.
+// Resolve employee for the current session — tries multiple fields in order.
 function resolveSessionEmployee(session) {
     if (!session) return null;
+
+    // 1. Exact employeeId match
     if (session.employeeId) {
         const byId = employees.find(e => e.employeeId === session.employeeId);
         if (byId) return byId;
     }
+
+    // 2. Exact email match
     if (session.email) {
         const target = session.email.trim().toLowerCase();
         const byEmail = employees.find(e => (e.email || '').trim().toLowerCase() === target);
         if (byEmail) return byEmail;
     }
-    if (session.name) {
-        const target = session.name.trim().toLowerCase();
-        const byName = employees.find(e => (e.name || '').trim().toLowerCase() === target);
-        if (byName) return byName;
+
+    // Build the set of candidate "names" to search by — name, email prefix, name without @ portion
+    const candidates = [];
+    if (session.name) candidates.push(session.name.trim().toLowerCase());
+    if (session.email) candidates.push(session.email.split('@')[0].trim().toLowerCase());
+    if (session.name && session.name.includes('@')) candidates.push(session.name.split('@')[0].trim().toLowerCase());
+
+    for (const target of candidates) {
+        if (!target) continue;
+        // Exact name match
+        const exact = employees.find(e => (e.name || '').trim().toLowerCase() === target);
+        if (exact) return exact;
+        // First-word match (e.g. "nandhana" matches "Nandhana Kumar")
+        const firstWord = employees.find(e => (e.name || '').trim().toLowerCase().split(/\s+/)[0] === target);
+        if (firstWord) return firstWord;
+        // Substring match as last resort
+        const partial = employees.find(e => (e.name || '').trim().toLowerCase().includes(target));
+        if (partial) return partial;
     }
+
     console.log('resolveSessionEmployee: no match found. Session:', session, 'Employees in system:', employees.length);
     if (employees.length > 0) {
         console.log('Available employees (name, email):', employees.map(e => `${e.name} (${e.email})`).join('; '));
@@ -7109,7 +7128,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             .single();
 
         if (profile) {
-            const session = { role: profile.role, employeeId: profile.employee_id || null, name: profile.name || sbSession.user.email, email: sbSession.user.email };
+            const session = { role: profile.role, employeeId: profile.employee_id || null, name: profile.name || (sbSession.user.email || '').split('@')[0], email: sbSession.user.email };
             setSession(session);
             initApp(session);
             fetchData().then(() => {
