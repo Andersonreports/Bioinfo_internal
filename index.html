@@ -6702,9 +6702,13 @@ function safeParseJSON(str, fallback) {
 // ===== CALENDAR & LEAVE MANAGEMENT =====
 // Leave storage: { empId: ['2026-05-28', '2026-05-29', ...] }
 let leaves = JSON.parse(localStorage.getItem('leaves') || '{}');
-let _currentCalendarMonth = new Date().getMonth();
-let _currentCalendarYear = new Date().getFullYear();
-let _selectedCalendarDate = new Date().toISOString().split('T')[0];
+// Default to yesterday's date — team posts work updates at end of day, so the most
+// recent fully-populated day is yesterday.
+const _yesterday = new Date();
+_yesterday.setDate(_yesterday.getDate() - 1);
+let _currentCalendarMonth = _yesterday.getMonth();
+let _currentCalendarYear = _yesterday.getFullYear();
+let _selectedCalendarDate = _yesterday.toISOString().split('T')[0];
 
 function getEmployeeLeaveColor(employeeId) {
     const hash = (employeeId || '').split('').reduce((a, b) => a + b.charCodeAt(0), 0);
