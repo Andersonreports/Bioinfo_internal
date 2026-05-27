@@ -6885,7 +6885,7 @@ const _yesterday = new Date();
 _yesterday.setDate(_yesterday.getDate() - 1);
 let _currentCalendarMonth = _yesterday.getMonth();
 let _currentCalendarYear = _yesterday.getFullYear();
-let _selectedCalendarDate = _yesterday.toISOString().split('T')[0];
+let _selectedCalendarDate = `${_yesterday.getFullYear()}-${String(_yesterday.getMonth() + 1).padStart(2, '0')}-${String(_yesterday.getDate()).padStart(2, '0')}`;
 
 function getEmployeeLeaveColor(employeeId) {
     const hash = (employeeId || '').split('').reduce((a, b) => a + b.charCodeAt(0), 0);
@@ -6894,7 +6894,17 @@ function getEmployeeLeaveColor(employeeId) {
 }
 
 function dateToISO(date) {
-    return date.toISOString().split('T')[0];
+    // Use local components (NOT toISOString) to avoid UTC date shift in non-UTC zones
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+}
+
+function parseDateString(s) {
+    // Parse "YYYY-MM-DD" as a LOCAL date (new Date(s) would parse as UTC)
+    const [y, m, d] = s.split('-').map(Number);
+    return new Date(y, m - 1, d);
 }
 
 function renderCalendar() {
@@ -7047,10 +7057,10 @@ function saveLeaveRequest() {
         return;
     }
 
-    // Generate all dates between start and end (inclusive)
+    // Generate all dates between start and end (inclusive) — parse as local dates
     const dates = [];
-    let current = new Date(startDate);
-    const end = new Date(endDate);
+    let current = parseDateString(startDate);
+    const end = parseDateString(endDate);
     while (current <= end) {
         dates.push(dateToISO(current));
         current.setDate(current.getDate() + 1);
