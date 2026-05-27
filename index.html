@@ -3660,13 +3660,13 @@ body {
                             <span id="header-profile-name" style="font-weight:700;color:#1a1a1a;">GenomicDesk</span>
                             <span id="header-profile-role" style="font-size:0.72rem;color:#94a3b8;">Not signed in</span>
                         </div>
-                        <div class="settings-row" style="cursor:pointer;" onclick="switchView('manager')">
+                        <div class="settings-row" id="menu-manager" style="cursor:pointer;" onclick="switchView('manager')">
                             <span><i data-lucide="layout-dashboard" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;"></i> Manager Dashboard</span>
                         </div>
-                        <div class="settings-row" style="cursor:pointer;" onclick="switchView('employee')">
+                        <div class="settings-row" id="menu-employee" style="cursor:pointer;" onclick="switchView('employee')">
                             <span><i data-lucide="user" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;"></i> Employee Dashboard</span>
                         </div>
-                        <div class="settings-row" style="cursor:pointer;" onclick="switchView('tools')">
+                        <div class="settings-row" id="menu-tools" style="cursor:pointer;" onclick="switchView('tools')">
                             <span><i data-lucide="wrench" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;"></i> Tools</span>
                         </div>
                         <div class="settings-row danger-row" style="cursor:pointer;" onclick="doLogout()">
@@ -6274,7 +6274,7 @@ function hideLoginOverlay() {
 
 
 function applyRoleVisibility(role) {
-    // Tab visibility map: tab-id -> {admin, manager, employee}
+    // Tab and menu visibility map: id -> {admin, manager, employee}
     const vis = {
         'btn-home-view':      { admin: false, manager: false, employee: true  },
         'btn-manager-view':   { admin: true,  manager: true,  employee: false },
@@ -6283,10 +6283,13 @@ function applyRoleVisibility(role) {
         'btn-directory-view': { admin: true,  manager: false, employee: false },
         'btn-album-view':     { admin: true,  manager: true,  employee: true  },
         'btn-profile-view':   { admin: false, manager: false, employee: true  },
+        'menu-manager':       { admin: true,  manager: true,  employee: false },
+        'menu-employee':      { admin: true,  manager: false, employee: true  },
+        'menu-tools':         { admin: true,  manager: true,  employee: true  },
     };
     Object.entries(vis).forEach(([id, rules]) => {
-        const btn = document.getElementById(id);
-        if (btn) btn.style.display = rules[role] ? '' : 'none';
+        const el = document.getElementById(id);
+        if (el) el.style.display = rules[role] ? '' : 'none';
     });
 }
 
