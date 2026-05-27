@@ -3030,6 +3030,116 @@ body {
     margin-bottom: 1rem;
 }
 
+/* ===== HOME CALENDAR & UPDATES LAYOUT ===== */
+.home-container {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+@media (max-width: 1000px) {
+    .home-container { flex-direction: column; }
+}
+
+.home-calendar-col {
+    flex: 0 0 380px;
+    background: #fff;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-card);
+}
+
+.home-updates-col {
+    flex: 1;
+    background: #fff;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-card);
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1.5px solid #f1f5f9;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.4rem;
+    margin-bottom: 1.5rem;
+}
+
+.calendar-day-name {
+    text-align: center;
+    font-weight: 700;
+    color: #94a3b8;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    padding: 0.5rem 0;
+    letter-spacing: 0.5px;
+}
+
+.calendar-day-cell {
+    aspect-ratio: 1;
+    padding: 0.4rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    position: relative;
+    background: #f8fafc;
+    transition: all 0.15s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.8rem;
+}
+
+.calendar-day-cell:hover:not(.other-month) {
+    border-color: #0d9488;
+    background: #f0fdfc;
+}
+
+.calendar-day-cell.selected {
+    background: #0d9488;
+    color: #fff;
+    border-color: #0d9488;
+}
+
+.calendar-day-cell.selected .calendar-day-number {
+    color: #fff;
+}
+
+.calendar-day-cell.other-month {
+    color: #cbd5e1;
+    background: transparent;
+    border: 1.5px solid transparent;
+    cursor: default;
+}
+
+.calendar-day-number {
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.calendar-leave-dots {
+    display: flex;
+    gap: 2px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.calendar-leave-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+}
+
 /* ===== PROFILE TAB ===== */
 .profile-edit-grid {
     display: grid;
@@ -4104,14 +4214,35 @@ body {
                 </div>
             </section>
 
-            <!-- Home View (Employee only) -->
+            <!-- Home View (All Roles) -->
             <section id="home-view" class="view-section" style="display:none;">
                 <div class="view-header">
                     <h1>Home</h1>
                     <p>Your personal dashboard.</p>
                 </div>
-                <div id="home-welcome-card-wrap"></div>
-                <div class="home-ach-section" id="home-ach-section" style="display:none;">
+                <div id="home-welcome-card-wrap" style="margin-bottom:1.5rem;"></div>
+                <div class="home-container">
+                    <!-- Left: Calendar -->
+                    <div class="home-calendar-col">
+                        <div class="calendar-header">
+                            <button class="icon-btn" onclick="previousCalendarMonth()" title="Previous month">
+                                <i data-lucide="chevron-left"></i>
+                            </button>
+                            <h3 id="calendar-month-year" style="margin:0;font-size:1rem;font-weight:700;color:#0f172a;"></h3>
+                            <button class="icon-btn" onclick="nextCalendarMonth()" title="Next month">
+                                <i data-lucide="chevron-right"></i>
+                            </button>
+                        </div>
+                        <div class="calendar-grid" id="home-calendar-grid"></div>
+                        <div id="home-leave-request-btn-wrap"></div>
+                    </div>
+                    <!-- Right: Work Updates -->
+                    <div class="home-updates-col">
+                        <h3 id="home-updates-date-label" style="margin:0 0 1rem 0;font-size:0.95rem;font-weight:700;color:#0f172a;"></h3>
+                        <div id="home-updates-list"></div>
+                    </div>
+                </div>
+                <div class="home-ach-section" id="home-ach-section" style="display:none;margin-top:1.5rem;">
                     <h3>Your Achievements</h3>
                     <div id="home-ach-list"></div>
                 </div>
@@ -4387,6 +4518,54 @@ body {
             <div class="modal-actions">
                 <button type="button" class="btn-outline" onclick="closeAvatarModal()">Cancel</button>
                 <button type="button" class="btn-primary" onclick="saveAvatarChange()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leave Request Modal (Employees) -->
+    <div class="modal-overlay" id="leave-request-modal" style="display:none;" onclick="closeLeaveRequestModal(event)">
+        <div class="modal glass-panel" style="max-width:500px;" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="details-header-info">
+                    <i data-lucide="calendar" style="color:#0d9488;width:24px;height:24px;"></i>
+                    <h2>Request Leave</h2>
+                </div>
+                <button class="icon-btn" onclick="closeLeaveRequestModal()"><i data-lucide="x"></i></button>
+            </div>
+            <div style="margin-bottom:1.5rem;">
+                <label style="font-size:0.8rem;font-weight:700;color:#0d9488;text-transform:uppercase;display:block;margin-bottom:0.5rem;">Start Date</label>
+                <input type="date" id="leave-start-date" style="width:100%;padding:0.75rem;border:1.5px solid #e2e8f0;border-radius:10px;box-sizing:border-box;">
+            </div>
+            <div style="margin-bottom:1.5rem;">
+                <label style="font-size:0.8rem;font-weight:700;color:#0d9488;text-transform:uppercase;display:block;margin-bottom:0.5rem;">End Date</label>
+                <input type="date" id="leave-end-date" style="width:100%;padding:0.75rem;border:1.5px solid #e2e8f0;border-radius:10px;box-sizing:border-box;">
+            </div>
+            <div style="margin-bottom:1.5rem;padding:1rem;background:#f0fdfc;border-radius:10px;font-size:0.9rem;color:#0f172a;">
+                <div><strong>Selected Leave Dates:</strong></div>
+                <div id="leave-dates-preview" style="margin-top:0.5rem;color:#64748b;font-size:0.85rem;">Select dates above</div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-outline" onclick="closeLeaveRequestModal()">Cancel</button>
+                <button type="button" class="btn-primary" onclick="saveLeaveRequest()">Save Leave</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leave Detail Modal -->
+    <div class="modal-overlay" id="leave-detail-modal" style="display:none;" onclick="closeLeaveDetailModal(event)">
+        <div class="modal glass-panel" style="max-width:420px;" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="details-header-info">
+                    <i data-lucide="users" style="color:#0d9488;width:24px;height:24px;"></i>
+                    <div>
+                        <h2>Employees on Leave</h2>
+                        <p id="leave-detail-date" style="margin:0;font-size:0.85rem;color:#94a3b8;"></p>
+                    </div>
+                </div>
+                <button class="icon-btn" onclick="closeLeaveDetailModal()"><i data-lucide="x"></i></button>
+            </div>
+            <div id="leave-detail-list" style="max-height:400px;overflow-y:auto;">
+                <p style="color:#94a3b8;">No employees on leave.</p>
             </div>
         </div>
     </div>
@@ -6276,7 +6455,7 @@ function hideLoginOverlay() {
 function applyRoleVisibility(role) {
     // Tab and menu visibility map: id -> {admin, manager, employee}
     const vis = {
-        'btn-home-view':      { admin: false, manager: false, employee: true  },
+        'btn-home-view':      { admin: true,  manager: true,  employee: true  },
         'btn-manager-view':   { admin: true,  manager: true,  employee: false },
         'btn-employee-view':  { admin: true,  manager: false, employee: true  },
         'btn-tools-view':     { admin: true,  manager: true,  employee: true  },
@@ -6347,67 +6526,94 @@ function resolveSessionEmployee(session) {
 // ===== HOME TAB =====
 function renderHomeTab() {
     const session = getSession();
-    if (!session || session.role !== 'employee') return;
-    const baseEmp = resolveSessionEmployee(session);
-    if (!baseEmp) {
-        document.getElementById('home-welcome-card-wrap').innerHTML =
-            '<p style="color:#94a3b8;">Employee data not yet loaded. Please wait a moment.</p>';
-        return;
-    }
-    const empId = baseEmp.employeeId;
-    const over = safeParseJSON(localStorage.getItem('emp_override_' + empId), {});
-    const emp = Object.assign({}, baseEmp, over);
-    // avatar may have been updated via localStorage
-    emp.avatar = localStorage.getItem('avatar_' + empId) || baseEmp.avatar;
+    if (!session) return;
 
+    // Show welcome card only for employees
     const wrap = document.getElementById('home-welcome-card-wrap');
-    wrap.innerHTML = `
-        <div class="home-welcome-card">
-            <img src="${emp.avatar}" alt="${emp.name}" class="home-welcome-avatar">
-            <div class="home-welcome-info">
-                <h2>Welcome, ${emp.name.split(' ')[0]}!</h2>
-                <p>${emp.role}</p>
-                <div class="home-welcome-meta">
-                    <span class="home-meta-chip">${emp.team}</span>
-                    <span class="home-meta-chip">DOJ: ${formatDate(emp.doj)}</span>
-                    <span class="home-meta-chip">${emp.employeeId}</span>
-                </div>
-            </div>
-        </div>`;
+    if (session.role === 'employee') {
+        if (employees.length === 0) {
+            wrap.innerHTML = '<p style="color:#94a3b8;">Employee data not yet loaded. Please wait a moment.</p>';
+            return;
+        }
+        const baseEmp = resolveSessionEmployee(session);
+        if (!baseEmp) {
+            wrap.innerHTML = '<p style="color:#94a3b8;">Your employee record not found.</p>';
+            // Still render calendar below
+        } else {
+            const empId = baseEmp.employeeId;
+            const over = safeParseJSON(localStorage.getItem('emp_override_' + empId), {});
+            const emp = Object.assign({}, baseEmp, over);
+            emp.avatar = localStorage.getItem('avatar_' + empId) || baseEmp.avatar;
 
-    // Achievements
-    const certs = emp.certificates || [];
-    const achSection = document.getElementById('home-ach-section');
-    const achList    = document.getElementById('home-ach-list');
-    if (certs.length === 0) {
-        achSection.style.display = 'none';
-    } else {
-        achSection.style.display = 'block';
-        const fmtCertDate = (d) => {
-            if (!d) return '';
-            const [y, m, dd] = d.split('-').map(Number);
-            const mons = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-            const sf = (n) => n>=11&&n<=13?'th':['th','st','nd','rd'][n%10]||'th';
-            return `${dd}${sf(dd)} ${mons[m-1]} ${y}`;
-        };
-        achList.innerHTML = certs.map(cert => `
-            <div class="ach-card">
-                <div class="ach-card-author">
-                    <img src="${emp.avatar}" alt="${emp.name}" class="ach-card-avatar">
-                    <div>
-                        <div class="ach-card-name">${emp.name}</div>
-                        <div class="ach-card-role">${emp.role}</div>
+            wrap.innerHTML = `
+                <div class="home-welcome-card">
+                    <img src="${emp.avatar}" alt="${emp.name}" class="home-welcome-avatar">
+                    <div class="home-welcome-info">
+                        <h2>Welcome, ${emp.name.split(' ')[0]}!</h2>
+                        <p>${emp.role}</p>
+                        <div class="home-welcome-meta">
+                            <span class="home-meta-chip">${emp.team}</span>
+                            <span class="home-meta-chip">DOJ: ${formatDate(emp.doj)}</span>
+                            <span class="home-meta-chip">${emp.employeeId}</span>
+                        </div>
                     </div>
-                </div>
-                <div class="ach-card-event">${cert.eventName}</div>
-                <div class="ach-card-meta">
-                    ${cert.place ? `<span class="ach-meta-tag"><i data-lucide="map-pin" style="width:11px;height:11px;"></i>${cert.place}</span>` : ''}
-                    ${cert.date  ? `<span class="ach-meta-tag"><i data-lucide="calendar" style="width:11px;height:11px;"></i>${fmtCertDate(cert.date)}</span>` : ''}
-                    ${cert.award ? `<span class="ach-meta-tag ach-award-tag"><i data-lucide="trophy" style="width:11px;height:11px;"></i>${cert.award}</span>` : ''}
-                </div>
-            </div>`).join('');
-        lucide.createIcons();
+                </div>`;
+
+            // Achievements
+            const certs = emp.certificates || [];
+            const achSection = document.getElementById('home-ach-section');
+            const achList    = document.getElementById('home-ach-list');
+            if (certs.length === 0) {
+                achSection.style.display = 'none';
+            } else {
+                achSection.style.display = 'block';
+                const fmtCertDate = (d) => {
+                    if (!d) return '';
+                    const [y, m, dd] = d.split('-').map(Number);
+                    const mons = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                    const sf = (n) => n>=11&&n<=13?'th':['th','st','nd','rd'][n%10]||'th';
+                    return `${dd}${sf(dd)} ${mons[m-1]} ${y}`;
+                };
+                achList.innerHTML = certs.map(cert => `
+                    <div class="ach-card">
+                        <div class="ach-card-author">
+                            <img src="${emp.avatar}" alt="${emp.name}" class="ach-card-avatar">
+                            <div>
+                                <div class="ach-card-name">${emp.name}</div>
+                                <div class="ach-card-role">${emp.role}</div>
+                            </div>
+                        </div>
+                        <div class="ach-card-event">${cert.eventName}</div>
+                        <div class="ach-card-meta">
+                            ${cert.place ? `<span class="ach-meta-tag"><i data-lucide="map-pin" style="width:11px;height:11px;"></i>${cert.place}</span>` : ''}
+                            ${cert.date  ? `<span class="ach-meta-tag"><i data-lucide="calendar" style="width:11px;height:11px;"></i>${fmtCertDate(cert.date)}</span>` : ''}
+                            ${cert.award ? `<span class="ach-meta-tag ach-award-tag"><i data-lucide="trophy" style="width:11px;height:11px;"></i>${cert.award}</span>` : ''}
+                        </div>
+                    </div>`).join('');
+                lucide.createIcons();
+            }
+        }
+    } else {
+        // Admin/Manager: show role badge
+        wrap.innerHTML = `<div style="padding:1rem;background:#f0fdfc;border-radius:12px;border:1px solid #ccfbf1;">
+            <div style="font-size:0.85rem;color:#0d9488;font-weight:700;text-transform:uppercase;">Logged in as</div>
+            <div style="font-size:1.3rem;font-weight:700;color:#0f172a;margin-top:0.3rem;">${session.role.charAt(0).toUpperCase() + session.role.slice(1)}</div>
+        </div>`;
     }
+
+    // Render calendar for all roles
+    renderCalendar();
+
+    // Add leave request button for employees
+    const leaveButtonWrap = document.getElementById('home-leave-request-btn-wrap');
+    if (session.role === 'employee') {
+        leaveButtonWrap.innerHTML = `<button class="btn-primary" style="width:100%;margin-top:1rem;" onclick="openLeaveRequestModal()">
+            <i data-lucide="calendar-plus" style="width:14px;height:14px;margin-right:0.5rem;vertical-align:middle;"></i> Request Leave
+        </button>`;
+    } else {
+        leaveButtonWrap.innerHTML = '';
+    }
+
     lucide.createIcons();
 }
 
@@ -6505,6 +6711,230 @@ function saveProfileChanges() {
 function safeParseJSON(str, fallback) {
     if (!str) return fallback;
     try { return JSON.parse(str); } catch(e) { return fallback; }
+}
+
+// ===== CALENDAR & LEAVE MANAGEMENT =====
+// Leave storage: { empId: ['2026-05-28', '2026-05-29', ...] }
+let leaves = JSON.parse(localStorage.getItem('leaves') || '{}');
+let _currentCalendarMonth = new Date().getMonth();
+let _currentCalendarYear = new Date().getFullYear();
+let _selectedCalendarDate = new Date().toISOString().split('T')[0];
+
+function getEmployeeLeaveColor(employeeId) {
+    const hash = (employeeId || '').split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+    const hue = (hash * 137.5) % 360; // golden angle distribution
+    return `hsl(${hue}, 70%, 50%)`;
+}
+
+function dateToISO(date) {
+    return date.toISOString().split('T')[0];
+}
+
+function renderCalendar() {
+    const firstDay = new Date(_currentCalendarYear, _currentCalendarMonth, 1);
+    const lastDay = new Date(_currentCalendarYear, _currentCalendarMonth + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    document.getElementById('calendar-month-year').textContent = `${months[_currentCalendarMonth]} ${_currentCalendarYear}`;
+
+    // Build calendar grid
+    const grid = document.getElementById('home-calendar-grid');
+    const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+    let html = '';
+    // Day name headers
+    dayNames.forEach(name => {
+        html += `<div class="calendar-day-name">${name}</div>`;
+    });
+
+    // Empty cells for days before month starts
+    for (let i = 0; i < startingDayOfWeek; i++) {
+        html += `<div class="calendar-day-cell other-month"></div>`;
+    }
+
+    // Days of month
+    for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(_currentCalendarYear, _currentCalendarMonth, day);
+        const dateISO = dateToISO(date);
+        const isSelected = dateISO === _selectedCalendarDate;
+
+        // Count employees on leave
+        const leaveOnDate = Object.entries(leaves).filter(([_, dates]) => dates.includes(dateISO));
+        const hasLeaves = leaveOnDate.length > 0;
+
+        let dotsHTML = '';
+        if (hasLeaves) {
+            dotsHTML = `<div class="calendar-leave-dots">
+                ${leaveOnDate.slice(0, 3).map(([empId]) => `<div class="calendar-leave-dot" style="background:${getEmployeeLeaveColor(empId)};"></div>`).join('')}
+                ${leaveOnDate.length > 3 ? `<div class="calendar-leave-dot" style="background:#cbd5e1;font-size:4px;display:flex;align-items:center;justify-content:center;">+</div>` : ''}
+            </div>`;
+        }
+
+        html += `<div class="calendar-day-cell ${isSelected ? 'selected' : ''}" onclick="selectCalendarDate('${dateISO}')">
+            <div class="calendar-day-number">${day}</div>
+            ${dotsHTML}
+        </div>`;
+    }
+
+    // Empty cells for days after month ends
+    const totalCells = Math.ceil((startingDayOfWeek + daysInMonth) / 7) * 7;
+    for (let i = startingDayOfWeek + daysInMonth; i < totalCells; i++) {
+        html += `<div class="calendar-day-cell other-month"></div>`;
+    }
+
+    grid.innerHTML = html;
+    renderTodayWorkUpdates(_selectedCalendarDate);
+    lucide.createIcons();
+}
+
+function selectCalendarDate(dateISO) {
+    _selectedCalendarDate = dateISO;
+    renderCalendar();
+
+    // Show leave detail modal if there are leaves on this day
+    const leaveOnDate = Object.entries(leaves).filter(([_, dates]) => dates.includes(dateISO));
+    if (leaveOnDate.length > 0) {
+        const empIds = leaveOnDate.map(([id]) => id);
+        showLeaveDetailModal(dateISO, empIds);
+    }
+}
+
+function previousCalendarMonth() {
+    _currentCalendarMonth--;
+    if (_currentCalendarMonth < 0) {
+        _currentCalendarMonth = 11;
+        _currentCalendarYear--;
+    }
+    renderCalendar();
+}
+
+function nextCalendarMonth() {
+    _currentCalendarMonth++;
+    if (_currentCalendarMonth > 11) {
+        _currentCalendarMonth = 0;
+        _currentCalendarYear++;
+    }
+    renderCalendar();
+}
+
+function renderTodayWorkUpdates(dateISO) {
+    const list = document.getElementById('home-updates-list');
+    const dateLabel = document.getElementById('home-updates-date-label');
+
+    const filtered = workUpdates.filter(u => u.date === dateISO);
+
+    const [y, m, d] = dateISO.split('-').map(Number);
+    const mons = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const sf = (n) => n>=11&&n<=13?'th':['th','st','nd','rd'][n%10]||'th';
+    const displayDate = `${d}${sf(d)} ${mons[m-1]} ${y}`;
+    dateLabel.textContent = `Work Updates - ${displayDate}`;
+
+    if (filtered.length === 0) {
+        list.innerHTML = `<div style="text-align:center;padding:2rem;color:#94a3b8;"><i data-lucide="inbox" style="width:32px;height:32px;margin-bottom:0.5rem;display:block;"></i><p>No work updates for this day.</p></div>`;
+        lucide.createIcons();
+        return;
+    }
+
+    list.innerHTML = filtered.map(u => `
+        <div class="wu-entry" style="margin-bottom:1rem;padding:1rem;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;">
+            <img src="${u.avatar}" class="wu-avatar" alt="${u.name}" style="width:40px;height:40px;border-radius:50%;margin-right:0.75rem;flex-shrink:0;">
+            <div style="flex:1;">
+                <div style="font-weight:700;color:#0f172a;margin-bottom:0.3rem;">${u.name}</div>
+                <p style="margin:0;color:#374151;font-size:0.9rem;line-height:1.4;">${u.text.replace(/\n/g, '<br>')}</p>
+            </div>
+        </div>
+    `).join('');
+    lucide.createIcons();
+}
+
+function openLeaveRequestModal() {
+    document.getElementById('leave-request-modal').style.display = 'flex';
+}
+
+function closeLeaveRequestModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('leave-request-modal').style.display = 'none';
+}
+
+function saveLeaveRequest() {
+    const session = getSession();
+    if (!session) return;
+    const emp = resolveSessionEmployee(session);
+    if (!emp) {
+        alert('Your employee record is not loaded.');
+        return;
+    }
+
+    const startDate = document.getElementById('leave-start-date').value;
+    const endDate = document.getElementById('leave-end-date').value;
+
+    if (!startDate || !endDate) {
+        alert('Please select both start and end dates.');
+        return;
+    }
+
+    if (startDate > endDate) {
+        alert('End date must be after start date.');
+        return;
+    }
+
+    // Generate all dates between start and end (inclusive)
+    const dates = [];
+    let current = new Date(startDate);
+    const end = new Date(endDate);
+    while (current <= end) {
+        dates.push(dateToISO(current));
+        current.setDate(current.getDate() + 1);
+    }
+
+    leaves[emp.employeeId] = [...new Set([...(leaves[emp.employeeId] || []), ...dates])].sort();
+    localStorage.setItem('leaves', JSON.stringify(leaves));
+
+    // Clear form
+    document.getElementById('leave-start-date').value = '';
+    document.getElementById('leave-end-date').value = '';
+    document.getElementById('leave-dates-preview').textContent = 'Select dates above';
+
+    closeLeaveRequestModal();
+    renderCalendar();
+    alert('Leave request saved!');
+}
+
+function showLeaveDetailModal(dateISO, empIds) {
+    const dateLabel = document.getElementById('leave-detail-date');
+    const [y, m, d] = dateISO.split('-').map(Number);
+    const mons = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const sf = (n) => n>=11&&n<=13?'th':['th','st','nd','rd'][n%10]||'th';
+    dateLabel.textContent = `${d}${sf(d)} ${mons[m-1]} ${y}`;
+
+    const list = document.getElementById('leave-detail-list');
+    list.innerHTML = empIds.map(empId => {
+        const emp = employees.find(e => e.employeeId === empId);
+        if (!emp) return '';
+        return `
+            <div style="display:flex;align-items:center;gap:0.75rem;padding:1rem;border-bottom:1px solid #f1f5f9;">
+                <div style="width:40px;height:40px;border-radius:50%;background:${getEmployeeLeaveColor(empId)};flex-shrink:0;"></div>
+                <div>
+                    <div style="font-weight:700;color:#0f172a;font-size:0.95rem;">${emp.name}</div>
+                    <div style="font-size:0.8rem;color:#94a3b8;">${emp.employeeId}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    if (empIds.length === 0) {
+        list.innerHTML = `<p style="color:#94a3b8;text-align:center;padding:1rem;">No employees on leave.</p>`;
+    }
+
+    document.getElementById('leave-detail-modal').style.display = 'flex';
+    lucide.createIcons();
+}
+
+function closeLeaveDetailModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('leave-detail-modal').style.display = 'none';
 }
 
 // (render hooks for home/profile are handled inside switchView below)
