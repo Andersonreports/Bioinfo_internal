@@ -6568,30 +6568,51 @@ function resolveSessionEmployee(session) {
         if (byId) return byId;
     }
 
-    // 2. Exact email match
+    // 2. Exact email match (full address, then local part)
     if (session.email) {
         const target = session.email.trim().toLowerCase();
         const byEmail = employees.find(e => (e.email || '').trim().toLowerCase() === target);
         if (byEmail) return byEmail;
+        const prefix = target.split('@')[0];
+        const byPrefix = employees.find(e => (e.email || '').split('@')[0].trim().toLowerCase() === prefix);
+        if (byPrefix) return byPrefix;
     }
 
-    // Build the set of candidate "names" to search by — name, email prefix, name without @ portion
-    const candidates = [];
-    if (session.name) candidates.push(session.name.trim().toLowerCase());
-    if (session.email) candidates.push(session.email.split('@')[0].trim().toLowerCase());
-    if (session.name && session.name.includes('@')) candidates.push(session.name.split('@')[0].trim().toLowerCase());
+    // Honorific titles to ignore so "drsubashini" can match "Dr. Subashini".
+    const HONORIFICS = new Set(['dr', 'mr', 'mrs', 'ms', 'miss', 'prof', 'sri', 'smt', 'mx']);
+    // Derive comparison keys from a name/handle: alphanumeric tokens with and
+    // without honorifics, plus their space-free concatenations.
+    const nameKey = (s) => {
+        const tokens = (s || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').trim().split(/\s+/).filter(Boolean);
+        const meaningful = tokens.filter(t => !HONORIFICS.has(t));
+        const core = meaningful.length ? meaningful : tokens;
+        return { all: tokens.join(''), core: core.join(''), first: core[0] || '' };
+    };
 
-    for (const target of candidates) {
-        if (!target) continue;
-        // Exact name match
-        const exact = employees.find(e => (e.name || '').trim().toLowerCase() === target);
-        if (exact) return exact;
-        // First-word match (e.g. "nandhana" matches "Nandhana Kumar")
-        const firstWord = employees.find(e => (e.name || '').trim().toLowerCase().split(/\s+/)[0] === target);
-        if (firstWord) return firstWord;
-        // Substring match as last resort
-        const partial = employees.find(e => (e.name || '').trim().toLowerCase().includes(target));
-        if (partial) return partial;
+    // Candidate identifiers from the session (name and email local part).
+    const candidates = [];
+    if (session.name) candidates.push(nameKey(session.name));
+    if (session.email) candidates.push(nameKey(session.email.split('@')[0]));
+
+    const empKeys = employees.map(e => ({ emp: e, key: nameKey(e.name) }));
+
+    for (const c of candidates) {
+        if (!c.all) continue;
+        // Tier 1: exact match on full or honorific-stripped concatenation,
+        // including cross-comparison (handles "drsubashini" vs "Subashini").
+        const exact = empKeys.find(({ key }) =>
+            key.all === c.all || key.core === c.core ||
+            key.all === c.core || key.core === c.all);
+        if (exact) return exact.emp;
+        // Tier 2: same first (non-honorific) name word.
+        const firstWord = empKeys.find(({ key }) => key.first && key.first === c.first);
+        if (firstWord) return firstWord.emp;
+        // Tier 3: one core name contains the other (min length 4 to avoid noise).
+        const partial = empKeys.find(({ key }) => {
+            if (!key.core || key.core.length < 4 || c.core.length < 4) return false;
+            return key.core.includes(c.core) || c.core.includes(key.core);
+        });
+        if (partial) return partial.emp;
     }
 
     console.log('resolveSessionEmployee: no match found. Session:', session, 'Employees in system:', employees.length);
