@@ -6568,7 +6568,7 @@ function resolveSessionEmployee(session) {
         if (byId) return byId;
     }
 
-    // 2. Exact email match (full address, then local part)
+    // 2. Email match — full address, then local part
     if (session.email) {
         const target = session.email.trim().toLowerCase();
         const byEmail = employees.find(e => (e.email || '').trim().toLowerCase() === target);
@@ -6578,41 +6578,55 @@ function resolveSessionEmployee(session) {
         if (byPrefix) return byPrefix;
     }
 
-    // Honorific titles to ignore so "drsubashini" can match "Dr. Subashini".
+    // Honorific titles to ignore so a handle like "drsubashini" can link to
+    // an employee named "Dr.Subashini M".
     const HONORIFICS = new Set(['dr', 'mr', 'mrs', 'ms', 'miss', 'prof', 'sri', 'smt', 'mx']);
-    // Derive comparison keys from a name/handle: alphanumeric tokens with and
-    // without honorifics, plus their space-free concatenations.
-    const nameKey = (s) => {
+
+    // Build a set of normalized comparison keys for a name/handle, tolerant of
+    // honorific titles, punctuation/spacing, fused titles ("drsubashini"), and
+    // trailing single-letter initials ("Subashini M").
+    const keysFor = (s) => {
+        const keys = new Set();
         const tokens = (s || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').trim().split(/\s+/).filter(Boolean);
-        const meaningful = tokens.filter(t => !HONORIFICS.has(t));
-        const core = meaningful.length ? meaningful : tokens;
-        return { all: tokens.join(''), core: core.join(''), first: core[0] || '' };
+        if (!tokens.length) return keys;
+        const base = tokens.filter(t => !HONORIFICS.has(t));
+        const core = base.length ? base : tokens;
+        keys.add(tokens.join(''));                          // full: "drsubashinim"
+        keys.add(core.join(''));                            // titles removed: "subashinim"
+        keys.add(core.filter(t => t.length > 1).join(''));  // + initials removed: "subashini"
+        const joined = tokens.join('');                     // strip a title fused into one token
+        for (const h of HONORIFICS) {
+            if (joined.startsWith(h) && joined.length > h.length + 1) keys.add(joined.slice(h.length));
+        }
+        keys.delete('');
+        return keys;
     };
 
-    // Candidate identifiers from the session (name and email local part).
-    const candidates = [];
-    if (session.name) candidates.push(nameKey(session.name));
-    if (session.email) candidates.push(nameKey(session.email.split('@')[0]));
+    // Distinctive name tokens (>= 5 chars) for a substring fallback.
+    const sigTokens = (s) => (s || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').trim()
+        .split(/\s+/).filter(t => t.length >= 5 && !HONORIFICS.has(t));
 
-    const empKeys = employees.map(e => ({ emp: e, key: nameKey(e.name) }));
+    const candStrings = [session.name, session.email ? session.email.split('@')[0] : ''].filter(Boolean);
+    const candKeys = new Set();
+    const candSig = new Set();
+    const candJoined = [];
+    candStrings.forEach(s => {
+        keysFor(s).forEach(k => candKeys.add(k));
+        sigTokens(s).forEach(t => candSig.add(t));
+        const j = s.toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (j) candJoined.push(j);
+    });
 
-    for (const c of candidates) {
-        if (!c.all) continue;
-        // Tier 1: exact match on full or honorific-stripped concatenation,
-        // including cross-comparison (handles "drsubashini" vs "Subashini").
-        const exact = empKeys.find(({ key }) =>
-            key.all === c.all || key.core === c.core ||
-            key.all === c.core || key.core === c.all);
-        if (exact) return exact.emp;
-        // Tier 2: same first (non-honorific) name word.
-        const firstWord = empKeys.find(({ key }) => key.first && key.first === c.first);
-        if (firstWord) return firstWord.emp;
-        // Tier 3: one core name contains the other (min length 4 to avoid noise).
-        const partial = empKeys.find(({ key }) => {
-            if (!key.core || key.core.length < 4 || c.core.length < 4) return false;
-            return key.core.includes(c.core) || c.core.includes(key.core);
-        });
-        if (partial) return partial.emp;
+    // Tier 1: any normalized key in common.
+    for (const e of employees) {
+        for (const k of keysFor(e.name)) if (candKeys.has(k)) return e;
+    }
+    // Tier 2: a distinctive token of one side appears within the other's concatenation.
+    for (const e of employees) {
+        const ejoined = (e.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (!ejoined) continue;
+        if ([...candSig].some(t => ejoined.includes(t))) return e;
+        if (sigTokens(e.name).some(t => candJoined.some(cj => cj.includes(t)))) return e;
     }
 
     console.log('resolveSessionEmployee: no match found. Session:', session, 'Employees in system:', employees.length);
