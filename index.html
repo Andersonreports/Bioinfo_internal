@@ -2335,8 +2335,8 @@ body {
     right: 0;
     top: 0;
     bottom: 0;
-    width: 460px;
-    max-width: 50vw;
+    width: 660px;
+    max-width: 66vw;
     background: transparent;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
@@ -4351,6 +4351,14 @@ body {
                             <input type="text" id="profile-phone" placeholder="Enter your phone number">
                         </div>
                         <div class="profile-field">
+                            <label>Emergency / Secondary Number</label>
+                            <input type="text" id="profile-secondary" placeholder="Enter an emergency contact number">
+                        </div>
+                        <div class="profile-field">
+                            <label>Address</label>
+                            <textarea id="profile-address" placeholder="Enter your address"></textarea>
+                        </div>
+                        <div class="profile-field">
                             <label>Change PIN (leave blank to keep current)</label>
                             <input type="password" id="profile-new-pin" placeholder="New PIN" maxlength="8">
                         </div>
@@ -4660,6 +4668,14 @@ body {
                         <span class="profile-meta-value" id="details-email"></span>
                     </div>
                     <div class="profile-meta-item">
+                        <span class="profile-meta-label">Phone</span>
+                        <span class="profile-meta-value" id="details-phone"></span>
+                    </div>
+                    <div class="profile-meta-item">
+                        <span class="profile-meta-label">Emergency No.</span>
+                        <span class="profile-meta-value" id="details-emergency"></span>
+                    </div>
+                    <div class="profile-meta-item">
                         <span class="profile-meta-label">Employee ID</span>
                         <span class="profile-meta-value" id="details-id"></span>
                     </div>
@@ -4682,6 +4698,10 @@ body {
                 <div class="profile-section">
                     <div class="profile-section-title"><i data-lucide="test-tube-2" style="width:15px;height:15px;"></i> Report / Sample Types</div>
                     <div id="details-samples" class="details-text-block"></div>
+                </div>
+                <div class="profile-section">
+                    <div class="profile-section-title"><i data-lucide="map-pin" style="width:15px;height:15px;"></i> Address</div>
+                    <div id="details-address" class="details-text-block"></div>
                 </div>
             </div>
         </div>
@@ -5030,6 +5050,9 @@ function parseCSV(csv) {
                 samples: obj['Report/sample types'] || 'N/A',
                 analysis: obj['Analysis'] || 'N/A',
                 work: obj['Work'] || 'N/A',
+                phone: obj['Mobile No'] || obj['Phone'] || '',
+                secondaryPhone: obj['Secondary Mobile number'] || obj['Emergency No'] || '',
+                address: obj['Address'] || '',
                 certificates: JSON.parse(localStorage.getItem(`certs_${obj['Employee ID'] || `GEN-${100 + i}`}`)) || [],
                 avatar: localStorage.getItem(`avatar_${obj['Employee ID'] || `GEN-${100 + i}`}`) || `https://ui-avatars.com/api/?name=${encodeURIComponent(obj['Name'])}&background=random&color=fff`
             });
@@ -5210,10 +5233,13 @@ function openEmployeeDetails(id) {
     document.getElementById('details-leader').textContent = emp.teamLeader;
     document.getElementById('details-doj').textContent = formatDate(emp.doj);
     document.getElementById('details-email').textContent = emp.email;
+    document.getElementById('details-phone').textContent = emp.phone || '—';
+    document.getElementById('details-emergency').textContent = emp.secondaryPhone || '—';
 
     document.getElementById('details-work').innerHTML = renderFieldList(emp.work);
     document.getElementById('details-analysis').innerHTML = renderFieldList(emp.analysis);
     document.getElementById('details-samples').innerHTML = renderFieldList(emp.samples);
+    document.getElementById('details-address').textContent = emp.address || 'Not provided';
 
     document.getElementById('employee-details-modal').classList.add('panel-open');
     lucide.createIcons();
@@ -6829,6 +6855,8 @@ function renderProfileTab() {
         if (el('profile-doj'))    el('profile-doj').value    = '';
         if (el('profile-email'))  el('profile-email').value  = session.email || '';
         if (el('profile-phone'))  el('profile-phone').value  = '';
+        if (el('profile-secondary')) el('profile-secondary').value = '';
+        if (el('profile-address'))   el('profile-address').value   = '';
         if (el('profile-work'))   el('profile-work').value   = '';
         if (el('profile-analysis')) el('profile-analysis').value = '';
         if (el('profile-samples'))  el('profile-samples').value  = '';
@@ -6852,8 +6880,10 @@ function renderProfileTab() {
     if (el('profile-role'))     el('profile-role').value     = emp.role;
     if (el('profile-team'))     el('profile-team').value     = emp.team;
     if (el('profile-doj'))      el('profile-doj').value      = formatDate(emp.doj);
-    if (el('profile-email'))    el('profile-email').value    = over.email    || emp.email || '';
-    if (el('profile-phone'))    el('profile-phone').value    = over.phone    || '';
+    if (el('profile-email'))    el('profile-email').value    = over.email     || emp.email || '';
+    if (el('profile-phone'))    el('profile-phone').value    = over.phone     || emp.phone || '';
+    if (el('profile-secondary'))el('profile-secondary').value= over.secondaryPhone || emp.secondaryPhone || '';
+    if (el('profile-address'))  el('profile-address').value  = over.address   || emp.address || '';
     if (el('profile-work'))     el('profile-work').value     = over.work     || emp.work    || '';
     if (el('profile-analysis')) el('profile-analysis').value = over.analysis || emp.analysis || '';
     if (el('profile-samples'))  el('profile-samples').value  = over.samples  || emp.samples  || '';
@@ -6881,9 +6911,11 @@ function saveProfileChanges() {
     const el = (id) => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
     const over = safeParseJSON(localStorage.getItem('emp_override_' + empId), {});
 
-    over.email    = el('profile-email');
-    over.phone    = el('profile-phone');
-    over.work     = el('profile-work');
+    over.email          = el('profile-email');
+    over.phone          = el('profile-phone');
+    over.secondaryPhone = el('profile-secondary');
+    over.address        = el('profile-address');
+    over.work           = el('profile-work');
     over.analysis = el('profile-analysis');
     over.samples  = el('profile-samples');
 
