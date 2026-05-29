@@ -12,6 +12,7 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
 :root {
     --bg-dark: #f8faf8;
@@ -4239,9 +4240,15 @@ body {
                             <i data-lucide="monitor" style="width:18px;height:18px;color:#7c3aed;"></i>
                             System Details
                         </div>
-                        <button class="dir-add-btn" style="background:#7c3aed;" onclick="openDirSysModal(null)">
-                            <i data-lucide="plus" style="width:13px;height:13px;"></i> Add Row
-                        </button>
+                        <div style="display:flex;gap:0.5rem;">
+                            <input type="file" id="sys-excel-input" accept=".xlsx,.xls,.csv" style="display:none;" onchange="handleSysExcelUpload(event)">
+                            <button class="dir-add-btn" style="background:#059669;" onclick="document.getElementById('sys-excel-input').click()">
+                                <i data-lucide="upload" style="width:13px;height:13px;"></i> Upload Excel
+                            </button>
+                            <button class="dir-add-btn" style="background:#7c3aed;" onclick="openDirSysModal(null)">
+                                <i data-lucide="plus" style="width:13px;height:13px;"></i> Add Row
+                            </button>
+                        </div>
                     </div>
                     <div class="dir-table-wrap">
                         <table class="dir-table">
@@ -6186,6 +6193,86 @@ function deleteDirSys(id) {
     if (!confirm('Delete this system entry?')) return;
     setDirData(DIR_SYS_KEY, getDirData(DIR_SYS_KEY).filter(r => r.id != id));
     renderDirSysTable();
+}
+
+// Import system details from an uploaded Excel/CSV file.
+// Recognised column headers (case-insensitive, flexible):
+//   System Name / Model, User, IP Address, Purchase Date, Warranty Period, Password
+function handleSysExcelUpload(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    if (typeof XLSX === 'undefined') {
+        alert('Excel library failed to load. Please check your internet connection and try again.');
+        event.target.value = '';
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const wb = XLSX.read(e.target.result, { type: 'array', cellDates: true });
+            const sheet = wb.Sheets[wb.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+            if (!rows.length) { alert('No data rows found in the file.'); return; }
+
+            // Map a row's keys to our fields by fuzzy header matching.
+            const pick = (row, patterns) => {
+                for (const key of Object.keys(row)) {
+                    const norm = key.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    if (patterns.some(p => norm.includes(p))) return row[key];
+                }
+                return '';
+            };
+            const fmtDate = (v) => {
+                if (!v) return '';
+                if (v instanceof Date && !isNaN(v)) {
+                    const p = (n) => String(n).padStart(2, '0');
+                    return `${v.getFullYear()}-${p(v.getMonth() + 1)}-${p(v.getDate())}`;
+                }
+                const d = new Date(v);
+                if (!isNaN(d)) {
+                    const p = (n) => String(n).padStart(2, '0');
+                    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+                }
+                return String(v).trim();
+            };
+            const str = (v) => (v == null ? '' : String(v).trim());
+
+            const existing = getDirData(DIR_SYS_KEY);
+            let added = 0;
+            rows.forEach((row, idx) => {
+                const entry = {
+                    id: (Date.now() + idx).toString(),
+                    model: str(pick(row, ['systemname', 'model', 'system', 'name', 'device'])),
+                    user: str(pick(row, ['user', 'assignedto', 'owner', 'employee'])),
+                    ip: str(pick(row, ['ip', 'ipaddress', 'address'])),
+                    purchaseDate: fmtDate(pick(row, ['purchasedate', 'purchase', 'bought', 'dateofpurchase'])),
+                    warranty: str(pick(row, ['warranty', 'warrantyperiod', 'guarantee'])),
+                    password: str(pick(row, ['password', 'passcode', 'pwd', 'pass']))
+                };
+                // Skip fully empty rows.
+                if (entry.model || entry.user || entry.ip || entry.purchaseDate || entry.warranty || entry.password) {
+                    existing.push(entry);
+                    added++;
+                }
+            });
+
+            if (!added) {
+                alert('Could not find any usable rows. Make sure your sheet has columns like "System Name / Model", "User", "IP Address", "Purchase Date", "Warranty Period", "Password".');
+                return;
+            }
+            setDirData(DIR_SYS_KEY, existing);
+            renderDirSysTable();
+            alert(`Imported ${added} system ${added === 1 ? 'entry' : 'entries'} from "${file.name}".`);
+        } catch (err) {
+            console.error(err);
+            alert('Could not read that file. Please upload a valid .xlsx, .xls or .csv file.');
+        } finally {
+            event.target.value = '';
+        }
+    };
+    reader.onerror = () => { alert('Failed to read the file.'); event.target.value = ''; };
+    reader.readAsArrayBuffer(file);
 }
 
 // ===== ALBUM =====
