@@ -267,7 +267,7 @@
     width: 100%;
     max-width: 1400px;
     margin: 0 auto;
-    padding: 3rem 2rem; /* Significantly more top padding to prevent stacking */
+    padding: 1.5rem 2rem;
 }
 
 .nav-item i {
@@ -2301,6 +2301,16 @@ body {
     border-radius: 16px;
 }
 
+/* Home page achievements wall: full-width responsive grid */
+.home-ach-wall-panel { max-height: none; }
+.home-ach-wall-scroll {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 0.85rem;
+    max-height: 520px;
+}
+.home-ach-wall-scroll > div:only-child { grid-column: 1 / -1; }
+
 /* Employee Dashboard: cert upload */
 .emp-cert-section {
     margin-top: 1.25rem;
@@ -3821,6 +3831,96 @@ body {
     border: 2px solid #ccfbf1;
 }
 
+/* =====================================================================
+   RESPONSIVE / MOBILE SUPPORT — desktop, iPad (portrait+landscape), phones
+   Layered overrides; the fixed-viewport + internal-scroll model is kept.
+   ===================================================================== */
+
+/* --- Tablets & iPad landscape (≤1024px) --- */
+@media (max-width: 1024px) {
+    .kpi-grid       { grid-template-columns: repeat(2, 1fr); }
+    .wu-two-col     { grid-template-columns: 1fr; }
+    .mgr-main-row   { grid-template-columns: 1fr; }
+    .main-content   { padding: 2rem 1.5rem; }
+    /* Calendar column must not stay locked at 600px once stacked */
+    .home-calendar-col { flex: 1 1 auto; width: 100%; }
+}
+
+/* --- iPad portrait & large phones (≤820px) --- */
+@media (max-width: 820px) {
+    .title-bar  { padding: 0 1rem; }
+    .brand h2   { font-size: 1.2rem; letter-spacing: 1.5px; }
+    .header-actions { gap: 0.85rem; }
+
+    /* Nav tabs scroll horizontally instead of overflowing/wrapping,
+       which keeps the header height stable for the layout math. */
+    .nav-tabs {
+        gap: 1.25rem;
+        padding: 0 1rem;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    .nav-tabs::-webkit-scrollbar { display: none; }
+    .nav-tab { font-size: 0.92rem; white-space: nowrap; flex-shrink: 0; }
+
+    .search-bar      { width: 100%; }
+    .view-header h1  { font-size: 1.6rem; }
+}
+
+/* --- Phones (≤640px) --- */
+@media (max-width: 640px) {
+    .app-container { padding: 0.5rem; }
+    .main-content  { padding: 1.25rem 1rem; }
+
+    .kpi-grid      { grid-template-columns: 1fr; gap: 1rem; }
+    .kpi-card      { padding: 1.25rem; }
+    .kpi-card h3   { font-size: 2rem; }
+
+    .employee-grid,
+    #employee-cards-container,
+    .album-stacks-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem; }
+
+    /* Stack all two-column forms */
+    .form-grid              { grid-template-columns: 1fr; }
+    .form-group.col-span-2  { grid-column: span 1; }
+    .dir-form-grid          { grid-template-columns: 1fr; }
+    .dir-form-grid .form-group.col-span-2 { grid-column: span 1; }
+
+    .modal           { padding: 1.25rem; }
+    .modal-header    { margin-bottom: 1.25rem; padding-bottom: 0.85rem; }
+    .modal-header h2 { font-size: 1.15rem; }
+    .modal-actions   { flex-wrap: wrap; }
+
+    .view-header h1  { font-size: 1.4rem; }
+
+    /* Directory section headers wrap their action buttons */
+    .dir-section-header { flex-wrap: wrap; gap: 0.6rem; }
+
+    /* Filters become full-width stacked */
+    .filters-container { width: 100%; }
+    .filter-group      { flex: 1 1 100%; }
+    .filter-group select { width: 100%; min-width: 0; }
+
+    /* Album */
+    .album-top-bar      { flex-direction: column; align-items: flex-start; gap: 0.85rem; }
+    .album-hero-img     { height: 240px; }
+    .album-hero-section { min-height: 200px; }
+
+    /* Employee detail slide-in panel takes the full screen on phones */
+    #employee-details-modal { width: 100%; max-width: 100%; }
+    .profile-panel { grid-template-columns: 120px 1fr; border-radius: 0; }
+}
+
+/* --- Small phones (≤400px) --- */
+@media (max-width: 400px) {
+    .brand h2    { font-size: 1.05rem; letter-spacing: 1px; }
+    .nav-tab     { font-size: 0.85rem; }
+    .kpi-card h3 { font-size: 1.7rem; }
+    .profile-panel { grid-template-columns: 96px 1fr; }
+}
+
 </style>
 </head>
 <body>
@@ -4017,7 +4117,7 @@ body {
                             <i data-lucide="trophy" style="width:17px;height:17px;color:#f59e0b;flex-shrink:0;"></i>
                             Achievements Wall
                         </div>
-                        <div class="ach-wall-scroll" id="achievements-wall">
+                        <div class="ach-wall-scroll js-achievements-wall" id="achievements-wall">
                             <!-- Populated by JS -->
                         </div>
                     </div>
@@ -4325,10 +4425,6 @@ body {
 
             <!-- Home View (All Roles) -->
             <section id="home-view" class="view-section" style="display:none;">
-                <div class="view-header">
-                    <h1>Home</h1>
-                    <p>Your personal dashboard.</p>
-                </div>
                 <div id="home-welcome-card-wrap" style="margin-bottom:1.5rem;"></div>
                 <div id="home-absent-today-wrap" style="margin-bottom:1.5rem;"></div>
                 <div class="home-container">
@@ -4359,6 +4455,15 @@ body {
                 <div class="home-ach-section" id="home-ach-section" style="display:none;margin-top:1.5rem;">
                     <h3>Your Achievements</h3>
                     <div id="home-ach-list"></div>
+                </div>
+
+                <!-- Team Achievements Wall (all roles) -->
+                <div class="ach-wall-panel home-ach-wall-panel" style="margin-top:1.5rem;">
+                    <div class="ach-wall-panel-header">
+                        <i data-lucide="trophy" style="width:17px;height:17px;color:#f59e0b;flex-shrink:0;"></i>
+                        Achievements Wall
+                    </div>
+                    <div class="ach-wall-scroll js-achievements-wall home-ach-wall-scroll"></div>
                 </div>
             </section>
 
@@ -5892,8 +5997,8 @@ function handleAddEmployee(event) {
 
 // Achievements Wall
 function renderAchievementsWall() {
-    const wall = document.getElementById('achievements-wall');
-    if (!wall) return;
+    const walls = document.querySelectorAll('.js-achievements-wall');
+    if (!walls.length) return;
 
     const allCerts = [];
     employees.forEach(emp => {
@@ -5903,7 +6008,8 @@ function renderAchievementsWall() {
     });
 
     if (!allCerts.length) {
-        wall.innerHTML = `<div style="text-align:center;color:#94a3b8;font-size:0.82rem;padding:2rem 1rem;line-height:1.6;">No achievements uploaded yet.<br>Employees can upload from the Employee Dashboard.</div>`;
+        const empty = `<div style="text-align:center;color:#94a3b8;font-size:0.82rem;padding:2rem 1rem;line-height:1.6;">No achievements uploaded yet.<br>Employees can upload from the Employee Dashboard.</div>`;
+        walls.forEach(w => w.innerHTML = empty);
         return;
     }
 
@@ -5921,7 +6027,7 @@ function renderAchievementsWall() {
         return `${dd}${sf(dd)} ${mons[m-1]} ${y}`;
     };
 
-    wall.innerHTML = allCerts.map(({ emp, cert }) => {
+    const html = allCerts.map(({ emp, cert }) => {
         const dateDisplay = fmtCertDate(cert.date);
         const certBtn = cert.certificate && cert.certificate.data
             ? `<button class="cert-file-btn view" onclick="viewCertFile(${emp.id},${cert.id},'certificate')"><i data-lucide="eye" style="width:13px;height:13px;"></i> View</button>
@@ -5949,6 +6055,7 @@ function renderAchievementsWall() {
             </div>`;
     }).join('');
 
+    walls.forEach(w => w.innerHTML = html);
     lucide.createIcons();
 }
 
@@ -6938,6 +7045,9 @@ function renderHomeTab() {
 
     // Render leave history
     renderLeaveHistory(session);
+
+    // Team achievements wall (all roles)
+    renderAchievementsWall();
 
     lucide.createIcons();
 }
