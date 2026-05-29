@@ -6568,14 +6568,8 @@ function initApp(session) {
 
     applyRoleVisibility(session.role);
 
-    // Switch to first visible tab for this role
-    const firstTab = {
-        admin:    'manager',
-        manager:  'manager',
-        employee: 'home',
-    }[session.role] || 'manager';
-
-    switchView(firstTab);
+    // Always land on the Home page after login, regardless of role
+    switchView('home');
 
     // Render role-specific views
     if (session.role === 'employee') {
