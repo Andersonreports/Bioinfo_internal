@@ -2301,13 +2301,12 @@ body {
     border-radius: 16px;
 }
 
-/* Home page achievements wall: full-width responsive grid */
-.home-ach-wall-panel { max-height: none; }
+/* Home page achievements wall: responsive card grid that fills the panel */
 .home-ach-wall-scroll {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 0.85rem;
-    max-height: 520px;
+    align-content: start;
 }
 .home-ach-wall-scroll > div:only-child { grid-column: 1 / -1; }
 
@@ -3090,65 +3089,97 @@ body {
 .home-container {
     display: flex;
     gap: 1.5rem;
-    align-items: flex-start;
+    align-items: stretch;
 }
 @media (max-width: 1000px) {
     .home-container { flex-direction: column; }
 }
 
+/* Left column holds the (reduced) calendar with work updates stacked below */
+.home-left-col {
+    flex: 0 0 380px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    min-width: 0;
+}
+
 .home-calendar-col {
-    flex: 0 0 600px;
+    width: 100%;
     background: #fff;
     border-radius: 16px;
-    padding: 1.75rem;
+    padding: 1.25rem;
     box-shadow: var(--shadow-card);
 }
 
 .home-updates-col {
-    flex: 1;
+    width: 100%;
     background: #fff;
     border-radius: 16px;
     padding: 1.5rem;
     box-shadow: var(--shadow-card);
-    max-height: 750px;
+    max-height: 420px;
     overflow-y: auto;
+}
+
+/* Achievements wall sits beside the calendar and matches its height */
+.home-ach-wall-panel {
+    flex: 1;
+    min-width: 0;
+    max-height: none;
+    align-self: stretch;
 }
 
 .calendar-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.25rem;
-    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.6rem;
     border-bottom: 1.5px solid #f1f5f9;
 }
 
 .calendar-header h3 {
-    font-size: 1.2rem !important;
+    font-size: 1rem !important;
 }
+
+/* Make the prev/next arrows visible on the white calendar header */
+.calendar-header .icon-btn {
+    width: 32px;
+    height: 32px;
+    color: #0d9488;
+    background: #f0fdfa;
+    border-color: #ccfbf1;
+}
+.calendar-header .icon-btn:hover {
+    color: #fff;
+    background: #0d9488;
+    border-color: #0d9488;
+}
+.calendar-header .icon-btn i { width: 18px; height: 18px; }
 
 .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 0.5rem;
-    margin-bottom: 1.5rem;
+    gap: 0.3rem;
+    margin-bottom: 1rem;
 }
 
 .calendar-day-name {
     text-align: center;
     font-weight: 700;
     color: #94a3b8;
-    font-size: 0.8rem;
+    font-size: 0.68rem;
     text-transform: uppercase;
-    padding: 0.6rem 0;
+    padding: 0.35rem 0;
     letter-spacing: 0.5px;
 }
 
 .calendar-day-cell {
     aspect-ratio: 1;
-    padding: 0.6rem;
+    padding: 0.3rem;
     border: 1.5px solid #e2e8f0;
-    border-radius: 10px;
+    border-radius: 8px;
     cursor: pointer;
     position: relative;
     background: #f8fafc;
@@ -3157,12 +3188,12 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    font-size: 1rem;
-    min-height: 65px;
+    font-size: 0.82rem;
+    min-height: 38px;
 }
 
 .calendar-day-cell .calendar-day-number {
-    font-size: 1.05rem;
+    font-size: 0.85rem;
 }
 
 .calendar-day-cell:hover:not(.other-month) {
@@ -3842,8 +3873,13 @@ body {
     .wu-two-col     { grid-template-columns: 1fr; }
     .mgr-main-row   { grid-template-columns: 1fr; }
     .main-content   { padding: 2rem 1.5rem; }
-    /* Calendar column must not stay locked at 600px once stacked */
-    .home-calendar-col { flex: 1 1 auto; width: 100%; }
+}
+
+/* Once the home columns stack, the left column must size by content, not its
+   fixed 380px basis (which would otherwise constrain height in column mode). */
+@media (max-width: 1000px) {
+    .home-left-col     { flex: 1 1 auto; width: 100%; }
+    .home-ach-wall-panel { width: 100%; max-height: 600px; }
 }
 
 /* --- iPad portrait & large phones (≤820px) --- */
@@ -3939,15 +3975,15 @@ body {
             <div class="login-title">Welcome Back</div>
             <div class="login-subtitle">Sign in to your account</div>
 
-            <div class="login-form active">
+            <form class="login-form active" id="login-form" autocomplete="on" onsubmit="event.preventDefault(); handleLogin();">
                 <label for="login-email">Email</label>
-                <input type="email" id="login-email" placeholder="you@genomicdesk.com" autocomplete="email" onkeydown="if(event.key==='Enter')document.getElementById('login-password').focus()">
+                <input type="email" id="login-email" name="username" placeholder="you@genomicdesk.com" autocomplete="username" required>
                 <label for="login-password">Password</label>
-                <input type="password" id="login-password" placeholder="Enter password" autocomplete="current-password" onkeydown="if(event.key==='Enter')handleLogin()">
-            </div>
+                <input type="password" id="login-password" name="password" placeholder="Enter password" autocomplete="current-password" required>
 
-            <div class="login-error" id="login-error"></div>
-            <button class="login-btn" id="login-btn" onclick="handleLogin()">Sign In</button>
+                <div class="login-error" id="login-error"></div>
+                <button class="login-btn" id="login-btn" type="submit">Sign In</button>
+            </form>
         </div>
     </div>
 
@@ -4104,23 +4140,9 @@ body {
                     </div>
                 </div>
 
-                <!-- Side-by-side: employee cards + achievements wall -->
-                <div class="mgr-main-row">
-                    <!-- Circular Stat Cards Container -->
-                    <div id="employee-cards-container" class="employee-grid">
-                        <!-- Populated by JS -->
-                    </div>
-
-                    <!-- Achievements Wall Panel -->
-                    <div class="ach-wall-panel">
-                        <div class="ach-wall-panel-header">
-                            <i data-lucide="trophy" style="width:17px;height:17px;color:#f59e0b;flex-shrink:0;"></i>
-                            Achievements Wall
-                        </div>
-                        <div class="ach-wall-scroll js-achievements-wall" id="achievements-wall">
-                            <!-- Populated by JS -->
-                        </div>
-                    </div>
+                <!-- Circular Stat Cards Container -->
+                <div id="employee-cards-container" class="employee-grid">
+                    <!-- Populated by JS -->
                 </div>
             </section>
 
@@ -4428,42 +4450,45 @@ body {
                 <div id="home-welcome-card-wrap" style="margin-bottom:1.5rem;"></div>
                 <div id="home-absent-today-wrap" style="margin-bottom:1.5rem;"></div>
                 <div class="home-container">
-                    <!-- Left: Calendar -->
-                    <div class="home-calendar-col">
-                        <div class="calendar-header">
-                            <button class="icon-btn" onclick="previousCalendarMonth()" title="Previous month">
-                                <i data-lucide="chevron-left"></i>
-                            </button>
-                            <h3 id="calendar-month-year" style="margin:0;font-size:1rem;font-weight:700;color:#0f172a;"></h3>
-                            <button class="icon-btn" onclick="nextCalendarMonth()" title="Next month">
-                                <i data-lucide="chevron-right"></i>
-                            </button>
+                    <!-- Left: Calendar, then Work Updates below -->
+                    <div class="home-left-col">
+                        <div class="home-calendar-col">
+                            <div class="calendar-header">
+                                <button class="icon-btn" onclick="previousCalendarMonth()" title="Previous month">
+                                    <i data-lucide="chevron-left"></i>
+                                </button>
+                                <h3 id="calendar-month-year" style="margin:0;font-size:1rem;font-weight:700;color:#0f172a;"></h3>
+                                <button class="icon-btn" onclick="nextCalendarMonth()" title="Next month">
+                                    <i data-lucide="chevron-right"></i>
+                                </button>
+                            </div>
+                            <div class="calendar-grid" id="home-calendar-grid"></div>
+                            <div id="home-leave-request-btn-wrap"></div>
+                            <div class="leave-history-section" id="home-leave-history-section" style="display:none;">
+                                <h4 id="home-leave-history-title">Leave History</h4>
+                                <div id="home-leave-history-list"></div>
+                            </div>
                         </div>
-                        <div class="calendar-grid" id="home-calendar-grid"></div>
-                        <div id="home-leave-request-btn-wrap"></div>
-                        <div class="leave-history-section" id="home-leave-history-section" style="display:none;">
-                            <h4 id="home-leave-history-title">Leave History</h4>
-                            <div id="home-leave-history-list"></div>
+                        <!-- Work Updates (below the calendar) -->
+                        <div class="home-updates-col">
+                            <h3 id="home-updates-date-label" style="margin:0 0 1rem 0;font-size:0.95rem;font-weight:700;color:#0f172a;"></h3>
+                            <div id="home-updates-list"></div>
                         </div>
                     </div>
-                    <!-- Right: Work Updates -->
-                    <div class="home-updates-col">
-                        <h3 id="home-updates-date-label" style="margin:0 0 1rem 0;font-size:0.95rem;font-weight:700;color:#0f172a;"></h3>
-                        <div id="home-updates-list"></div>
+
+                    <!-- Right: Achievements Wall (beside the calendar) -->
+                    <div class="ach-wall-panel home-ach-wall-panel">
+                        <div class="ach-wall-panel-header">
+                            <i data-lucide="trophy" style="width:17px;height:17px;color:#f59e0b;flex-shrink:0;"></i>
+                            Achievements Wall
+                        </div>
+                        <div class="ach-wall-scroll js-achievements-wall home-ach-wall-scroll"></div>
                     </div>
                 </div>
+
                 <div class="home-ach-section" id="home-ach-section" style="display:none;margin-top:1.5rem;">
                     <h3>Your Achievements</h3>
                     <div id="home-ach-list"></div>
-                </div>
-
-                <!-- Team Achievements Wall (all roles) -->
-                <div class="ach-wall-panel home-ach-wall-panel" style="margin-top:1.5rem;">
-                    <div class="ach-wall-panel-header">
-                        <i data-lucide="trophy" style="width:17px;height:17px;color:#f59e0b;flex-shrink:0;"></i>
-                        Achievements Wall
-                    </div>
-                    <div class="ach-wall-scroll js-achievements-wall home-ach-wall-scroll"></div>
                 </div>
             </section>
 
@@ -4516,10 +4541,6 @@ body {
                         <div class="profile-field">
                             <label>Address</label>
                             <textarea id="profile-address" placeholder="Enter your address"></textarea>
-                        </div>
-                        <div class="profile-field">
-                            <label>Change PIN (leave blank to keep current)</label>
-                            <input type="password" id="profile-new-pin" placeholder="New PIN" maxlength="8">
                         </div>
                     </div>
 
@@ -7231,7 +7252,6 @@ function renderProfileTab() {
     if (el('profile-work'))     el('profile-work').value     = over.work     || emp.work    || '';
     if (el('profile-analysis')) el('profile-analysis').value = over.analysis || emp.analysis || '';
     if (el('profile-samples'))  el('profile-samples').value  = over.samples  || emp.samples  || '';
-    if (el('profile-new-pin'))  el('profile-new-pin').value  = '';
 }
 
 function openProfileAvatarModal() {
@@ -7262,12 +7282,6 @@ function saveProfileChanges() {
     over.work           = el('profile-work');
     over.analysis = el('profile-analysis');
     over.samples  = el('profile-samples');
-
-    const newPin = el('profile-new-pin');
-    if (newPin) {
-        localStorage.setItem('auth_emp_pin_' + empId, newPin);
-        document.getElementById('profile-new-pin').value = '';
-    }
 
     localStorage.setItem('emp_override_' + empId, JSON.stringify(over));
 
