@@ -3017,6 +3017,51 @@ body {
     font-size: 0.78rem;
     font-weight: 600;
 }
+.absent-today-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem;
+    box-shadow: var(--shadow-card);
+    border-left: 4px solid #f59e0b;
+}
+.absent-today-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 0.85rem;
+}
+.absent-today-header i { width: 18px; height: 18px; color: #f59e0b; }
+.absent-today-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+.absent-today-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.85rem;
+    color: #334155;
+}
+.absent-today-item strong { color: #0f172a; font-weight: 700; }
+.absent-today-item .leave-color-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.absent-today-empty {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: #16a34a;
+    font-weight: 600;
+}
+.absent-today-empty i { width: 16px; height: 16px; }
 .home-ach-section {
     background: #fff;
     border-radius: 16px;
@@ -3999,13 +4044,11 @@ body {
                         <div class="work-update-form-grid">
                             <div class="form-group">
                                 <label>Your Name</label>
-                                <select id="wu-name">
-                                    <option value="">Select your name</option>
-                                </select>
+                                <input type="text" id="wu-name" readonly title="Logged in as" style="background:#f8f9fa;color:#475569;cursor:not-allowed;">
                             </div>
                             <div class="form-group">
-                                <label>Date</label>
-                                <input type="date" id="wu-date" style="cursor:not-allowed;background:#f8f9fa;color:#64748b;">
+                                <label>Date <span style="font-weight:400;color:#94a3b8;font-size:0.75rem;">(today or up to 5 days back)</span></label>
+                                <input type="date" id="wu-date">
                             </div>
                             <div class="form-group">
                                 <label>Work Update</label>
@@ -4277,6 +4320,7 @@ body {
                     <p>Your personal dashboard.</p>
                 </div>
                 <div id="home-welcome-card-wrap" style="margin-bottom:1.5rem;"></div>
+                <div id="home-absent-today-wrap" style="margin-bottom:1.5rem;"></div>
                 <div class="home-container">
                     <!-- Left: Calendar -->
                     <div class="home-calendar-col">
@@ -5659,32 +5703,54 @@ function switchEmpSubtab(tab) {
 
 function populateWuNameDropdowns() {
     const names = employees.map(e => e.name).sort();
-    ['wu-name', 'wu-filter-name', 'cert-emp-name-sel'].forEach(id => {
+    ['wu-filter-name', 'cert-emp-name-sel'].forEach(id => {
         const sel = document.getElementById(id);
         if (!sel) return;
         const isFilter = id === 'wu-filter-name';
         const first = isFilter ? '<option value="all">All Employees</option>' : '<option value="">Select your name</option>';
         sel.innerHTML = first + names.map(n => `<option value="${n}">${n}</option>`).join('');
     });
+    // The post-update name field is fixed to the logged-in user (no dropdown).
+    setWuName();
+}
+
+// Pre-fill the "Your Name" field from the logged-in session (resolved employee name).
+function setWuName() {
+    const input = document.getElementById('wu-name');
+    if (!input) return;
+    const session = getSession();
+    if (!session) return;
+    const emp = (typeof resolveSessionEmployee === 'function') ? resolveSessionEmployee(session) : null;
+    input.value = (emp && emp.name) ? emp.name : (session.name || '');
 }
 
 function setDefaultWuDate() {
-    const today = new Date().toISOString().slice(0, 10);
     const d = document.getElementById('wu-date');
     if (!d) return;
-    d.value = today;
-    d.min = today;
-    d.max = today;
-    d.readOnly = true;
+    const today = new Date();
+    const earliest = new Date();
+    earliest.setDate(earliest.getDate() - 5); // allow back-dating up to 5 days
+    d.value = dateToISO(today);
+    d.min = dateToISO(earliest);
+    d.max = dateToISO(today);
+    d.readOnly = false;
 }
 
 function submitWorkUpdate() {
     const name = document.getElementById('wu-name').value.trim();
     const date = document.getElementById('wu-date').value;
     const text = document.getElementById('wu-text').value.trim();
-    if (!name) { alert('Please select your name.'); return; }
+    if (!name) { alert('Your name is not set. Please re-login.'); return; }
     if (!date) { alert('Please select a date.'); return; }
     if (!text) { alert('Please enter a work update.'); return; }
+
+    // Allow today or up to 5 days back only
+    const todayKey = dateToISO(new Date());
+    const earliest = new Date();
+    earliest.setDate(earliest.getDate() - 5);
+    const earliestKey = dateToISO(earliest);
+    if (date > todayKey) { alert('You cannot post a work update for a future date.'); return; }
+    if (date < earliestKey) { alert('You can only back-date a work update up to 5 days.'); return; }
 
     const emp = employees.find(e => e.name === name);
     workUpdates.unshift({
@@ -6727,9 +6793,27 @@ function renderHomeTab() {
             }
         }
     } else {
-        // Admin/Manager: no welcome card
-        wrap.innerHTML = '';
+        // Admin/Manager: generic welcome card
+        const firstName = (session.name || '').split(' ')[0] || session.name || 'there';
+        const roleLabel = session.role.charAt(0).toUpperCase() + session.role.slice(1);
+        const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(session.name || roleLabel)}&background=0d9488&color=fff`;
+        const todayLabel = new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        wrap.innerHTML = `
+            <div class="home-welcome-card">
+                <img src="${avatar}" alt="${session.name || roleLabel}" class="home-welcome-avatar">
+                <div class="home-welcome-info">
+                    <h2>Welcome, ${firstName}!</h2>
+                    <p>${roleLabel} · Anderson</p>
+                    <div class="home-welcome-meta">
+                        <span class="home-meta-chip">${roleLabel} Dashboard</span>
+                        <span class="home-meta-chip">${todayLabel}</span>
+                    </div>
+                </div>
+            </div>`;
     }
+
+    // Show who is on leave today (all roles)
+    renderAbsentToday();
 
     // Render calendar for all roles
     renderCalendar();
@@ -6747,6 +6831,54 @@ function renderHomeTab() {
     // Render leave history
     renderLeaveHistory(session);
 
+    lucide.createIcons();
+}
+
+// Show which employees are on approved leave today — visible to all roles.
+function renderAbsentToday() {
+    const wrap = document.getElementById('home-absent-today-wrap');
+    if (!wrap) return;
+
+    const todayKey = dateToISO(new Date());
+    const absent = [];
+    Object.entries(leaves).forEach(([empId, dates]) => {
+        if (Array.isArray(dates) && dates.includes(todayKey)) {
+            const emp = employees.find(e => e.employeeId === empId);
+            absent.push({ empId, name: emp ? emp.name : empId });
+        }
+    });
+    absent.sort((a, b) => a.name.localeCompare(b.name));
+
+    const todayLabel = new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
+
+    if (absent.length === 0) {
+        wrap.innerHTML = `
+            <div class="absent-today-card">
+                <div class="absent-today-header">
+                    <i data-lucide="user-x"></i>
+                    <span>Absent Today · ${todayLabel}</span>
+                </div>
+                <div class="absent-today-empty">
+                    <i data-lucide="check-circle-2"></i>
+                    <span>Everyone is present today.</span>
+                </div>
+            </div>`;
+    } else {
+        wrap.innerHTML = `
+            <div class="absent-today-card">
+                <div class="absent-today-header">
+                    <i data-lucide="user-x"></i>
+                    <span>Absent Today · ${todayLabel}</span>
+                </div>
+                <div class="absent-today-list">
+                    ${absent.map(a => `
+                        <div class="absent-today-item">
+                            <span class="leave-color-dot" style="background:${getEmployeeLeaveColor(a.empId)};"></span>
+                            <span><strong>${a.name}</strong> is absent today</span>
+                        </div>`).join('')}
+                </div>
+            </div>`;
+    }
     lucide.createIcons();
 }
 
