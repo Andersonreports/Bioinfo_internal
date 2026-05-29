@@ -2290,6 +2290,47 @@ body {
     border-top: 1px solid #f1f5f9;
     padding-top: 0.6rem;
 }
+
+/* Inline photo + certificate previews */
+.ach-card-media {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.5rem;
+}
+.ach-card-media-img,
+.ach-card-doc {
+    width: 100%;
+    height: 130px;
+    border-radius: 10px;
+    border: 1.5px solid #e2e8f0;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s;
+}
+.ach-card-media-img { object-fit: cover; background: #f1f5f9; }
+.ach-card-media-img:hover,
+.ach-card-doc:hover { border-color: #0d9488; transform: translateY(-2px); }
+.ach-card-doc {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    color: #64748b;
+    font-size: 0.78rem;
+    font-weight: 600;
+    background: #f8fafc;
+}
+
+/* Auto-generated achievement caption */
+.ach-card-caption {
+    font-size: 0.83rem;
+    line-height: 1.5;
+    color: #0f172a;
+    background: #f0fdfa;
+    border-left: 3px solid #14b8a6;
+    padding: 0.55rem 0.8rem;
+    border-radius: 0 8px 8px 0;
+}
 .ach-wall-empty {
     grid-column: 1 / -1;
     text-align: center;
@@ -4210,9 +4251,7 @@ body {
                         <div class="emp-cert-grid">
                             <div class="form-group col-span-2">
                                 <label>Your Name</label>
-                                <select id="cert-emp-name-sel">
-                                    <option value="">Select your name</option>
-                                </select>
+                                <input type="text" id="cert-emp-name" readonly title="Logged in as" style="background:#f8f9fa;color:#475569;cursor:not-allowed;">
                             </div>
                             <div class="form-group col-span-2">
                                 <label>Event Name</label>
@@ -5839,25 +5878,24 @@ function switchEmpSubtab(tab) {
 
 function populateWuNameDropdowns() {
     const names = employees.map(e => e.name).sort();
-    ['wu-filter-name', 'cert-emp-name-sel'].forEach(id => {
-        const sel = document.getElementById(id);
-        if (!sel) return;
-        const isFilter = id === 'wu-filter-name';
-        const first = isFilter ? '<option value="all">All Employees</option>' : '<option value="">Select your name</option>';
-        sel.innerHTML = first + names.map(n => `<option value="${n}">${n}</option>`).join('');
-    });
-    // The post-update name field is fixed to the logged-in user (no dropdown).
+    const sel = document.getElementById('wu-filter-name');
+    if (sel) {
+        sel.innerHTML = '<option value="all">All Employees</option>' + names.map(n => `<option value="${n}">${n}</option>`).join('');
+    }
+    // The post-update and certificate name fields are fixed to the logged-in user (no dropdown).
     setWuName();
 }
 
-// Pre-fill the "Your Name" field from the logged-in session (resolved employee name).
+// Pre-fill the "Your Name" fields from the logged-in session (resolved employee name).
 function setWuName() {
-    const input = document.getElementById('wu-name');
-    if (!input) return;
     const session = getSession();
     if (!session) return;
     const emp = (typeof resolveSessionEmployee === 'function') ? resolveSessionEmployee(session) : null;
-    input.value = (emp && emp.name) ? emp.name : (session.name || '');
+    const name = (emp && emp.name) ? emp.name : (session.name || '');
+    ['wu-name', 'cert-emp-name'].forEach(id => {
+        const input = document.getElementById(id);
+        if (input) input.value = name;
+    });
 }
 
 function setDefaultWuDate() {
@@ -6048,15 +6086,39 @@ function renderAchievementsWall() {
         return `${dd}${sf(dd)} ${mons[m-1]} ${y}`;
     };
 
+    // Build a natural-language caption from the achievement data.
+    const buildCaption = (name, c) => {
+        const ev = (c.eventName || '').trim();
+        if (c.award && c.award.trim()) {
+            const a = c.award.trim();
+            const phrase = /\b(award|prize|medal|winner|rank|place|honou?r)\b/i.test(a) ? a : `${a} award`;
+            return `${name} has got ${phrase}${ev ? ` in the ${ev}` : ''}.`;
+        }
+        let s = `${name} participated in${ev ? ` the ${ev}` : ' an event'}`;
+        if (c.place && c.place.trim()) s += `, ${c.place.trim()}`;
+        return s + '.';
+    };
+    const isImage = (f) => f && f.data && (f.type ? f.type.startsWith('image') : /^data:image/.test(f.data));
+
     const html = allCerts.map(({ emp, cert }) => {
         const dateDisplay = fmtCertDate(cert.date);
+
+        // Inline previews for the uploaded photo and certificate.
+        const photoMedia = cert.photo && cert.photo.data
+            ? `<img src="${cert.photo.data}" class="ach-card-media-img" title="View photo" onclick="viewCertFile(${emp.id},${cert.id},'photo')">`
+            : '';
+        const certMedia = cert.certificate && cert.certificate.data
+            ? (isImage(cert.certificate)
+                ? `<img src="${cert.certificate.data}" class="ach-card-media-img" title="View certificate" onclick="viewCertFile(${emp.id},${cert.id},'certificate')">`
+                : `<div class="ach-card-doc" title="View certificate" onclick="viewCertFile(${emp.id},${cert.id},'certificate')"><i data-lucide="file-text" style="width:26px;height:26px;"></i><span>Certificate</span></div>`)
+            : '';
+        const mediaBlock = (photoMedia || certMedia) ? `<div class="ach-card-media">${certMedia}${photoMedia}</div>` : '';
+
         const certBtn = cert.certificate && cert.certificate.data
             ? `<button class="cert-file-btn view" onclick="viewCertFile(${emp.id},${cert.id},'certificate')"><i data-lucide="eye" style="width:13px;height:13px;"></i> View</button>
                <a class="cert-file-btn download" href="${cert.certificate.data}" download="${cert.certificate.name}"><i data-lucide="download" style="width:13px;height:13px;"></i> Download</a>`
             : '';
-        const photoBtn = cert.photo && cert.photo.data
-            ? `<button class="cert-file-btn view" onclick="viewCertFile(${emp.id},${cert.id},'photo')"><i data-lucide="image" style="width:13px;height:13px;"></i> Photo</button>`
-            : '';
+
         return `
             <div class="ach-card">
                 <div class="ach-card-author">
@@ -6072,7 +6134,9 @@ function renderAchievementsWall() {
                     ${dateDisplay ? `<span class="ach-meta-tag"><i data-lucide="calendar" style="width:11px;height:11px;"></i>${dateDisplay}</span>` : ''}
                     ${cert.award ? `<span class="ach-meta-tag ach-award-tag"><i data-lucide="trophy" style="width:11px;height:11px;"></i>${cert.award}</span>` : ''}
                 </div>
-                ${certBtn || photoBtn ? `<div class="ach-card-actions">${certBtn}${photoBtn}</div>` : ''}
+                ${mediaBlock}
+                <div class="ach-card-caption">${buildCaption(emp.name, cert)}</div>
+                ${certBtn ? `<div class="ach-card-actions">${certBtn}</div>` : ''}
             </div>`;
     }).join('');
 
@@ -6081,7 +6145,7 @@ function renderAchievementsWall() {
 }
 
 async function submitEmpCert() {
-    const name = document.getElementById('cert-emp-name-sel').value;
+    const name = document.getElementById('cert-emp-name').value.trim();
     const eventName = document.getElementById('emp-cert-event-name').value.trim();
     const eventDate = document.getElementById('emp-cert-event-date').value;
     const place = document.getElementById('emp-cert-place').value.trim();
@@ -6089,7 +6153,7 @@ async function submitEmpCert() {
     const fileInput = document.getElementById('emp-cert-file');
     const photoInput = document.getElementById('emp-cert-photo');
 
-    if (!name) { alert('Please select your name.'); return; }
+    if (!name) { alert('Your name is not set. Please re-login.'); return; }
     if (!eventName) { alert('Please enter the event name.'); return; }
     if (!eventDate) { alert('Please select the event date.'); return; }
     if (!place) { alert('Please enter the place.'); return; }
@@ -6114,8 +6178,7 @@ async function submitEmpCert() {
         alert('Warning: LocalStorage limit exceeded; saved in memory only.');
     }
 
-    // Clear form
-    document.getElementById('cert-emp-name-sel').value = '';
+    // Clear form (keep the logged-in name fixed)
     document.getElementById('emp-cert-event-name').value = '';
     document.getElementById('emp-cert-event-date').value = '';
     document.getElementById('emp-cert-place').value = '';
