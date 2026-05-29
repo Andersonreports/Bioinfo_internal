@@ -4248,6 +4248,9 @@ body {
                             <button class="dir-add-btn" style="background:#7c3aed;" onclick="openDirSysModal(null)">
                                 <i data-lucide="plus" style="width:13px;height:13px;"></i> Add Row
                             </button>
+                            <button class="dir-add-btn" style="background:#ef4444;" onclick="clearAllDirSys()">
+                                <i data-lucide="trash-2" style="width:13px;height:13px;"></i> Clear All
+                            </button>
                         </div>
                     </div>
                     <div class="dir-table-wrap">
@@ -6195,6 +6198,14 @@ function deleteDirSys(id) {
     renderDirSysTable();
 }
 
+function clearAllDirSys() {
+    const count = getDirData(DIR_SYS_KEY).length;
+    if (!count) { alert('There are no system entries to clear.'); return; }
+    if (!confirm(`Delete ALL ${count} system ${count === 1 ? 'entry' : 'entries'}? This cannot be undone.`)) return;
+    setDirData(DIR_SYS_KEY, []);
+    renderDirSysTable();
+}
+
 // Import system details from an uploaded Excel/CSV file.
 // Recognised column headers (case-insensitive, flexible):
 //   System Name / Model, User, IP Address, Purchase Date, Warranty Period, Password
@@ -6223,47 +6234,57 @@ function handleSysExcelUpload(event) {
                 }
                 return '';
             };
+            const p2 = (n) => String(n).padStart(2, '0');
+            // Returns an ISO date (YYYY-MM-DD) for date-like values, else ''.
             const fmtDate = (v) => {
                 if (!v) return '';
-                if (v instanceof Date && !isNaN(v)) {
-                    const p = (n) => String(n).padStart(2, '0');
-                    return `${v.getFullYear()}-${p(v.getMonth() + 1)}-${p(v.getDate())}`;
-                }
+                if (v instanceof Date && !isNaN(v)) return `${v.getFullYear()}-${p2(v.getMonth() + 1)}-${p2(v.getDate())}`;
                 const d = new Date(v);
-                if (!isNaN(d)) {
-                    const p = (n) => String(n).padStart(2, '0');
-                    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
-                }
+                if (v && !isNaN(d) && /\d{4}/.test(String(v))) return `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
                 return String(v).trim();
             };
             const str = (v) => (v == null ? '' : String(v).trim());
+            // Warranty may be a date (expiry) or free text like "1 year".
+            const mons = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const fmtWarranty = (v) => {
+                if (v instanceof Date && !isNaN(v)) return `${v.getDate()} ${mons[v.getMonth()]} ${v.getFullYear()}`;
+                return str(v);
+            };
 
             const existing = getDirData(DIR_SYS_KEY);
-            let added = 0;
+            // Signature used to skip duplicates already present.
+            const sig = (r) => [r.model, r.user, r.ip, r.purchaseDate, r.warranty, r.password]
+                .map(x => (x || '').toString().trim().toLowerCase()).join('|');
+            const seen = new Set(existing.map(sig));
+
+            let added = 0, skipped = 0;
             rows.forEach((row, idx) => {
                 const entry = {
                     id: (Date.now() + idx).toString(),
-                    model: str(pick(row, ['systemname', 'model', 'system', 'name', 'device'])),
+                    model: str(pick(row, ['systemname', 'model', 'system', 'device'])),
                     user: str(pick(row, ['user', 'assignedto', 'owner', 'employee'])),
-                    ip: str(pick(row, ['ip', 'ipaddress', 'address'])),
+                    ip: str(pick(row, ['ipaddress', 'ip', 'address'])),
                     purchaseDate: fmtDate(pick(row, ['purchasedate', 'purchase', 'bought', 'dateofpurchase'])),
-                    warranty: str(pick(row, ['warranty', 'warrantyperiod', 'guarantee'])),
+                    warranty: fmtWarranty(pick(row, ['warranty', 'warrantyperiod', 'guarantee'])),
                     password: str(pick(row, ['password', 'passcode', 'pwd', 'pass']))
                 };
                 // Skip fully empty rows.
-                if (entry.model || entry.user || entry.ip || entry.purchaseDate || entry.warranty || entry.password) {
-                    existing.push(entry);
-                    added++;
-                }
+                if (!(entry.model || entry.user || entry.ip || entry.purchaseDate || entry.warranty || entry.password)) return;
+                const s = sig(entry);
+                if (seen.has(s)) { skipped++; return; }
+                seen.add(s);
+                existing.push(entry);
+                added++;
             });
 
-            if (!added) {
+            if (!added && !skipped) {
                 alert('Could not find any usable rows. Make sure your sheet has columns like "System Name / Model", "User", "IP Address", "Purchase Date", "Warranty Period", "Password".');
                 return;
             }
             setDirData(DIR_SYS_KEY, existing);
             renderDirSysTable();
-            alert(`Imported ${added} system ${added === 1 ? 'entry' : 'entries'} from "${file.name}".`);
+            alert(`Imported ${added} system ${added === 1 ? 'entry' : 'entries'} from "${file.name}".` +
+                  (skipped ? ` Skipped ${skipped} duplicate ${skipped === 1 ? 'row' : 'rows'}.` : ''));
         } catch (err) {
             console.error(err);
             alert('Could not read that file. Please upload a valid .xlsx, .xls or .csv file.');
