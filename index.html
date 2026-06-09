@@ -5517,6 +5517,31 @@ async function fetchData() {
         const [certMap, avatarMap, leavesMap] = await Promise.all([
             loadCertificatesMap(), loadAvatarsMap(), loadLeaves(), loadPastEmployees()
         ]);
+
+        // Add any past employee who isn't in the main roster as an alumni record,
+        // so they remain selectable for uploads and their certs/pubs/posters show.
+        // (isPastEmployee still hides them from the present-staff stats/cards.)
+        pastEmployees.forEach((p, idx) => {
+            if (!p.name) return;
+            const exists = employees.some(e =>
+                (p.employeeId && e.employeeId && e.employeeId.trim().toLowerCase() === p.employeeId.trim().toLowerCase()) ||
+                (e.name && e.name.trim().toLowerCase() === p.name.trim().toLowerCase()));
+            if (exists) return;
+            employees.push({
+                id: 900000 + idx,
+                employeeId: p.employeeId || `PAST-${idx + 1}`,
+                name: p.name,
+                role: p.role || 'Alumni',
+                team: p.team || '',
+                teamLeader: '',
+                samples: '', analysis: '', work: '',
+                phone: '', secondaryPhone: '', address: '', email: '',
+                doj: p.doj || '',
+                certificates: [],
+                avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&background=cbd5e1&color=475569`
+            });
+        });
+
         employees.forEach(emp => {
             emp.certificates = certMap[emp.employeeId] || [];
             if (avatarMap[emp.employeeId]) emp.avatar = avatarMap[emp.employeeId];
@@ -6280,8 +6305,10 @@ function setupUploaderFields() {
     const session = getSession();
     const isAdmin = !!(session && session.role === 'admin');
     if (isAdmin) {
-        const names = employees.map(e => e.name).sort();
-        const opts = '<option value="">Select employee…</option>' + names.map(n => `<option value="${n}">${n}</option>`).join('');
+        // Sort by name; suffix past employees with "(Past)" so they're distinguishable.
+        const sorted = employees.slice().sort((a, b) => a.name.localeCompare(b.name));
+        const opts = '<option value="">Select employee…</option>' +
+            sorted.map(e => `<option value="${e.name}">${e.name}${isPastEmployee(e) ? ' (Past)' : ''}</option>`).join('');
         ids.forEach(id => {
             const el = document.getElementById(id);
             if (!el) return;
