@@ -5547,9 +5547,15 @@ function populateTeamLeaders() {
     });
 }
 
+// True if this employee has been marked as a past employee (alumni).
+function isPastEmployee(emp) {
+    return pastEmployees.some(p => p.employeeId === emp.employeeId);
+}
+
 function updateKPIs() {
-    document.getElementById('kpi-total-team').textContent = employees.length;
-    const activeTeams = [...new Set(employees.map(emp => emp.team))].filter(t => t && t !== 'Team' && t.trim() !== '').length;
+    const present = employees.filter(emp => !isPastEmployee(emp));
+    document.getElementById('kpi-total-team').textContent = present.length;
+    const activeTeams = [...new Set(present.map(emp => emp.team))].filter(t => t && t !== 'Team' && t.trim() !== '').length;
     document.getElementById('kpi-active-teams').textContent = activeTeams;
     document.getElementById('kpi-past-employees').textContent = pastEmployees.length;
     const today = new Date().toISOString().slice(0, 10);
@@ -5755,6 +5761,8 @@ function markAsPastEmployee() {
     pastEmployees.push(record);
     localStorage.setItem('pastEmployees', JSON.stringify(pastEmployees));
     updateKPIs();
+    renderEmployeeSpace();
+    renderEmployees();
     document.getElementById('mark-past-btn').style.display = 'none';
     alert(`${emp.name} has been added to Past Employees.`);
 }
@@ -5807,6 +5815,8 @@ function removePastEmployee(idx) {
     pastEmployees.splice(idx, 1);
     localStorage.setItem('pastEmployees', JSON.stringify(pastEmployees));
     updateKPIs();
+    renderEmployeeSpace();
+    renderEmployees();
     renderPastEmployeesModal();
 }
 
@@ -5814,7 +5824,8 @@ function removePastEmployee(idx) {
 function renderEmployees(data = employees) {
     const tbody = document.getElementById('employee-table-body');
     if (!tbody) return;
-    
+    data = data.filter(emp => !isPastEmployee(emp));
+
     tbody.innerHTML = data.map(emp => `
         <tr onclick="openEmployeeDetails(${emp.id})" style="cursor: pointer;">
             <td>
@@ -5839,6 +5850,7 @@ function renderEmployees(data = employees) {
 function renderEmployeeSpace(data = employees) {
     const container = document.getElementById('employee-cards-container');
     if (!container) return;
+    data = data.filter(emp => !isPastEmployee(emp));
 
     container.innerHTML = data.map(emp => {
         const teamLower = (emp.team || '').toLowerCase();
