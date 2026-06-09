@@ -4105,7 +4105,7 @@ body {
         <div class="login-card">
             <div class="login-brand">
                 <i data-lucide="dna" class="login-brand-icon"></i>
-                <span class="login-brand-text">GenomicDesk</span>
+                <span class="login-brand-text">AND-Bioinfo</span>
             </div>
             <div class="login-title">Welcome Back</div>
             <div class="login-subtitle">Sign in to your account</div>
@@ -4127,7 +4127,7 @@ body {
         <div class="title-bar">
             <div class="brand">
                 <i data-lucide="dna" class="brand-icon"></i>
-                <h2>GenomicDesk</h2>
+                <h2>AND-Bioinfo</h2>
             </div>
             <div class="header-actions">
 
@@ -4151,7 +4151,7 @@ body {
                     <div class="user-badge" id="header-user-badge" onclick="toggleHdrDropdown('profile-panel')" style="cursor:pointer;" title="Profile">GD</div>
                     <div class="hdr-dropdown" id="profile-panel" style="display:none;min-width:200px;right:0;">
                         <div class="hdr-dropdown-header" style="flex-direction:column;align-items:flex-start;gap:0.15rem;">
-                            <span id="header-profile-name" style="font-weight:700;color:#1a1a1a;">GenomicDesk</span>
+                            <span id="header-profile-name" style="font-weight:700;color:#1a1a1a;">AND-Bioinfo</span>
                             <span id="header-profile-role" style="font-size:0.72rem;color:#94a3b8;">Not signed in</span>
                         </div>
                         <div class="settings-row" id="menu-manager" style="cursor:pointer;" onclick="switchView('manager')">
@@ -4538,8 +4538,11 @@ body {
                 <div class="view-header">
                     <div>
                         <h1>Directory</h1>
-                        <p>Manage employee credentials and system asset records.</p>
+                        <p>Employee credentials and system asset records — synced from the team Google Sheet.</p>
                     </div>
+                    <button class="dir-add-btn" onclick="loadDirData()" title="Reload latest values from the sheet">
+                        <i data-lucide="refresh-cw" style="width:13px;height:13px;"></i> Refresh
+                    </button>
                 </div>
 
                 <!-- Employee Mail IDs -->
@@ -4549,9 +4552,6 @@ body {
                             <i data-lucide="mail" style="width:18px;height:18px;color:#0d9488;"></i>
                             Employee Mail IDs
                         </div>
-                        <button class="dir-add-btn" onclick="openDirMailModal('emp', null)">
-                            <i data-lucide="plus" style="width:13px;height:13px;"></i> Add Row
-                        </button>
                     </div>
                     <div class="dir-table-wrap">
                         <table class="dir-table">
@@ -4561,9 +4561,8 @@ body {
                                     <th>User</th>
                                     <th>Mail ID</th>
                                     <th>Password</th>
-                                    <th>Passcode 1</th>
-                                    <th>Passcode 2</th>
-                                    <th style="width:60px;"></th>
+                                    <th>Passkey</th>
+                                    <th>Secondary Account</th>
                                 </tr>
                             </thead>
                             <tbody id="emp-mail-tbody"></tbody>
@@ -4571,26 +4570,21 @@ body {
                     </div>
                 </div>
 
-                <!-- Office Mail IDs -->
+                <!-- Common Office Mail IDs -->
                 <div class="dir-section">
                     <div class="dir-section-header">
                         <div class="dir-section-title">
                             <i data-lucide="building-2" style="width:18px;height:18px;color:#0891b2;"></i>
                             Common Office Mail IDs
                         </div>
-                        <button class="dir-add-btn" style="background:#0891b2;" onclick="openDirMailModal('office', null)">
-                            <i data-lucide="plus" style="width:13px;height:13px;"></i> Add Row
-                        </button>
                     </div>
                     <div class="dir-table-wrap">
                         <table class="dir-table">
                             <thead>
                                 <tr>
                                     <th style="width:40px;">#</th>
-                                    <th>User</th>
                                     <th>Mail ID</th>
                                     <th>Password</th>
-                                    <th style="width:60px;"></th>
                                 </tr>
                             </thead>
                             <tbody id="office-mail-tbody"></tbody>
@@ -4605,17 +4599,32 @@ body {
                             <i data-lucide="monitor" style="width:18px;height:18px;color:#7c3aed;"></i>
                             System Details
                         </div>
-                        <div style="display:flex;gap:0.5rem;">
-                            <input type="file" id="sys-excel-input" accept=".xlsx,.xls,.csv" style="display:none;" onchange="handleSysExcelUpload(event)">
-                            <button class="dir-add-btn" style="background:#059669;" onclick="document.getElementById('sys-excel-input').click()">
-                                <i data-lucide="upload" style="width:13px;height:13px;"></i> Upload Excel
-                            </button>
-                            <button class="dir-add-btn" style="background:#7c3aed;" onclick="openDirSysModal(null)">
-                                <i data-lucide="plus" style="width:13px;height:13px;"></i> Add Row
-                            </button>
-                            <button class="dir-add-btn" style="background:#ef4444;" onclick="clearAllDirSys()">
-                                <i data-lucide="trash-2" style="width:13px;height:13px;"></i> Clear All
-                            </button>
+                    </div>
+                    <div class="dir-table-wrap">
+                        <table class="dir-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:40px;">#</th>
+                                    <th>System No</th>
+                                    <th>System Name / Model</th>
+                                    <th>User</th>
+                                    <th>IP Address</th>
+                                    <th>Purchase Date</th>
+                                    <th>Warranty Period</th>
+                                    <th>Invoice No</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sys-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- AnyDesk Remote IDs -->
+                <div class="dir-section">
+                    <div class="dir-section-header">
+                        <div class="dir-section-title">
+                            <i data-lucide="monitor-smartphone" style="width:18px;height:18px;color:#ea580c;"></i>
+                            AnyDesk Remote IDs
                         </div>
                     </div>
                     <div class="dir-table-wrap">
@@ -4623,16 +4632,11 @@ body {
                             <thead>
                                 <tr>
                                     <th style="width:40px;">#</th>
-                                    <th>System Name / Model</th>
-                                    <th>User</th>
-                                    <th>IP Address</th>
-                                    <th>Purchase Date</th>
-                                    <th>Warranty Period</th>
-                                    <th>Password</th>
-                                    <th style="width:60px;"></th>
+                                    <th>Employee / System</th>
+                                    <th>Remote ID</th>
                                 </tr>
                             </thead>
-                            <tbody id="sys-tbody"></tbody>
+                            <tbody id="anydesk-tbody"></tbody>
                         </table>
                     </div>
                 </div>
@@ -4905,94 +4909,6 @@ body {
         <div class="album-lb-grid" id="album-hero-pick-grid"></div>
     </div>
 
-    <!-- Directory: Mail Entry Modal -->
-    <div class="modal-overlay" id="dir-mail-modal" style="display:none;" onclick="closeDirMailModal(event)">
-        <div class="modal glass-panel dir-modal" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <div class="details-header-info">
-                    <i data-lucide="mail" style="color:#0d9488;width:26px;height:26px;"></i>
-                    <h2 id="dir-mail-modal-title">Add Mail Entry</h2>
-                </div>
-                <button class="icon-btn" onclick="closeDirMailModal()"><i data-lucide="x"></i></button>
-            </div>
-            <input type="hidden" id="dir-mail-type">
-            <input type="hidden" id="dir-mail-id">
-            <div class="dir-form-grid">
-                <div class="form-group col-span-2">
-                    <label>User</label>
-                    <input type="text" id="dm-user" placeholder="e.g. John Doe">
-                </div>
-                <div class="form-group col-span-2">
-                    <label>Mail ID</label>
-                    <input type="text" id="dm-mail" placeholder="e.g. john@company.com">
-                </div>
-                <div class="form-group col-span-2">
-                    <label>Password</label>
-                    <input type="text" id="dm-password" placeholder="Mail password">
-                </div>
-                <div class="form-group">
-                    <label>Passcode 1</label>
-                    <input type="text" id="dm-passcode1" placeholder="e.g. backup code">
-                </div>
-                <div class="form-group">
-                    <label>Passcode 2</label>
-                    <input type="text" id="dm-passcode2" placeholder="e.g. 2FA code">
-                </div>
-            </div>
-            <div class="modal-actions">
-                <button type="button" class="btn-outline" onclick="closeDirMailModal()">Cancel</button>
-                <button type="button" class="btn-primary" onclick="saveDirMailEntry()">
-                    <i data-lucide="save" style="width:14px;height:14px;"></i> Save
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Directory: System Entry Modal -->
-    <div class="modal-overlay" id="dir-sys-modal" style="display:none;" onclick="closeDirSysModal(event)">
-        <div class="modal glass-panel dir-modal" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <div class="details-header-info">
-                    <i data-lucide="monitor" style="color:#7c3aed;width:26px;height:26px;"></i>
-                    <h2 id="dir-sys-modal-title">Add System</h2>
-                </div>
-                <button class="icon-btn" onclick="closeDirSysModal()"><i data-lucide="x"></i></button>
-            </div>
-            <input type="hidden" id="dir-sys-id">
-            <div class="dir-form-grid">
-                <div class="form-group col-span-2">
-                    <label>System Name / Model</label>
-                    <input type="text" id="ds-model" placeholder="e.g. Dell Latitude 5520">
-                </div>
-                <div class="form-group col-span-2">
-                    <label>User</label>
-                    <input type="text" id="ds-user" placeholder="Assigned user">
-                </div>
-                <div class="form-group">
-                    <label>IP Address</label>
-                    <input type="text" id="ds-ip" placeholder="e.g. 192.168.1.10">
-                </div>
-                <div class="form-group">
-                    <label>Purchase Date</label>
-                    <input type="date" id="ds-purchase-date">
-                </div>
-                <div class="form-group">
-                    <label>Warranty Period</label>
-                    <input type="text" id="ds-warranty" placeholder="e.g. 3 years / till 2027">
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="text" id="ds-password" placeholder="System login password">
-                </div>
-            </div>
-            <div class="modal-actions">
-                <button type="button" class="btn-outline" onclick="closeDirSysModal()">Cancel</button>
-                <button type="button" class="btn-primary" onclick="saveDirSysEntry()">
-                    <i data-lucide="save" style="width:14px;height:14px;"></i> Save
-                </button>
-            </div>
-        </div>
-    </div>
 
     <!-- Daily Updates Modal -->
     <div class="modal-overlay" id="daily-updates-modal" style="display:none;" onclick="closeDailyUpdatesModal(event)">
@@ -6903,16 +6819,103 @@ function renderDirectory() { loadDirData(); }
 
 // ---- DIRECTORY TABLES ----
 
-const DIR_MAIL_KEYS = { emp: 'dir_emp_mails', office: 'dir_office_mails' };
-const DIR_SYS_KEY = 'dir_systems';
+// Directory data is sourced (read-only) from tabs of the team Google Sheet.
+const DIR_SHEET_GIDS = {
+    anydesk:       '1404567785',
+    emailPwd:      '1063526930',
+    commonMails:   '431396263',
+    systemDetails: '936757148'
+};
+const dirSheetUrl = (gid) => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
 
-function getDirData(key) { return JSON.parse(localStorage.getItem(key) || '[]'); }
-function setDirData(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+let dirEmpMails = [], dirCommonMails = [], dirSystems = [], dirAnydesk = [];
 
-function loadDirData() {
-    renderDirMailTable('emp');
-    renderDirMailTable('office');
-    renderDirSysTable();
+// Quote-aware CSV -> array of string[] rows (no header mapping).
+function parseCSVRows(csv) {
+    const rows = [];
+    (csv || '').split('\n').forEach(line => {
+        if (line.replace(/[\s,]/g, '') === '') { rows.push([]); return; } // blank line
+        const row = []; let cur = '', inQ = false;
+        for (const ch of line) {
+            if (ch === '"') inQ = !inQ;
+            else if (ch === ',' && !inQ) { row.push(cur.trim()); cur = ''; }
+            else cur += ch;
+        }
+        row.push(cur.trim());
+        rows.push(row);
+    });
+    return rows;
+}
+
+// Locate the header row (tolerant of leading blank rows/columns) and extract
+// records keyed by `fields` -> [acceptable header names, lowercase].
+function extractSheetTable(rows, fields) {
+    const fieldNames = Object.keys(fields);
+    const need = Math.max(1, Math.ceil(fieldNames.length / 2));
+    let headerIdx = -1, cols = null;
+    for (let i = 0; i < rows.length; i++) {
+        const lower = rows[i].map(h => (h || '').trim().toLowerCase());
+        const c = {}; let matches = 0;
+        for (const f of fieldNames) {
+            let idx = -1;
+            for (const n of fields[f]) { const j = lower.indexOf(n); if (j !== -1) { idx = j; break; } }
+            c[f] = idx; if (idx !== -1) matches++;
+        }
+        if (matches >= need) { headerIdx = i; cols = c; break; }
+    }
+    if (headerIdx === -1) return [];
+    const out = [];
+    for (let i = headerIdx + 1; i < rows.length; i++) {
+        const row = rows[i]; const obj = {}; let any = false;
+        for (const f of fieldNames) {
+            const idx = cols[f];
+            const v = idx >= 0 ? (row[idx] || '').trim() : '';
+            obj[f] = v; if (v) any = true;
+        }
+        if (any) out.push(obj);
+    }
+    return out;
+}
+
+async function loadDirData() {
+    try {
+        const [aTxt, eTxt, cTxt, sTxt] = await Promise.all([
+            fetch(dirSheetUrl(DIR_SHEET_GIDS.anydesk)).then(r => r.text()),
+            fetch(dirSheetUrl(DIR_SHEET_GIDS.emailPwd)).then(r => r.text()),
+            fetch(dirSheetUrl(DIR_SHEET_GIDS.commonMails)).then(r => r.text()),
+            fetch(dirSheetUrl(DIR_SHEET_GIDS.systemDetails)).then(r => r.text())
+        ]);
+        dirAnydesk = extractSheetTable(parseCSVRows(aTxt), {
+            user:     ['employee/system', 'employee / system', 'employee', 'name', 'system'],
+            remoteId: ['remote id', 'remoteid', 'anydesk id', 'id']
+        });
+        dirEmpMails = extractSheetTable(parseCSVRows(eTxt), {
+            user:      ['user', 'name'],
+            mail:      ['mail id', 'mail', 'email', 'email id'],
+            password:  ['password', 'pwd'],
+            passkey:   ['passkey', 'pass key', 'passcode'],
+            secondary: ['secondary acc', 'secondary account', 'secondary']
+        });
+        dirCommonMails = extractSheetTable(parseCSVRows(cTxt), {
+            mail:     ['mail', 'mail id', 'email'],
+            password: ['password', 'pwd']
+        });
+        dirSystems = extractSheetTable(parseCSVRows(sTxt), {
+            sysNo:        ['system no', 'system no.', 's.no', 'sno', 'sl no'],
+            ip:           ['ip address', 'ip'],
+            model:        ['system name', 'system name / model', 'model'],
+            user:         ['user', 'name'],
+            purchaseDate: ['purchase date'],
+            warranty:     ['warranty period', 'warranty'],
+            invoice:      ['invoice no', 'invoice no.', 'invoice']
+        });
+    } catch (err) {
+        console.error('loadDirData (sheet) failed:', err);
+    }
+    renderDirEmpMails();
+    renderDirCommonMails();
+    renderDirSystems();
+    renderDirAnydesk();
 }
 
 function maskedCell(val, rowId, field) {
@@ -6926,69 +6929,73 @@ function maskedCell(val, rowId, field) {
     </div>`;
 }
 
-function renderDirMailTable(type) {
-    const tbody = document.getElementById(type === 'emp' ? 'emp-mail-tbody' : 'office-mail-tbody');
-    if (!tbody) return;
-    const rows = getDirData(DIR_MAIL_KEYS[type]);
-    const isOffice = type === 'office';
-    if (!rows.length) {
-        tbody.innerHTML = `<tr class="dir-empty-row"><td colspan="${isOffice ? 5 : 7}">No entries yet. Click "Add Row" to begin.</td></tr>`;
-        lucide.createIcons(); return;
-    }
-    tbody.innerHTML = rows.map((r, i) => {
-        const safeMail = (r.mail || '').replace(/'/g,"\\'");
-        return `<tr>
-            <td style="color:#94a3b8;font-size:0.78rem;">${i + 1}</td>
-            <td><strong>${r.user || '—'}</strong></td>
-            <td><div class="dir-field-wrap">
-                <span class="dir-field-val">${r.mail || '—'}</span>
-                ${r.mail ? `<button class="dir-tb-btn" onclick="copyDirVal(event,'${safeMail}')" title="Copy"><i data-lucide="copy" style="width:13px;height:13px;"></i></button>` : ''}
-            </div></td>
-            <td>${maskedCell(r.password, r.id, 'pw')}</td>
-            ${isOffice ? '' : `<td>${maskedCell(r.passcode1, r.id, 'pc1')}</td>
-            <td>${maskedCell(r.passcode2, r.id, 'pc2')}</td>`}
-            <td><div class="dir-row-actions">
-                <button class="dir-tb-btn" onclick="openDirMailModal('${type}','${r.id}')" title="Edit"><i data-lucide="pencil" style="width:14px;height:14px;"></i></button>
-                <button class="dir-tb-btn del" onclick="deleteDirMail('${type}','${r.id}')" title="Delete"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
-            </div></td>
-        </tr>`;
-    }).join('');
+// Plain (unmasked) value cell with a copy button.
+function copyCell(val, mono) {
+    if (!val) return '<span style="color:#cbd5e1;">—</span>';
+    const safe = val.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return `<div class="dir-field-wrap">
+        <span class="dir-field-val"${mono ? ' style="font-family:monospace;"' : ''}>${val}</span>
+        <button class="dir-tb-btn" onclick="copyDirVal(event,'${safe}')" title="Copy"><i data-lucide="copy" style="width:13px;height:13px;"></i></button>
+    </div>`;
+}
+
+function _dirEmpty(tbody, colspan) {
+    tbody.innerHTML = `<tr class="dir-empty-row"><td colspan="${colspan}">No entries found in the sheet.</td></tr>`;
     lucide.createIcons();
 }
 
-function renderDirSysTable() {
+function renderDirEmpMails() {
+    const tbody = document.getElementById('emp-mail-tbody');
+    if (!tbody) return;
+    if (!dirEmpMails.length) return _dirEmpty(tbody, 6);
+    tbody.innerHTML = dirEmpMails.map((r, i) => `<tr>
+        <td style="color:#94a3b8;font-size:0.78rem;">${i + 1}</td>
+        <td><strong>${r.user || '—'}</strong></td>
+        <td>${copyCell(r.mail)}</td>
+        <td>${maskedCell(r.password, 'em' + i, 'pw')}</td>
+        <td>${maskedCell(r.passkey, 'em' + i, 'pk')}</td>
+        <td>${maskedCell(r.secondary, 'em' + i, 'sa')}</td>
+    </tr>`).join('');
+    lucide.createIcons();
+}
+
+function renderDirCommonMails() {
+    const tbody = document.getElementById('office-mail-tbody');
+    if (!tbody) return;
+    if (!dirCommonMails.length) return _dirEmpty(tbody, 3);
+    tbody.innerHTML = dirCommonMails.map((r, i) => `<tr>
+        <td style="color:#94a3b8;font-size:0.78rem;">${i + 1}</td>
+        <td>${copyCell(r.mail)}</td>
+        <td>${maskedCell(r.password, 'cm' + i, 'pw')}</td>
+    </tr>`).join('');
+    lucide.createIcons();
+}
+
+function renderDirSystems() {
     const tbody = document.getElementById('sys-tbody');
     if (!tbody) return;
-    const rows = getDirData(DIR_SYS_KEY);
-    if (!rows.length) {
-        tbody.innerHTML = `<tr class="dir-empty-row"><td colspan="8">No entries yet. Click "Add Row" to begin.</td></tr>`;
-        lucide.createIcons(); return;
-    }
-    const fmtDate = (d) => {
-        if (!d) return '—';
-        const [y, m, dd] = d.split('-').map(Number);
-        const mons = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-        return `${dd} ${mons[m-1]} ${y}`;
-    };
-    tbody.innerHTML = rows.map((r, i) => {
-        const safeIp = (r.ip || '').replace(/'/g,"\\'");
-        return `<tr>
-            <td style="color:#94a3b8;font-size:0.78rem;">${i + 1}</td>
-            <td><strong>${r.model || '—'}</strong></td>
-            <td>${r.user || '—'}</td>
-            <td><div class="dir-field-wrap">
-                <span class="dir-field-val" style="font-family:monospace;">${r.ip || '—'}</span>
-                ${r.ip ? `<button class="dir-tb-btn" onclick="copyDirVal(event,'${safeIp}')" title="Copy"><i data-lucide="copy" style="width:13px;height:13px;"></i></button>` : ''}
-            </div></td>
-            <td>${fmtDate(r.purchaseDate)}</td>
-            <td>${r.warranty || '—'}</td>
-            <td>${maskedCell(r.password, r.id, 'spw')}</td>
-            <td><div class="dir-row-actions">
-                <button class="dir-tb-btn" onclick="openDirSysModal('${r.id}')" title="Edit"><i data-lucide="pencil" style="width:14px;height:14px;"></i></button>
-                <button class="dir-tb-btn del" onclick="deleteDirSys('${r.id}')" title="Delete"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
-            </div></td>
-        </tr>`;
-    }).join('');
+    if (!dirSystems.length) return _dirEmpty(tbody, 8);
+    tbody.innerHTML = dirSystems.map((r, i) => `<tr>
+        <td style="color:#94a3b8;font-size:0.78rem;">${r.sysNo || (i + 1)}</td>
+        <td><strong>${r.model || '—'}</strong></td>
+        <td>${r.user || '—'}</td>
+        <td>${copyCell(r.ip, true)}</td>
+        <td>${r.purchaseDate || '—'}</td>
+        <td>${r.warranty || '—'}</td>
+        <td>${r.invoice || '—'}</td>
+    </tr>`).join('');
+    lucide.createIcons();
+}
+
+function renderDirAnydesk() {
+    const tbody = document.getElementById('anydesk-tbody');
+    if (!tbody) return;
+    if (!dirAnydesk.length) return _dirEmpty(tbody, 3);
+    tbody.innerHTML = dirAnydesk.map((r, i) => `<tr>
+        <td style="color:#94a3b8;font-size:0.78rem;">${i + 1}</td>
+        <td><strong>${r.user || '—'}</strong></td>
+        <td>${copyCell(r.remoteId, true)}</td>
+    </tr>`).join('');
     lucide.createIcons();
 }
 
