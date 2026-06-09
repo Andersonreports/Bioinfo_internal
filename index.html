@@ -5249,7 +5249,11 @@ const SHEET_ID = '1ZIs0bbHxkwpo1nUvDcLr-oRei1mUOlaOJISOoeNI6Pc';
 const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
 
 let employees = [];
-let pastEmployees = JSON.parse(localStorage.getItem('pastEmployees') || '[]');
+// Past employees (alumni) are sourced from the "Past Employees" tab of the team
+// Google Sheet, so the list is shared across everyone. Match keys are derived below.
+let pastEmployees = [];
+let _pastIdSet = new Set();
+let _pastNameSet = new Set();
 let _currentDetailsEmpId = null;
 
 // --- Field normalisation helpers ---
@@ -5508,8 +5512,11 @@ async function fetchData() {
             return parseDate(a.doj) - parseDate(b.doj);
         });
 
-        // Layer shared content from Supabase (certificates + avatars + leaves) onto employees.
-        const [certMap, avatarMap, leavesMap] = await Promise.all([loadCertificatesMap(), loadAvatarsMap(), loadLeaves()]);
+        // Layer shared content (Supabase certificates/avatars/leaves + the Past
+        // Employees sheet tab) before rendering so stats exclude alumni.
+        const [certMap, avatarMap, leavesMap] = await Promise.all([
+            loadCertificatesMap(), loadAvatarsMap(), loadLeaves(), loadPastEmployees()
+        ]);
         employees.forEach(emp => {
             emp.certificates = certMap[emp.employeeId] || [];
             if (avatarMap[emp.employeeId]) emp.avatar = avatarMap[emp.employeeId];
@@ -5547,9 +5554,34 @@ function populateTeamLeaders() {
     });
 }
 
-// True if this employee has been marked as a past employee (alumni).
+// True if this employee appears on the Past Employees sheet (match by ID or name;
+// name is the reliable key since some sheet rows have auto-generated IDs).
 function isPastEmployee(emp) {
-    return pastEmployees.some(p => p.employeeId === emp.employeeId);
+    if (!emp) return false;
+    if (emp.employeeId && _pastIdSet.has(emp.employeeId.trim().toLowerCase())) return true;
+    if (emp.name && _pastNameSet.has(emp.name.trim().toLowerCase())) return true;
+    return false;
+}
+
+// Load the alumni list from the "Past Employees" tab (fetched by name via gviz).
+async function loadPastEmployees() {
+    try {
+        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('Past Employees')}`;
+        const txt = await fetch(url).then(r => r.text());
+        pastEmployees = extractSheetTable(parseCSVRows(txt), {
+            name:       ['name', 'employee name', 'employee', 'full name'],
+            employeeId: ['employee id', 'emp id', 'employeeid', 'id'],
+            role:       ['role', 'designation'],
+            team:       ['team'],
+            doj:        ['date of joining', 'doj', 'joined'],
+            dateLeft:   ['date left', 'exit date', 'date of leaving', 'relieved', 'left']
+        }, 1);
+    } catch (e) {
+        console.error('loadPastEmployees failed:', e);
+        pastEmployees = [];
+    }
+    _pastIdSet   = new Set(pastEmployees.map(p => (p.employeeId || '').trim().toLowerCase()).filter(Boolean));
+    _pastNameSet = new Set(pastEmployees.map(p => (p.name || '').trim().toLowerCase()).filter(Boolean));
 }
 
 function updateKPIs() {
@@ -5670,11 +5702,10 @@ function openEmployeeDetails(id) {
     document.getElementById('details-samples').innerHTML = renderFieldList(emp.samples);
     document.getElementById('details-address').textContent = emp.address || 'Not provided';
 
-    const alreadyPast = pastEmployees.some(p => p.employeeId === emp.employeeId);
+    // Past-employee status is managed in the "Past Employees" sheet tab, so the
+    // in-app "Mark as Past" action is retired.
     const markBtn = document.getElementById('mark-past-btn');
-    if (markBtn) {
-        markBtn.style.display = alreadyPast ? 'none' : '';
-    }
+    if (markBtn) markBtn.style.display = 'none';
 
     document.getElementById('employee-details-modal').classList.add('panel-open');
     lucide.createIcons();
@@ -5783,26 +5814,37 @@ function renderPastEmployeesModal() {
     if (!list) return;
 
     if (!pastEmployees.length) {
-        list.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:0.85rem;padding:2rem;">No past employees yet. Use "Mark as Past" in an employee profile to add alumni.</div>`;
+        list.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:0.85rem;padding:2rem;">No past employees listed. Add names to the "Past Employees" tab of the team sheet.</div>`;
         return;
     }
 
-    list.innerHTML = pastEmployees.map((p, idx) => {
-        const teamLower = (p.team || '').toLowerCase();
+    list.innerHTML = pastEmployees.map(p => {
+        // Enrich the sheet row with roster details (avatar, role, team) when matchable.
+        const match = employees.find(e =>
+            (p.employeeId && e.employeeId && e.employeeId.trim().toLowerCase() === p.employeeId.trim().toLowerCase()) ||
+            (p.name && e.name && e.name.trim().toLowerCase() === p.name.trim().toLowerCase()));
+        const name   = p.name || (match && match.name) || '—';
+        const role   = p.role || (match && match.role) || '';
+        const team   = p.team || (match && match.team) || '';
+        const doj    = p.doj  || (match && match.doj)  || '';
+        const leader = match && match.teamLeader ? match.teamLeader : '';
+        const empId  = p.employeeId || (match && match.employeeId) || '';
+        const avatar = (match && match.avatar) || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`;
+        const teamLower = team.toLowerCase();
         const chipClass = teamLower.includes('secondary') ? 'secondary'
                         : teamLower.includes('tertiary')  ? 'tertiary'
                         : teamLower === 'cmc'             ? 'cmc' : '';
         return `
         <div class="past-emp-card">
             <span class="past-emp-alumni-badge">Alumni</span>
-            <img src="${p.avatar}" alt="${p.name}">
-            <h4>${p.name}</h4>
-            <div class="past-role">${p.role}</div>
-            <span class="past-meta">${p.employeeId}</span>
-            <span class="stat-team-chip ${chipClass}" style="font-size:0.65rem;margin-bottom:0.3rem;">${p.team}</span>
-            <div style="font-size:0.7rem;color:#94a3b8;margin-bottom:0.2rem;">Leader: ${p.teamLeader || '—'}</div>
-            <div style="font-size:0.7rem;color:#94a3b8;margin-bottom:0.5rem;">Joined: ${formatDate(p.doj)}</div>
-            <button class="past-emp-remove-btn" onclick="removePastEmployee(${idx})">Remove</button>
+            <img src="${avatar}" alt="${name}">
+            <h4>${name}</h4>
+            <div class="past-role">${role}</div>
+            ${empId ? `<span class="past-meta">${empId}</span>` : ''}
+            ${team ? `<span class="stat-team-chip ${chipClass}" style="font-size:0.65rem;margin-bottom:0.3rem;">${team}</span>` : ''}
+            ${leader ? `<div style="font-size:0.7rem;color:#94a3b8;margin-bottom:0.2rem;">Leader: ${leader}</div>` : ''}
+            ${doj ? `<div style="font-size:0.7rem;color:#94a3b8;margin-bottom:0.2rem;">Joined: ${formatDate(doj)}</div>` : ''}
+            ${p.dateLeft ? `<div style="font-size:0.7rem;color:#94a3b8;margin-bottom:0.5rem;">Left: ${p.dateLeft}</div>` : ''}
         </div>`;
     }).join('');
 
@@ -6883,9 +6925,9 @@ function parseCSVRows(csv) {
 
 // Locate the header row (tolerant of leading blank rows/columns) and extract
 // records keyed by `fields` -> [acceptable header names, lowercase].
-function extractSheetTable(rows, fields) {
+function extractSheetTable(rows, fields, minMatch) {
     const fieldNames = Object.keys(fields);
-    const need = Math.max(1, Math.ceil(fieldNames.length / 2));
+    const need = minMatch || Math.max(1, Math.ceil(fieldNames.length / 2));
     let headerIdx = -1, cols = null;
     for (let i = 0; i < rows.length; i++) {
         const lower = rows[i].map(h => (h || '').trim().toLowerCase());
