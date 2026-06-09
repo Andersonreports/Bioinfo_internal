@@ -4446,14 +4446,25 @@ body {
                     </div>
                 </div>
 
-                <!-- Lab Presentation Upload -->
+                <!-- Presentation / Poster Upload -->
                 <div class="emp-cert-section">
                     <div class="emp-cert-card">
-                        <h3><i data-lucide="presentation" style="width:16px;height:16px;color:#0ea5e9;"></i>Upload Lab Presentation</h3>
+                        <h3><i data-lucide="presentation" style="width:16px;height:16px;color:#0ea5e9;"></i>Upload Presentation / Poster</h3>
                         <div class="emp-cert-grid">
                             <div class="form-group col-span-2">
                                 <label>Employee</label>
                                 <select id="pres-emp-name"><option value="">Select employee…</option></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Type</label>
+                                <select id="pres-type" onchange="togglePresEventField()">
+                                    <option value="Internal Presentation">Internal Presentation</option>
+                                    <option value="Outer Event">Outer Event</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="pres-event-name-group" style="display:none;">
+                                <label>Event Name</label>
+                                <input type="text" id="pres-event-name" placeholder="e.g. Clinical Genomics Summit 2026">
                             </div>
                             <div class="form-group col-span-2">
                                 <label>Title / Topic</label>
@@ -4464,27 +4475,17 @@ body {
                                 <input type="date" id="pres-date">
                             </div>
                             <div class="form-group">
-                                <label>Type</label>
-                                <select id="pres-type">
-                                    <option value="Journal Club">Journal Club</option>
-                                    <option value="Project Update">Project Update</option>
-                                    <option value="Paper Discussion">Paper Discussion</option>
-                                    <option value="Method / Protocol">Method / Protocol</option>
-                                    <option value="Other">Other</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Slides Link <span style="color:#94a3b8;font-size:0.78rem;">(Google Drive, optional)</span></label>
+                                <label>Slides / Poster Link <span style="color:#94a3b8;font-size:0.78rem;">(Google Drive, optional)</span></label>
                                 <input type="text" id="pres-file-link" placeholder="Paste Google Drive share link">
                             </div>
-                            <div class="form-group">
+                            <div class="form-group col-span-2">
                                 <label>Photo <span style="color:#94a3b8;font-weight:400;">(optional)</span></label>
                                 <input type="file" id="pres-photo" accept="image/*">
                             </div>
                         </div>
                         <div style="display:flex;justify-content:flex-end;">
                             <button class="btn-primary" onclick="submitPresentation()" style="display:flex;align-items:center;gap:0.4rem;">
-                                <i data-lucide="upload-cloud" style="width:15px;height:15px;"></i> Upload Lab Presentation
+                                <i data-lucide="upload-cloud" style="width:15px;height:15px;"></i> Upload
                             </button>
                         </div>
                     </div>
@@ -6494,39 +6495,10 @@ function handleAddEmployee(event) {
     renderEmployeeSpace();
 }
 
-// Achievements Wall
-function renderAchievementsWall() {
-    const walls = document.querySelectorAll('.js-achievements-wall');
-    if (!walls.length) return;
-
-    const allCerts = [];
-    employees.forEach(emp => {
-        (emp.certificates || []).forEach(cert => {
-            allCerts.push({ emp, cert });
-        });
-    });
-
-    if (!allCerts.length) {
-        const empty = `<div style="text-align:center;color:#94a3b8;font-size:0.82rem;padding:2rem 1rem;line-height:1.6;">No achievements uploaded yet.<br>Employees can upload from the Employee Dashboard.</div>`;
-        walls.forEach(w => w.innerHTML = empty);
-        return;
-    }
-
-    allCerts.sort((a, b) => {
-        const da = a.cert.date || '0000-00-00';
-        const db = b.cert.date || '0000-00-00';
-        return db.localeCompare(da);
-    });
-
-    const fmtCertDate = (d) => {
-        if (!d) return '';
-        const [y, m, dd] = d.split('-').map(Number);
-        const mons = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-        const sf = (n) => n>=11&&n<=13?'th':['th','st','nd','rd'][n%10]||'th';
-        return `${dd}${sf(dd)} ${mons[m-1]} ${y}`;
-    };
-
-    // Build a natural-language caption from the achievement data.
+// Single certificate/achievement card.
+function _achCertCard(emp, cert) {
+    const dateDisplay = _fmtLongDate(cert.date);
+    const isImage = (f) => f && f.data && (f.type ? f.type.startsWith('image') : /^data:image/.test(f.data));
     const buildCaption = (name, c) => {
         const ev = (c.eventName || '').trim();
         if (c.award && c.award.trim()) {
@@ -6538,48 +6510,64 @@ function renderAchievementsWall() {
         if (c.place && c.place.trim()) s += `, ${c.place.trim()}`;
         return s + '.';
     };
-    const isImage = (f) => f && f.data && (f.type ? f.type.startsWith('image') : /^data:image/.test(f.data));
 
-    const html = allCerts.map(({ emp, cert }) => {
-        const dateDisplay = fmtCertDate(cert.date);
+    const photoMedia = cert.photo && cert.photo.data
+        ? `<img src="${cert.photo.data}" class="ach-card-media-img" title="View photo" onclick="viewCertFile(${emp.id},'${cert.id}','photo')">`
+        : '';
+    const certMedia = cert.certificate && cert.certificate.data
+        ? (isImage(cert.certificate)
+            ? `<img src="${cert.certificate.data}" class="ach-card-media-img" title="View certificate" onclick="viewCertFile(${emp.id},'${cert.id}','certificate')">`
+            : `<div class="ach-card-doc" title="View certificate" onclick="viewCertFile(${emp.id},'${cert.id}','certificate')"><i data-lucide="file-text" style="width:26px;height:26px;"></i><span>Certificate</span></div>`)
+        : '';
+    const mediaBlock = (photoMedia || certMedia) ? `<div class="ach-card-media">${certMedia}${photoMedia}</div>` : '';
 
-        // Inline previews for the uploaded photo and certificate.
-        const photoMedia = cert.photo && cert.photo.data
-            ? `<img src="${cert.photo.data}" class="ach-card-media-img" title="View photo" onclick="viewCertFile(${emp.id},'${cert.id}','photo')">`
-            : '';
-        const certMedia = cert.certificate && cert.certificate.data
-            ? (isImage(cert.certificate)
-                ? `<img src="${cert.certificate.data}" class="ach-card-media-img" title="View certificate" onclick="viewCertFile(${emp.id},'${cert.id}','certificate')">`
-                : `<div class="ach-card-doc" title="View certificate" onclick="viewCertFile(${emp.id},'${cert.id}','certificate')"><i data-lucide="file-text" style="width:26px;height:26px;"></i><span>Certificate</span></div>`)
-            : '';
-        const mediaBlock = (photoMedia || certMedia) ? `<div class="ach-card-media">${certMedia}${photoMedia}</div>` : '';
+    const certBtn = cert.certificate && cert.certificate.data
+        ? `<button class="cert-file-btn view" onclick="viewCertFile(${emp.id},'${cert.id}','certificate')"><i data-lucide="eye" style="width:13px;height:13px;"></i> View</button>
+           <a class="cert-file-btn download" href="${cert.certificate.data}" download="${cert.certificate.name}"><i data-lucide="download" style="width:13px;height:13px;"></i> Download</a>`
+        : '';
 
-        const certBtn = cert.certificate && cert.certificate.data
-            ? `<button class="cert-file-btn view" onclick="viewCertFile(${emp.id},'${cert.id}','certificate')"><i data-lucide="eye" style="width:13px;height:13px;"></i> View</button>
-               <a class="cert-file-btn download" href="${cert.certificate.data}" download="${cert.certificate.name}"><i data-lucide="download" style="width:13px;height:13px;"></i> Download</a>`
-            : '';
-
-        return `
-            <div class="ach-card">
-                <div class="ach-card-author">
-                    <img src="${emp.avatar}" alt="${emp.name}" class="ach-card-avatar">
-                    <div>
-                        <div class="ach-card-name">${emp.name}</div>
-                        <div class="ach-card-role">${emp.role}</div>
-                    </div>
+    return `
+        <div class="ach-card">
+            <div class="ach-card-author">
+                <img src="${emp.avatar}" alt="${emp.name}" class="ach-card-avatar">
+                <div>
+                    <div class="ach-card-name">${emp.name}</div>
+                    <div class="ach-card-role">${emp.role}</div>
                 </div>
-                <div class="ach-card-event">${cert.eventName}</div>
-                <div class="ach-card-meta">
-                    ${cert.place ? `<span class="ach-meta-tag"><i data-lucide="map-pin" style="width:11px;height:11px;"></i>${cert.place}</span>` : ''}
-                    ${dateDisplay ? `<span class="ach-meta-tag"><i data-lucide="calendar" style="width:11px;height:11px;"></i>${dateDisplay}</span>` : ''}
-                    ${cert.award ? `<span class="ach-meta-tag ach-award-tag"><i data-lucide="trophy" style="width:11px;height:11px;"></i>${cert.award}</span>` : ''}
-                </div>
-                ${mediaBlock}
-                <div class="ach-card-caption">${buildCaption(emp.name, cert)}</div>
-                ${certBtn ? `<div class="ach-card-actions">${certBtn}</div>` : ''}
-            </div>`;
-    }).join('');
+            </div>
+            <div class="ach-card-event">${cert.eventName}</div>
+            <div class="ach-card-meta">
+                ${cert.place ? `<span class="ach-meta-tag"><i data-lucide="map-pin" style="width:11px;height:11px;"></i>${cert.place}</span>` : ''}
+                ${dateDisplay ? `<span class="ach-meta-tag"><i data-lucide="calendar" style="width:11px;height:11px;"></i>${dateDisplay}</span>` : ''}
+                ${cert.award ? `<span class="ach-meta-tag ach-award-tag"><i data-lucide="trophy" style="width:11px;height:11px;"></i>${cert.award}</span>` : ''}
+            </div>
+            ${mediaBlock}
+            <div class="ach-card-caption">${buildCaption(emp.name, cert)}</div>
+            ${certBtn ? `<div class="ach-card-actions">${certBtn}</div>` : ''}
+        </div>`;
+}
 
+// Achievements Wall — certificates/awards plus outer-event posters & talks.
+function renderAchievementsWall() {
+    const walls = document.querySelectorAll('.js-achievements-wall');
+    if (!walls.length) return;
+
+    const items = [];
+    employees.forEach(emp => {
+        (emp.certificates || []).forEach(cert => items.push({ kind: 'cert', date: cert.date || '0000-00-00', emp, cert }));
+    });
+    presentationsCache.filter(r => r.pres_type === 'Outer Event').forEach(row => {
+        items.push({ kind: 'pres', date: row.pres_date || '0000-00-00', row });
+    });
+
+    if (!items.length) {
+        const empty = `<div style="text-align:center;color:#94a3b8;font-size:0.82rem;padding:2rem 1rem;line-height:1.6;">No achievements uploaded yet.<br>Employees can upload from the Employee Dashboard.</div>`;
+        walls.forEach(w => w.innerHTML = empty);
+        return;
+    }
+
+    items.sort((a, b) => b.date.localeCompare(a.date));
+    const html = items.map(it => it.kind === 'cert' ? _achCertCard(it.emp, it.cert) : _achPresCard(it.row)).join('');
     walls.forEach(w => w.innerHTML = html);
     lucide.createIcons();
 }
@@ -6752,44 +6740,52 @@ function renderPublications() {
     lucide.createIcons();
 }
 
+// Single presentation/poster card (used by the Lab Presentations tab and, for
+// outer events, the Achievements wall).
+function _achPresCard(row) {
+    const canDelete = !!getSession();
+    const dateDisplay = _fmtLongDate(row.pres_date);
+    const photoMedia = row.photo_url
+        ? `<img src="${row.photo_url}" class="ach-card-media-img" title="View photo" onclick="window.open('${row.photo_url}','_blank')">`
+        : '';
+    const fileMedia = row.file_url && !row.photo_url && _isImageName(row.file_name)
+        ? `<img src="${row.file_url}" class="ach-card-media-img" title="View slides" onclick="window.open('${row.file_url}','_blank')">`
+        : '';
+    const mediaBlock = (photoMedia || fileMedia) ? `<div class="ach-card-media">${photoMedia}${fileMedia}</div>` : '';
+
+    const actions = [];
+    if (row.file_url) {
+        actions.push(`<a class="cert-file-btn view" href="${_driveView(row.file_url)}" target="_blank" rel="noopener"><i data-lucide="eye" style="width:13px;height:13px;"></i> View</a>`);
+        actions.push(`<a class="cert-file-btn download" href="${_driveDownload(row.file_url)}" target="_blank" rel="noopener"><i data-lucide="download" style="width:13px;height:13px;"></i> Download</a>`);
+    }
+    if (canDelete) actions.push(`<button class="cert-file-btn" onclick="deletePresentation('${row.id}')" style="color:#dc2626;"><i data-lucide="trash-2" style="width:13px;height:13px;"></i> Delete</button>`);
+
+    return `<div class="ach-card">
+        ${_authorBlock(row)}
+        <div class="ach-card-event">${row.title || ''}</div>
+        <div class="ach-card-meta">
+            ${row.event_name ? `<span class="ach-meta-tag"><i data-lucide="mic" style="width:11px;height:11px;"></i>${row.event_name}</span>` : ''}
+            ${dateDisplay ? `<span class="ach-meta-tag"><i data-lucide="calendar" style="width:11px;height:11px;"></i>${dateDisplay}</span>` : ''}
+            ${row.pres_type ? `<span class="ach-meta-tag ach-award-tag"><i data-lucide="presentation" style="width:11px;height:11px;"></i>${row.pres_type}</span>` : ''}
+        </div>
+        ${mediaBlock}
+        ${actions.length ? `<div class="ach-card-actions">${actions.join('')}</div>` : ''}
+    </div>`;
+}
+
 function renderPresentations() {
     const wall = document.getElementById('presentations-wall');
     if (!wall) return;
-    const canDelete = !!getSession();
+    // Lab Presentations tab shows internal presentations only; outer events
+    // appear on the Achievements wall instead.
+    const internal = presentationsCache.filter(r => r.pres_type !== 'Outer Event');
 
-    if (!presentationsCache.length) {
-        wall.innerHTML = `<div style="text-align:center;color:#94a3b8;font-size:0.82rem;padding:2rem 1rem;line-height:1.6;">No presentations added yet.<br>Add one using the form above.</div>`;
+    if (!internal.length) {
+        wall.innerHTML = `<div style="text-align:center;color:#94a3b8;font-size:0.82rem;padding:2rem 1rem;line-height:1.6;">No lab presentations added yet.<br>Add one from the Employee Dashboard.</div>`;
         return;
     }
 
-    wall.innerHTML = presentationsCache.map(row => {
-        const dateDisplay = _fmtLongDate(row.pres_date);
-        const photoMedia = row.photo_url
-            ? `<img src="${row.photo_url}" class="ach-card-media-img" title="View photo" onclick="window.open('${row.photo_url}','_blank')">`
-            : '';
-        const fileMedia = row.file_url && !row.photo_url && _isImageName(row.file_name)
-            ? `<img src="${row.file_url}" class="ach-card-media-img" title="View slides" onclick="window.open('${row.file_url}','_blank')">`
-            : '';
-        const mediaBlock = (photoMedia || fileMedia) ? `<div class="ach-card-media">${photoMedia}${fileMedia}</div>` : '';
-
-        const actions = [];
-        if (row.file_url) {
-            actions.push(`<a class="cert-file-btn view" href="${_driveView(row.file_url)}" target="_blank" rel="noopener"><i data-lucide="eye" style="width:13px;height:13px;"></i> View</a>`);
-            actions.push(`<a class="cert-file-btn download" href="${_driveDownload(row.file_url)}" target="_blank" rel="noopener"><i data-lucide="download" style="width:13px;height:13px;"></i> Download</a>`);
-        }
-        if (canDelete) actions.push(`<button class="cert-file-btn" onclick="deletePresentation('${row.id}')" style="color:#dc2626;"><i data-lucide="trash-2" style="width:13px;height:13px;"></i> Delete</button>`);
-
-        return `<div class="ach-card">
-            ${_authorBlock(row)}
-            <div class="ach-card-event">${row.title || ''}</div>
-            <div class="ach-card-meta">
-                ${dateDisplay ? `<span class="ach-meta-tag"><i data-lucide="calendar" style="width:11px;height:11px;"></i>${dateDisplay}</span>` : ''}
-                ${row.pres_type ? `<span class="ach-meta-tag ach-award-tag"><i data-lucide="presentation" style="width:11px;height:11px;"></i>${row.pres_type}</span>` : ''}
-            </div>
-            ${mediaBlock}
-            ${actions.length ? `<div class="ach-card-actions">${actions.join('')}</div>` : ''}
-        </div>`;
-    }).join('');
+    wall.innerHTML = internal.map(_achPresCard).join('');
     lucide.createIcons();
 }
 
@@ -6845,6 +6841,13 @@ async function submitPublication() {
     renderPublications();
 }
 
+// Show the Event Name field only for outer events.
+function togglePresEventField() {
+    const type = document.getElementById('pres-type').value;
+    const group = document.getElementById('pres-event-name-group');
+    if (group) group.style.display = type === 'Outer Event' ? '' : 'none';
+}
+
 async function submitPresentation() {
     if (!getSession()) { alert('Please log in to upload.'); return; }
     const empName = document.getElementById('pres-emp-name').value;
@@ -6854,11 +6857,14 @@ async function submitPresentation() {
     const title   = document.getElementById('pres-title').value.trim();
     const presDate = document.getElementById('pres-date').value;
     const type    = document.getElementById('pres-type').value;
+    const isOuter = type === 'Outer Event';
+    const eventName = document.getElementById('pres-event-name').value.trim();
     const fileLink = document.getElementById('pres-file-link').value.trim();
     const photoInput = document.getElementById('pres-photo');
 
-    if (!title)    { alert('Please enter the presentation title.'); return; }
+    if (!title)    { alert('Please enter the title.'); return; }
     if (!presDate) { alert('Please select the date.'); return; }
+    if (isOuter && !eventName) { alert('Please enter the event name.'); return; }
 
     try {
         const photo = await sbUpload('presentations', photoInput.files[0] || null);
@@ -6866,7 +6872,7 @@ async function submitPresentation() {
             employee_id: emp.employeeId,
             author_name: emp.name,
             title,
-            event_name: null,
+            event_name: isOuter ? eventName : null,
             pres_date: presDate,
             place: null,
             pres_type: type,
@@ -6884,12 +6890,15 @@ async function submitPresentation() {
 
     document.getElementById('pres-title').value = '';
     document.getElementById('pres-date').value = '';
-    document.getElementById('pres-type').value = 'Journal Club';
+    document.getElementById('pres-type').value = 'Internal Presentation';
+    document.getElementById('pres-event-name').value = '';
     document.getElementById('pres-file-link').value = '';
     photoInput.value = '';
+    togglePresEventField();
     setupUploaderFields();
-    alert('Lab presentation added!');
+    alert(isOuter ? 'Added to Achievements!' : 'Lab presentation added!');
     renderPresentations();
+    renderAchievementsWall();
 }
 
 // ---- Delete ----
@@ -6915,6 +6924,7 @@ async function deletePresentation(id) {
     } catch (e) { console.error('deletePresentation failed:', e); alert('Delete failed: ' + (e.message || e)); return; }
     presentationsCache = presentationsCache.filter(r => r.id !== id);
     renderPresentations();
+    renderAchievementsWall();
 }
 
 // Directory — replaced below; stub kept to avoid reference errors during load
