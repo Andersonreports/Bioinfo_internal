@@ -4194,7 +4194,7 @@ body {
             </button>
             <button class="nav-tab" id="btn-presentations-view" onclick="switchView('presentations')">
                 <i data-lucide="presentation"></i>
-                <span>Presentations</span>
+                <span>Lab Presentations</span>
             </button>
             <button class="nav-tab" id="btn-tools-view" onclick="switchView('tools')">
                 <i data-lucide="wrench"></i>
@@ -4395,6 +4395,96 @@ body {
                         <div style="display:flex;justify-content:flex-end;">
                             <button class="btn-primary" onclick="submitEmpCert()" style="display:flex;align-items:center;gap:0.4rem;">
                                 <i data-lucide="upload-cloud" style="width:15px;height:15px;"></i> Upload Achievement
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Publication Upload -->
+                <div class="emp-cert-section">
+                    <div class="emp-cert-card">
+                        <h3><i data-lucide="book-open" style="width:16px;height:16px;color:#6366f1;"></i>Upload Publication</h3>
+                        <div class="emp-cert-grid">
+                            <div class="form-group col-span-2">
+                                <label>Employee</label>
+                                <select id="pub-emp-name"><option value="">Select employee…</option></select>
+                            </div>
+                            <div class="form-group col-span-2">
+                                <label>Title</label>
+                                <input type="text" id="pub-title" placeholder="e.g. Genomic markers in clinical diagnostics">
+                            </div>
+                            <div class="form-group col-span-2">
+                                <label>Authors</label>
+                                <input type="text" id="pub-authors" placeholder="e.g. A. Kumar, S. Rao, et al.">
+                            </div>
+                            <div class="form-group">
+                                <label>Journal / Venue</label>
+                                <input type="text" id="pub-venue" placeholder="e.g. Nature Genetics">
+                            </div>
+                            <div class="form-group">
+                                <label>Publication Date</label>
+                                <input type="date" id="pub-date">
+                            </div>
+                            <div class="form-group col-span-2">
+                                <label>DOI / Link <span style="color:#94a3b8;font-weight:400;">(optional)</span></label>
+                                <input type="text" id="pub-link" placeholder="e.g. https://doi.org/10.1038/...">
+                            </div>
+                            <div class="form-group">
+                                <label>Paper Link <span style="color:#94a3b8;font-size:0.78rem;">(Google Drive, optional)</span></label>
+                                <input type="text" id="pub-file-link" placeholder="Paste Google Drive share link">
+                            </div>
+                            <div class="form-group">
+                                <label>Cover Image <span style="color:#94a3b8;font-weight:400;">(optional)</span></label>
+                                <input type="file" id="pub-cover" accept="image/*">
+                            </div>
+                        </div>
+                        <div style="display:flex;justify-content:flex-end;">
+                            <button class="btn-primary" onclick="submitPublication()" style="display:flex;align-items:center;gap:0.4rem;">
+                                <i data-lucide="upload-cloud" style="width:15px;height:15px;"></i> Upload Publication
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lab Presentation Upload -->
+                <div class="emp-cert-section">
+                    <div class="emp-cert-card">
+                        <h3><i data-lucide="presentation" style="width:16px;height:16px;color:#0ea5e9;"></i>Upload Lab Presentation</h3>
+                        <div class="emp-cert-grid">
+                            <div class="form-group col-span-2">
+                                <label>Employee</label>
+                                <select id="pres-emp-name"><option value="">Select employee…</option></select>
+                            </div>
+                            <div class="form-group col-span-2">
+                                <label>Title / Topic</label>
+                                <input type="text" id="pres-title" placeholder="e.g. Single-cell approaches to tumor profiling">
+                            </div>
+                            <div class="form-group">
+                                <label>Date</label>
+                                <input type="date" id="pres-date">
+                            </div>
+                            <div class="form-group">
+                                <label>Type</label>
+                                <select id="pres-type">
+                                    <option value="Journal Club">Journal Club</option>
+                                    <option value="Project Update">Project Update</option>
+                                    <option value="Paper Discussion">Paper Discussion</option>
+                                    <option value="Method / Protocol">Method / Protocol</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Slides Link <span style="color:#94a3b8;font-size:0.78rem;">(Google Drive, optional)</span></label>
+                                <input type="text" id="pres-file-link" placeholder="Paste Google Drive share link">
+                            </div>
+                            <div class="form-group">
+                                <label>Photo <span style="color:#94a3b8;font-weight:400;">(optional)</span></label>
+                                <input type="file" id="pres-photo" accept="image/*">
+                            </div>
+                        </div>
+                        <div style="display:flex;justify-content:flex-end;">
+                            <button class="btn-primary" onclick="submitPresentation()" style="display:flex;align-items:center;gap:0.4rem;">
+                                <i data-lucide="upload-cloud" style="width:15px;height:15px;"></i> Upload Lab Presentation
                             </button>
                         </div>
                     </div>
@@ -4613,51 +4703,7 @@ body {
             <section id="publications-view" class="view-section" style="display: none;">
                 <div class="view-header">
                     <h1>Publications</h1>
-                    <p>Papers, articles, and journal publications from the team.</p>
-                </div>
-                <div class="emp-cert-section">
-                    <div class="emp-cert-card">
-                        <h3><i data-lucide="book-open" style="width:16px;height:16px;color:#6366f1;"></i>Add Publication</h3>
-                        <div class="emp-cert-grid">
-                            <div class="form-group col-span-2">
-                                <label>Your Name</label>
-                                <input type="text" id="pub-emp-name" readonly title="Logged in as" style="background:#f8f9fa;color:#475569;cursor:not-allowed;">
-                            </div>
-                            <div class="form-group col-span-2">
-                                <label>Title</label>
-                                <input type="text" id="pub-title" placeholder="e.g. Genomic markers in clinical diagnostics">
-                            </div>
-                            <div class="form-group col-span-2">
-                                <label>Authors</label>
-                                <input type="text" id="pub-authors" placeholder="e.g. A. Kumar, S. Rao, et al.">
-                            </div>
-                            <div class="form-group">
-                                <label>Journal / Venue</label>
-                                <input type="text" id="pub-venue" placeholder="e.g. Nature Genetics">
-                            </div>
-                            <div class="form-group">
-                                <label>Publication Date</label>
-                                <input type="date" id="pub-date">
-                            </div>
-                            <div class="form-group col-span-2">
-                                <label>DOI / Link <span style="color:#94a3b8;font-weight:400;">(optional)</span></label>
-                                <input type="text" id="pub-link" placeholder="e.g. https://doi.org/10.1038/...">
-                            </div>
-                            <div class="form-group">
-                                <label>Paper Link <span style="color:#94a3b8;font-size:0.78rem;">(Google Drive, optional)</span></label>
-                                <input type="text" id="pub-file-link" placeholder="Paste Google Drive share link">
-                            </div>
-                            <div class="form-group">
-                                <label>Cover Image <span style="color:#94a3b8;font-weight:400;">(optional)</span></label>
-                                <input type="file" id="pub-cover" accept="image/*">
-                            </div>
-                        </div>
-                        <div style="display:flex;justify-content:flex-end;">
-                            <button class="btn-primary" onclick="submitPublication()" style="display:flex;align-items:center;gap:0.4rem;">
-                                <i data-lucide="upload-cloud" style="width:15px;height:15px;"></i> Add Publication
-                            </button>
-                        </div>
-                    </div>
+                    <p>Papers, articles, and journal publications from the team. Upload from the Employee Dashboard.</p>
                 </div>
                 <div id="publications-wall" class="achievements-full-wall">
                     <!-- Populated by JS -->
@@ -4667,57 +4713,8 @@ body {
             <!-- Presentations View -->
             <section id="presentations-view" class="view-section" style="display: none;">
                 <div class="view-header">
-                    <h1>Presentations</h1>
-                    <p>Talks, posters, and conference presentations from the team.</p>
-                </div>
-                <div class="emp-cert-section">
-                    <div class="emp-cert-card">
-                        <h3><i data-lucide="presentation" style="width:16px;height:16px;color:#0ea5e9;"></i>Add Presentation</h3>
-                        <div class="emp-cert-grid">
-                            <div class="form-group col-span-2">
-                                <label>Your Name</label>
-                                <input type="text" id="pres-emp-name" readonly title="Logged in as" style="background:#f8f9fa;color:#475569;cursor:not-allowed;">
-                            </div>
-                            <div class="form-group col-span-2">
-                                <label>Title</label>
-                                <input type="text" id="pres-title" placeholder="e.g. Single-cell approaches to tumor profiling">
-                            </div>
-                            <div class="form-group">
-                                <label>Event / Conference</label>
-                                <input type="text" id="pres-event" placeholder="e.g. Clinical Genomics Summit 2026">
-                            </div>
-                            <div class="form-group">
-                                <label>Date</label>
-                                <input type="date" id="pres-date">
-                            </div>
-                            <div class="form-group">
-                                <label>Place</label>
-                                <input type="text" id="pres-place" placeholder="e.g. Chennai, India">
-                            </div>
-                            <div class="form-group">
-                                <label>Type</label>
-                                <select id="pres-type">
-                                    <option value="Oral">Oral</option>
-                                    <option value="Poster">Poster</option>
-                                    <option value="Workshop">Workshop</option>
-                                    <option value="Keynote">Keynote</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Slides Link <span style="color:#94a3b8;font-size:0.78rem;">(Google Drive, optional)</span></label>
-                                <input type="text" id="pres-file-link" placeholder="Paste Google Drive share link">
-                            </div>
-                            <div class="form-group">
-                                <label>Photo <span style="color:#94a3b8;font-weight:400;">(optional)</span></label>
-                                <input type="file" id="pres-photo" accept="image/*">
-                            </div>
-                        </div>
-                        <div style="display:flex;justify-content:flex-end;">
-                            <button class="btn-primary" onclick="submitPresentation()" style="display:flex;align-items:center;gap:0.4rem;">
-                                <i data-lucide="upload-cloud" style="width:15px;height:15px;"></i> Add Presentation
-                            </button>
-                        </div>
-                    </div>
+                    <h1>Lab Presentations</h1>
+                    <p>Internal presentations shared within the team. Upload from the Employee Dashboard.</p>
                 </div>
                 <div id="presentations-wall" class="achievements-full-wall">
                     <!-- Populated by JS -->
@@ -6300,6 +6297,12 @@ function populateWuNameDropdowns() {
     if (sel) {
         sel.innerHTML = '<option value="all">All Employees</option>' + names.map(n => `<option value="${n}">${n}</option>`).join('');
     }
+    // Publications & lab presentations use a selectable employee dropdown so an
+    // admin can attribute an upload to any team member.
+    ['pub-emp-name', 'pres-emp-name'].forEach(id => {
+        const dd = document.getElementById(id);
+        if (dd) dd.innerHTML = '<option value="">Select employee…</option>' + names.map(n => `<option value="${n}">${n}</option>`).join('');
+    });
     // The post-update and certificate name fields are fixed to the logged-in user (no dropdown).
     setWuName();
 }
@@ -6310,7 +6313,7 @@ function setWuName() {
     if (!session) return;
     const emp = (typeof resolveSessionEmployee === 'function') ? resolveSessionEmployee(session) : null;
     const name = (emp && emp.name) ? emp.name : (session.name || '');
-    ['wu-name', 'cert-emp-name', 'pub-emp-name', 'pres-emp-name'].forEach(id => {
+    ['wu-name', 'cert-emp-name'].forEach(id => {
         const input = document.getElementById(id);
         if (input) input.value = name;
     });
@@ -6625,13 +6628,6 @@ function _empByEmployeeId(eid) {
     return employees.find(e => e.employeeId === eid);
 }
 
-// Currently logged-in employee, or null.
-function _currentEmployee() {
-    const session = getSession();
-    if (!session) return null;
-    return (typeof resolveSessionEmployee === 'function') ? resolveSessionEmployee(session) : null;
-}
-
 function _fmtLongDate(d) {
     if (!d) return '';
     const [y, m, dd] = d.split('-').map(Number);
@@ -6696,7 +6692,7 @@ async function loadPresentations() {
 function renderPublications() {
     const wall = document.getElementById('publications-wall');
     if (!wall) return;
-    const canDelete = !!_currentEmployee();
+    const canDelete = !!getSession();
 
     if (!publicationsCache.length) {
         wall.innerHTML = `<div style="text-align:center;color:#94a3b8;font-size:0.82rem;padding:2rem 1rem;line-height:1.6;">No publications added yet.<br>Add one using the form above.</div>`;
@@ -6739,7 +6735,7 @@ function renderPublications() {
 function renderPresentations() {
     const wall = document.getElementById('presentations-wall');
     if (!wall) return;
-    const canDelete = !!_currentEmployee();
+    const canDelete = !!getSession();
 
     if (!presentationsCache.length) {
         wall.innerHTML = `<div style="text-align:center;color:#94a3b8;font-size:0.82rem;padding:2rem 1rem;line-height:1.6;">No presentations added yet.<br>Add one using the form above.</div>`;
@@ -6767,8 +6763,6 @@ function renderPresentations() {
             ${_authorBlock(row)}
             <div class="ach-card-event">${row.title || ''}</div>
             <div class="ach-card-meta">
-                ${row.event_name ? `<span class="ach-meta-tag"><i data-lucide="mic" style="width:11px;height:11px;"></i>${row.event_name}</span>` : ''}
-                ${row.place ? `<span class="ach-meta-tag"><i data-lucide="map-pin" style="width:11px;height:11px;"></i>${row.place}</span>` : ''}
                 ${dateDisplay ? `<span class="ach-meta-tag"><i data-lucide="calendar" style="width:11px;height:11px;"></i>${dateDisplay}</span>` : ''}
                 ${row.pres_type ? `<span class="ach-meta-tag ach-award-tag"><i data-lucide="presentation" style="width:11px;height:11px;"></i>${row.pres_type}</span>` : ''}
             </div>
@@ -6781,8 +6775,11 @@ function renderPresentations() {
 
 // ---- Submit ----
 async function submitPublication() {
-    const emp = _currentEmployee();
-    if (!emp) { alert('Please log in to add a publication.'); return; }
+    if (!getSession()) { alert('Please log in to upload.'); return; }
+    const empName = document.getElementById('pub-emp-name').value;
+    if (!empName) { alert('Please select the employee.'); return; }
+    const emp = employees.find(e => e.name === empName);
+    if (!emp) { alert('Employee not found.'); return; }
     const title   = document.getElementById('pub-title').value.trim();
     const authors = document.getElementById('pub-authors').value.trim();
     const venue   = document.getElementById('pub-venue').value.trim();
@@ -6822,24 +6819,25 @@ async function submitPublication() {
     document.getElementById('pub-date').value = '';
     document.getElementById('pub-link').value = '';
     document.getElementById('pub-file-link').value = '';
+    document.getElementById('pub-emp-name').value = '';
     coverInput.value = '';
     alert('Publication added!');
     renderPublications();
 }
 
 async function submitPresentation() {
-    const emp = _currentEmployee();
-    if (!emp) { alert('Please log in to add a presentation.'); return; }
+    if (!getSession()) { alert('Please log in to upload.'); return; }
+    const empName = document.getElementById('pres-emp-name').value;
+    if (!empName) { alert('Please select the employee.'); return; }
+    const emp = employees.find(e => e.name === empName);
+    if (!emp) { alert('Employee not found.'); return; }
     const title   = document.getElementById('pres-title').value.trim();
-    const event   = document.getElementById('pres-event').value.trim();
     const presDate = document.getElementById('pres-date').value;
-    const place   = document.getElementById('pres-place').value.trim();
     const type    = document.getElementById('pres-type').value;
     const fileLink = document.getElementById('pres-file-link').value.trim();
     const photoInput = document.getElementById('pres-photo');
 
     if (!title)    { alert('Please enter the presentation title.'); return; }
-    if (!event)    { alert('Please enter the event / conference.'); return; }
     if (!presDate) { alert('Please select the date.'); return; }
 
     try {
@@ -6848,9 +6846,9 @@ async function submitPresentation() {
             employee_id: emp.employeeId,
             author_name: emp.name,
             title,
-            event_name: event,
+            event_name: null,
             pres_date: presDate,
-            place: place || null,
+            place: null,
             pres_type: type,
             file_url:  fileLink || null,
             file_name: null,
@@ -6865,13 +6863,12 @@ async function submitPresentation() {
     }
 
     document.getElementById('pres-title').value = '';
-    document.getElementById('pres-event').value = '';
     document.getElementById('pres-date').value = '';
-    document.getElementById('pres-place').value = '';
-    document.getElementById('pres-type').value = 'Oral';
+    document.getElementById('pres-type').value = 'Journal Club';
     document.getElementById('pres-file-link').value = '';
+    document.getElementById('pres-emp-name').value = '';
     photoInput.value = '';
-    alert('Presentation added!');
+    alert('Lab presentation added!');
     renderPresentations();
 }
 
