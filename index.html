@@ -5592,12 +5592,13 @@ async function fetchData() {
             return parseDate(a.doj) - parseDate(b.doj);
         });
 
-        // Layer shared content from Supabase (certificates + avatars) onto employees.
-        const [certMap, avatarMap] = await Promise.all([loadCertificatesMap(), loadAvatarsMap()]);
+        // Layer shared content from Supabase (certificates + avatars + leaves) onto employees.
+        const [certMap, avatarMap, leavesMap] = await Promise.all([loadCertificatesMap(), loadAvatarsMap(), loadLeaves()]);
         employees.forEach(emp => {
             emp.certificates = certMap[emp.employeeId] || [];
             if (avatarMap[emp.employeeId]) emp.avatar = avatarMap[emp.employeeId];
         });
+        leaves = leavesMap;
 
         populateTeamLeaders();
         updateKPIs();
@@ -7657,6 +7658,17 @@ async function loadAvatarsMap() {
     } catch (e) { console.error('loadAvatarsMap failed:', e); }
     return map;
 }
+// Fetch all approved leaves as { employee_id: [dateStr, ...] }.
+async function loadLeaves() {
+    const map = {};
+    try {
+        const { data, error } = await _sb.from('leaves').select('*');
+        if (error) throw error;
+        (data || []).forEach(row => { (map[row.employee_id] = map[row.employee_id] || []).push(row.leave_date); });
+        Object.keys(map).forEach(k => map[k].sort());
+    } catch (e) { console.error('loadLeaves failed:', e); }
+    return map;
+}
 
 const AUTH_SESSION_KEY = 'auth_session';
 
@@ -8074,15 +8086,22 @@ function renderLeaveHistory(session) {
     lucide.createIcons();
 }
 
-function removeLeaveDate(empId, date) {
+async function removeLeaveDate(empId, date) {
     if (!confirm(`Remove leave on ${date}?`)) return;
+    try {
+        const { error } = await _sb.from('leaves').delete().eq('employee_id', empId).eq('leave_date', date);
+        if (error) throw error;
+    } catch (e) {
+        console.error('removeLeaveDate failed:', e);
+        alert('Could not remove leave: ' + (e.message || e));
+        return;
+    }
     if (leaves[empId]) {
         leaves[empId] = leaves[empId].filter(d => d !== date);
         if (leaves[empId].length === 0) delete leaves[empId];
-        localStorage.setItem('leaves', JSON.stringify(leaves));
-        renderCalendar();
-        renderLeaveHistory(getSession());
     }
+    renderCalendar();
+    renderLeaveHistory(getSession());
 }
 
 // ===== PROFILE TAB =====
@@ -8194,7 +8213,7 @@ function safeParseJSON(str, fallback) {
 
 // ===== CALENDAR & LEAVE MANAGEMENT =====
 // Leave storage: { empId: ['2026-05-28', '2026-05-29', ...] }
-let leaves = JSON.parse(localStorage.getItem('leaves') || '{}');
+let leaves = {};  // { employeeId: [dateStr,...] } — loaded from Supabase in loadLeaves()
 // Default to today's date.
 const _todayDate = new Date();
 let _currentCalendarMonth = _todayDate.getMonth();
@@ -8349,7 +8368,7 @@ function closeLeaveRequestModal(event) {
     document.getElementById('leave-request-modal').style.display = 'none';
 }
 
-function saveLeaveRequest() {
+async function saveLeaveRequest() {
     const session = getSession();
     if (!session) return;
     const emp = resolveSessionEmployee(session);
@@ -8380,8 +8399,19 @@ function saveLeaveRequest() {
         current.setDate(current.getDate() + 1);
     }
 
+    // Persist to Supabase (shared across all users/devices). Upsert ignores dates
+    // already logged thanks to the (employee_id, leave_date) unique constraint.
+    try {
+        const rows = dates.map(d => ({ employee_id: emp.employeeId, leave_date: d }));
+        const { error } = await _sb.from('leaves').upsert(rows, { onConflict: 'employee_id,leave_date' });
+        if (error) throw error;
+    } catch (e) {
+        console.error('saveLeaveRequest failed:', e);
+        alert('Could not save leave: ' + (e.message || e));
+        return;
+    }
+
     leaves[emp.employeeId] = [...new Set([...(leaves[emp.employeeId] || []), ...dates])].sort();
-    localStorage.setItem('leaves', JSON.stringify(leaves));
 
     // Clear form
     document.getElementById('leave-start-date').value = '';
@@ -8458,7 +8488,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             setSession(session);
             initApp(session);
             fetchData().then(() => {
-                if (session.role === 'employee') { renderHomeTab(); renderProfileTab(); }
+                renderHomeTab();   // refresh leaves/absent/achievements for ALL roles once data loads
+                if (session.role === 'employee') renderProfileTab();
             });
         } else {
             await _sb.auth.signOut();

@@ -86,6 +86,15 @@ create table if not exists public.presentations (
 );
 create index if not exists presentations_employee_id_idx on public.presentations (employee_id);
 
+create table if not exists public.leaves (
+    id           uuid primary key default gen_random_uuid(),
+    employee_id  text not null,
+    leave_date   text not null,
+    created_at   timestamptz not null default now(),
+    unique (employee_id, leave_date)
+);
+create index if not exists leaves_employee_id_idx on public.leaves (employee_id);
+
 
 -- ============================================================================
 -- STEP 3 — ROW LEVEL SECURITY
@@ -99,6 +108,7 @@ alter table public.employee_avatars  enable row level security;
 alter table public.app_settings      enable row level security;
 alter table public.publications      enable row level security;
 alter table public.presentations     enable row level security;
+alter table public.leaves            enable row level security;
 
 -- certificates
 drop policy if exists certificates_read  on public.certificates;
@@ -140,6 +150,13 @@ drop policy if exists presentations_read  on public.presentations;
 drop policy if exists presentations_write on public.presentations;
 create policy presentations_read  on public.presentations for select using (true);
 create policy presentations_write on public.presentations for all
+    to authenticated using (true) with check (true);
+
+-- leaves
+drop policy if exists leaves_read  on public.leaves;
+drop policy if exists leaves_write on public.leaves;
+create policy leaves_read  on public.leaves for select using (true);
+create policy leaves_write on public.leaves for all
     to authenticated using (true) with check (true);
 
 
