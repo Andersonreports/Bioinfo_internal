@@ -4364,8 +4364,8 @@ body {
                         <h3><i data-lucide="award" style="width:16px;height:16px;color:#f59e0b;"></i>Upload Certificate / Achievement</h3>
                         <div class="emp-cert-grid">
                             <div class="form-group col-span-2">
-                                <label>Your Name</label>
-                                <input type="text" id="cert-emp-name" readonly title="Logged in as" style="background:#f8f9fa;color:#475569;cursor:not-allowed;">
+                                <label>Employee</label>
+                                <select id="cert-emp-name"><option value="">Select employee…</option></select>
                             </div>
                             <div class="form-group col-span-2">
                                 <label>Event Name</label>
@@ -6214,26 +6214,47 @@ function populateWuNameDropdowns() {
     if (sel) {
         sel.innerHTML = '<option value="all">All Employees</option>' + names.map(n => `<option value="${n}">${n}</option>`).join('');
     }
-    // Publications & lab presentations use a selectable employee dropdown so an
-    // admin can attribute an upload to any team member.
-    ['pub-emp-name', 'pres-emp-name'].forEach(id => {
-        const dd = document.getElementById(id);
-        if (dd) dd.innerHTML = '<option value="">Select employee…</option>' + names.map(n => `<option value="${n}">${n}</option>`).join('');
-    });
-    // The post-update and certificate name fields are fixed to the logged-in user (no dropdown).
+    setupUploaderFields();
     setWuName();
 }
 
-// Pre-fill the "Your Name" fields from the logged-in session (resolved employee name).
+// Certificate / publication / lab-presentation uploader fields:
+//   • Admin   → a dropdown of all employees (can upload on anyone's behalf).
+//   • Others  → locked to their own name (cannot pick a different employee).
+function setupUploaderFields() {
+    const ids = ['cert-emp-name', 'pub-emp-name', 'pres-emp-name'];
+    const session = getSession();
+    const isAdmin = !!(session && session.role === 'admin');
+    if (isAdmin) {
+        const names = employees.map(e => e.name).sort();
+        const opts = '<option value="">Select employee…</option>' + names.map(n => `<option value="${n}">${n}</option>`).join('');
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.innerHTML = opts;
+            el.disabled = false;
+        });
+    } else {
+        const emp = session && typeof resolveSessionEmployee === 'function' ? resolveSessionEmployee(session) : null;
+        const name = (emp && emp.name) ? emp.name : (session ? (session.name || '') : '');
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.innerHTML = `<option value="${name}">${name || '—'}</option>`;
+            el.value = name;
+            el.disabled = true;
+        });
+    }
+}
+
+// Pre-fill the work-update "Your Name" field from the logged-in session.
 function setWuName() {
     const session = getSession();
     if (!session) return;
     const emp = (typeof resolveSessionEmployee === 'function') ? resolveSessionEmployee(session) : null;
     const name = (emp && emp.name) ? emp.name : (session.name || '');
-    ['wu-name', 'cert-emp-name'].forEach(id => {
-        const input = document.getElementById(id);
-        if (input) input.value = name;
-    });
+    const input = document.getElementById('wu-name');
+    if (input) input.value = name;
 }
 
 function setDefaultWuDate() {
@@ -6491,14 +6512,14 @@ async function submitEmpCert() {
     const fileInput = document.getElementById('emp-cert-file');
     const photoInput = document.getElementById('emp-cert-photo');
 
-    if (!name) { alert('Your name is not set. Please re-login.'); return; }
+    if (!name) { alert('Please select the employee.'); return; }
     if (!eventName) { alert('Please enter the event name.'); return; }
     if (!eventDate) { alert('Please select the event date.'); return; }
     if (!place) { alert('Please enter the place.'); return; }
     if (!fileInput.files[0]) { alert('Please attach the certificate file.'); return; }
 
     const emp = employees.find(e => e.name === name);
-    if (!emp) return;
+    if (!emp) { alert('Employee not found.'); return; }
 
     try {
         const cert  = await sbUpload('certificates', fileInput.files[0]);
@@ -6523,13 +6544,14 @@ async function submitEmpCert() {
         return;
     }
 
-    // Clear form (keep the logged-in name fixed)
+    // Clear form (reset the employee field per role: admin → unselected, others → own name)
     document.getElementById('emp-cert-event-name').value = '';
     document.getElementById('emp-cert-event-date').value = '';
     document.getElementById('emp-cert-place').value = '';
     document.getElementById('emp-cert-award').value = '';
     fileInput.value = '';
     photoInput.value = '';
+    setupUploaderFields();
 
     alert(`Achievement uploaded for ${emp.name}!`);
     renderAchievementsWall();
@@ -6736,8 +6758,8 @@ async function submitPublication() {
     document.getElementById('pub-date').value = '';
     document.getElementById('pub-link').value = '';
     document.getElementById('pub-file-link').value = '';
-    document.getElementById('pub-emp-name').value = '';
     coverInput.value = '';
+    setupUploaderFields();
     alert('Publication added!');
     renderPublications();
 }
@@ -6783,8 +6805,8 @@ async function submitPresentation() {
     document.getElementById('pres-date').value = '';
     document.getElementById('pres-type').value = 'Journal Club';
     document.getElementById('pres-file-link').value = '';
-    document.getElementById('pres-emp-name').value = '';
     photoInput.value = '';
+    setupUploaderFields();
     alert('Lab presentation added!');
     renderPresentations();
 }
@@ -7779,6 +7801,9 @@ function initApp(session) {
     if (roleEl) roleEl.textContent = session.role.charAt(0).toUpperCase() + session.role.slice(1) + ' · Anderson';
 
     applyRoleVisibility(session.role);
+
+    // Set uploader name fields per role (admin → dropdown, others → own name).
+    setupUploaderFields();
 
     // Always land on the Home page after login, regardless of role
     switchView('home');
