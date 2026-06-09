@@ -1656,151 +1656,162 @@ body {
 .tools-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.75rem;
+    gap: 1.5rem;
     margin-top: 0.5rem;
 }
 
 .tool-card {
-    background: #fff;
-    border-radius: 20px;
+    border-radius: 22px;
     overflow: hidden;
-    border: 1px solid rgba(0,0,0,0.06);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.05), 0 1px 4px rgba(0,0,0,0.04);
     display: flex;
     flex-direction: column;
-    transition: transform 0.28s ease, box-shadow 0.28s ease;
+    background: linear-gradient(145deg, var(--tc1, #0d9488), var(--tc2, #0891b2));
+    position: relative;
+    transition: transform 0.3s cubic-bezier(0.34,1.4,0.64,1), box-shadow 0.3s ease;
+    box-shadow: 0 8px 28px var(--tc-shadow, rgba(13,148,136,0.32));
 }
 
 .tool-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 24px 50px rgba(0,0,0,0.11), 0 6px 16px rgba(0,0,0,0.07);
+    transform: translateY(-8px) scale(1.015);
+    box-shadow: 0 24px 52px var(--tc-shadow, rgba(13,148,136,0.42));
 }
 
-.tool-card-header {
-    background: linear-gradient(135deg, var(--tc1, #0d9488) 0%, var(--tc2, #0891b2) 100%);
-    padding: 1.65rem 1.65rem 1.4rem;
+/* large decorative circle top-right */
+.tool-card::before {
+    content: '';
+    position: absolute;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+    top: -80px;
+    right: -60px;
+    pointer-events: none;
+}
+
+/* small circle bottom-left */
+.tool-card::after {
+    content: '';
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+    bottom: -30px;
+    left: -20px;
+    pointer-events: none;
+}
+
+.tool-card-inner {
+    padding: 1.7rem 1.7rem 1.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    flex: 1;
+    position: relative;
+    z-index: 1;
+}
+
+.tool-card-top {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    position: relative;
-    min-height: 120px;
-    overflow: hidden;
-}
-
-.tool-card-header::before {
-    content: '';
-    position: absolute;
-    width: 130px;
-    height: 130px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.07);
-    bottom: -50px;
-    right: -20px;
-}
-
-.tool-card-header::after {
-    content: '';
-    position: absolute;
-    width: 75px;
-    height: 75px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.06);
-    bottom: 5px;
-    right: 75px;
 }
 
 .tool-card-icon-wrap {
-    width: 56px;
-    height: 56px;
-    border-radius: 15px;
-    background: rgba(255,255,255,0.18);
-    backdrop-filter: blur(6px);
-    border: 1px solid rgba(255,255,255,0.25);
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.16);
+    border: 1px solid rgba(255,255,255,0.28);
     display: flex;
     align-items: center;
     justify-content: center;
     color: #fff;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.15);
     flex-shrink: 0;
 }
 
-.tool-card-icon-wrap i { width: 27px; height: 27px; }
+.tool-card-icon-wrap i { width: 26px; height: 26px; }
 
-.tool-live-badge {
-    font-size: 0.66rem;
+.tool-card-num {
+    font-size: 3rem;
+    font-weight: 800;
+    color: rgba(255,255,255,0.1);
+    letter-spacing: -0.04em;
+    line-height: 1;
+    user-select: none;
+    font-variant-numeric: tabular-nums;
+}
+
+.tool-card-content h3 {
+    font-size: 1.15rem;
     font-weight: 700;
-    color: rgba(255,255,255,0.92);
-    background: rgba(255,255,255,0.16);
-    backdrop-filter: blur(4px);
-    border: 1px solid rgba(255,255,255,0.22);
-    padding: 0.26rem 0.62rem;
-    border-radius: 20px;
-    letter-spacing: 0.05em;
+    color: #fff;
+    margin-bottom: 0.4rem;
+    letter-spacing: -0.01em;
+}
+
+.tool-card-content p {
+    font-size: 0.83rem;
+    color: rgba(255,255,255,0.68);
+    line-height: 1.55;
+}
+
+.tool-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 0.6rem;
+    border-top: 1px solid rgba(255,255,255,0.12);
+    margin-top: auto;
+}
+
+.tool-card-tag {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.6);
     text-transform: uppercase;
+    letter-spacing: 0.06em;
     display: flex;
     align-items: center;
     gap: 0.3rem;
-    white-space: nowrap;
 }
 
-.tool-live-badge::before {
+.tool-card-tag::before {
     content: '';
     width: 6px;
     height: 6px;
     border-radius: 50%;
     background: #4ade80;
-    box-shadow: 0 0 6px #4ade80;
+    box-shadow: 0 0 7px #4ade80;
     flex-shrink: 0;
 }
 
-.tool-card-body {
-    padding: 1.45rem 1.65rem 1.65rem;
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-}
-
-.tool-card-body h3 {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: #0f172a;
-    margin-bottom: 0.45rem;
-}
-
-.tool-card-body p {
-    font-size: 0.83rem;
-    color: #64748b;
-    line-height: 1.55;
-    flex: 1;
-}
-
 .tool-card-btn {
-    margin-top: 1.25rem;
-    width: 100%;
-    background: var(--tc-light, rgba(13,148,136,0.08));
-    border: 1.5px solid var(--tc-border, rgba(13,148,136,0.2));
-    color: var(--tc-btn, #0d9488);
-    font-size: 0.82rem;
+    background: rgba(255,255,255,0.18);
+    border: 1.5px solid rgba(255,255,255,0.3);
+    color: #fff;
+    font-size: 0.8rem;
     font-weight: 700;
-    padding: 0.65rem 1.1rem;
-    border-radius: 10px;
+    padding: 0.52rem 1.05rem;
+    border-radius: 9px;
     cursor: pointer;
     font-family: inherit;
     transition: all 0.22s ease;
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 0.4rem;
+    gap: 0.35rem;
     letter-spacing: 0.01em;
+    backdrop-filter: blur(6px);
+    white-space: nowrap;
 }
 
-.tool-card-btn i { width: 15px; height: 15px; transition: transform 0.22s ease; }
+.tool-card-btn i { width: 14px; height: 14px; transition: transform 0.22s ease; }
 
 .tool-card-btn:hover {
-    background: var(--tc-btn, #0d9488);
-    border-color: var(--tc-btn, #0d9488);
-    color: #fff;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+    background: rgba(255,255,255,0.3);
+    border-color: rgba(255,255,255,0.5);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
 }
 
 .tool-card-btn:hover i { transform: translateX(4px); }
@@ -4623,51 +4634,66 @@ body {
                 </div>
                 <div class="tools-grid">
                     <!-- Sample Tracker -->
-                    <div class="tool-card" style="--tc1:#1e3a8a;--tc2:#0891b2;--tc-light:rgba(30,58,138,0.07);--tc-border:rgba(30,58,138,0.18);--tc-btn:#1e3a8a;">
-                        <div class="tool-card-header">
-                            <div class="tool-card-icon-wrap">
-                                <i data-lucide="test-tube-2"></i>
+                    <div class="tool-card" style="--tc1:#1e3a8a;--tc2:#0284c7;--tc-shadow:rgba(30,58,138,0.34);">
+                        <div class="tool-card-inner">
+                            <div class="tool-card-top">
+                                <div class="tool-card-icon-wrap">
+                                    <i data-lucide="test-tube-2"></i>
+                                </div>
+                                <span class="tool-card-num">01</span>
                             </div>
-                            <span class="tool-live-badge">Live</span>
-                        </div>
-                        <div class="tool-card-body">
-                            <h3>Sample Tracker</h3>
-                            <p>Track and manage biological sample status and workflows.</p>
-                            <button class="tool-card-btn" onclick="window.open('https://andersonreports.github.io/report-tracker/', '_blank')">
-                                Open Tracker <i data-lucide="arrow-right"></i>
-                            </button>
+                            <div class="tool-card-content">
+                                <h3>Sample Tracker</h3>
+                                <p>Track and manage biological sample status and workflows.</p>
+                            </div>
+                            <div class="tool-card-footer">
+                                <span class="tool-card-tag">Live</span>
+                                <button class="tool-card-btn" onclick="window.open('https://andersonreports.github.io/report-tracker/', '_blank')">
+                                    Open Tracker <i data-lucide="arrow-right"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <!-- Clinical History Tracker -->
-                    <div class="tool-card" style="--tc1:#065f46;--tc2:#0d9488;--tc-light:rgba(6,95,70,0.07);--tc-border:rgba(6,95,70,0.18);--tc-btn:#065f46;">
-                        <div class="tool-card-header">
-                            <div class="tool-card-icon-wrap">
-                                <i data-lucide="file-heart"></i>
+                    <div class="tool-card" style="--tc1:#064e3b;--tc2:#0d9488;--tc-shadow:rgba(6,78,59,0.36);">
+                        <div class="tool-card-inner">
+                            <div class="tool-card-top">
+                                <div class="tool-card-icon-wrap">
+                                    <i data-lucide="file-heart"></i>
+                                </div>
+                                <span class="tool-card-num">02</span>
                             </div>
-                            <span class="tool-live-badge">Live</span>
-                        </div>
-                        <div class="tool-card-body">
-                            <h3>Clinical History Tracker</h3>
-                            <p>Manage and review patient clinical history records.</p>
-                            <button class="tool-card-btn" onclick="window.open('https://andersonreports.github.io/Clinical-history/', '_blank')">
-                                Open Tracker <i data-lucide="arrow-right"></i>
-                            </button>
+                            <div class="tool-card-content">
+                                <h3>Clinical History Tracker</h3>
+                                <p>Manage and review patient clinical history records.</p>
+                            </div>
+                            <div class="tool-card-footer">
+                                <span class="tool-card-tag">Live</span>
+                                <button class="tool-card-btn" onclick="window.open('https://andersonreports.github.io/Clinical-history/', '_blank')">
+                                    Open Tracker <i data-lucide="arrow-right"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <!-- CMC Tracker -->
-                    <div class="tool-card" style="--tc1:#0d9488;--tc2:#7c3aed;--tc-light:rgba(13,148,136,0.07);--tc-border:rgba(13,148,136,0.2);--tc-btn:#0d9488;">
-                        <div class="tool-card-header">
-                            <div class="tool-card-icon-wrap">
-                                <i data-lucide="flask-conical"></i>
+                    <div class="tool-card" style="--tc1:#4c1d95;--tc2:#7c3aed;--tc-shadow:rgba(76,29,149,0.36);">
+                        <div class="tool-card-inner">
+                            <div class="tool-card-top">
+                                <div class="tool-card-icon-wrap">
+                                    <i data-lucide="flask-conical"></i>
+                                </div>
+                                <span class="tool-card-num">03</span>
                             </div>
-                            <span class="tool-live-badge">Live</span>
-                        </div>
-                        <div class="tool-card-body">
-                            <h3>CMC Tracker</h3>
-                            <p>Monitor Chemistry, Manufacturing and Controls progress.</p>
-                            <button class="tool-card-btn" onclick="window.open('https://andersonbioinfo.github.io/CMC__Sample_Tracking/', '_blank')">
-                                Open Tracker <i data-lucide="arrow-right"></i>
-                            </button>
+                            <div class="tool-card-content">
+                                <h3>CMC Tracker</h3>
+                                <p>Monitor Chemistry, Manufacturing and Controls progress.</p>
+                            </div>
+                            <div class="tool-card-footer">
+                                <span class="tool-card-tag">Live</span>
+                                <button class="tool-card-btn" onclick="window.open('https://andersonbioinfo.github.io/CMC__Sample_Tracking/', '_blank')">
+                                    Open Tracker <i data-lucide="arrow-right"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
