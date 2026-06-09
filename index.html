@@ -4639,7 +4639,7 @@ body {
             </div>
             <div class="modal-actions">
                 <button class="btn-outline" onclick="closeAddPhotoModal()">Cancel</button>
-                <button class="btn-primary" onclick="handleAddPhoto()">Save Photos</button>
+                <button class="btn-primary" id="album-add-confirm-btn" onclick="handleAddPhoto()">Save Photos</button>
             </div>
         </div>
     </div>
@@ -5182,13 +5182,21 @@ function clearAllWorkUpdates() {
     toggleHdrDropdown('settings-panel');
 }
 
-function clearAllCertificates() {
+async function clearAllCertificates() {
     if (!confirm('Clear ALL certificates for all employees? This cannot be undone.')) return;
-    employees.forEach(emp => {
-        emp.certificates = [];
-        localStorage.removeItem(`certs_${emp.employeeId}`);
-    });
+    try {
+        // Delete every row (neq on a never-matching id targets all rows).
+        const { error } = await _sb.from('certificates').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        if (error) throw error;
+    } catch (e) {
+        console.error('Clear all certificates failed:', e);
+        alert('Clear failed: ' + (e.message || e));
+        return;
+    }
+    employees.forEach(emp => { emp.certificates = []; });
     toggleHdrDropdown('settings-panel');
+    renderEmployeeSpace();
+    renderAchievementsWall();
     alert('All certificates cleared.');
 }
 
@@ -5272,8 +5280,8 @@ function parseCSV(csv) {
                 phone: obj['Mobile No'] || obj['Phone'] || '',
                 secondaryPhone: obj['Secondary Mobile number'] || obj['Emergency No'] || '',
                 address: obj['Address'] || '',
-                certificates: JSON.parse(localStorage.getItem(`certs_${obj['Employee ID'] || `GEN-${100 + i}`}`)) || [],
-                avatar: localStorage.getItem(`avatar_${obj['Employee ID'] || `GEN-${100 + i}`}`) || `https://ui-avatars.com/api/?name=${encodeURIComponent(obj['Name'])}&background=random&color=fff`
+                certificates: [],   // filled from Supabase in fetchData()
+                avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(obj['Name'])}&background=random&color=fff`
             });
         }
     }
@@ -5315,7 +5323,14 @@ async function fetchData() {
             };
             return parseDate(a.doj) - parseDate(b.doj);
         });
-        
+
+        // Layer shared content from Supabase (certificates + avatars) onto employees.
+        const [certMap, avatarMap] = await Promise.all([loadCertificatesMap(), loadAvatarsMap()]);
+        employees.forEach(emp => {
+            emp.certificates = certMap[emp.employeeId] || [];
+            if (avatarMap[emp.employeeId]) emp.avatar = avatarMap[emp.employeeId];
+        });
+
         populateTeamLeaders();
         updateKPIs();
         renderEmployees();
@@ -5441,7 +5456,7 @@ function openEmployeeDetails(id) {
     // Merge localStorage overrides on top of sheet data
     const over = safeParseJSON(localStorage.getItem('emp_override_' + baseEmp.employeeId), {});
     const emp = Object.assign({}, baseEmp, over);
-    emp.avatar = localStorage.getItem('avatar_' + baseEmp.employeeId) || baseEmp.avatar;
+    emp.avatar = baseEmp.avatar;   // avatar comes from Supabase via employees[]
 
     document.getElementById('details-avatar').src = emp.avatar;
     document.getElementById('details-name').textContent = emp.name;
@@ -5587,7 +5602,7 @@ function closeCertModal() {
     document.getElementById('cert-upload-form').reset();
 }
 
-function deleteAllCerts() {
+async function deleteAllCerts() {
     const empId = parseInt(document.getElementById('cert-emp-id').value);
     const emp = employees.find(e => e.id === empId);
     if (!emp) return;
@@ -5597,11 +5612,24 @@ function deleteAllCerts() {
         return;
     }
     if (!confirm(`Delete all ${count} certificate${count !== 1 ? 's' : ''} for ${emp.name}? This cannot be undone.`)) return;
+    try {
+        const old = emp.certificates.slice();
+        const { error } = await _sb.from('certificates').delete().eq('employee_id', emp.employeeId);
+        if (error) throw error;
+        for (const c of old) {
+            await sbDeleteByUrl('certificates', c.certificate && c.certificate.data);
+            await sbDeleteByUrl('certificates', c.photo && c.photo.data);
+        }
+    } catch (e) {
+        console.error('Delete all certificates failed:', e);
+        alert('Delete failed: ' + (e.message || e));
+        return;
+    }
     emp.certificates = [];
-    localStorage.removeItem(`certs_${emp.employeeId}`);
     alert(`All certificates deleted for ${emp.name}.`);
     closeCertModal();
     renderEmployeeSpace();
+    renderAchievementsWall();
 }
 
 function viewFileInNewTab(dataUrl) {
@@ -5618,9 +5646,12 @@ function viewFileInNewTab(dataUrl) {
 function viewCertFile(empId, certId, field) {
     const emp = employees.find(e => e.id === empId);
     if (!emp) return;
-    const cert = emp.certificates.find(c => c.id === certId);
+    const cert = emp.certificates.find(c => c.id == certId);
     if (!cert || !cert[field] || !cert[field].data) return;
-    viewFileInNewTab(cert[field].data);
+    const d = cert[field].data;
+    // Supabase files are http(s) URLs; legacy base64 data URLs go through the blob path.
+    if (/^https?:/i.test(d)) window.open(d, '_blank');
+    else viewFileInNewTab(d);
 }
 
 function readFileAsDataURL(file) {
@@ -5653,33 +5684,36 @@ async function handleCertUpload(event) {
     
     const fileInput = document.getElementById('cert-file');
     const photoInput = document.getElementById('cert-photo');
-    
-    const certFile = await readFileAsDataURL(fileInput.files[0]);
-    const photoFile = await readFileAsDataURL(photoInput.files[0]);
-    
-    const newCert = {
-        id: Date.now(),
-        eventName: eventName,
-        date: eventDate,
-        place: place,
-        award: award || '',
-        certificate: certFile,
-        photo: photoFile
-    };
 
-    emp.certificates.unshift(newCert);
-    
+    const submitBtn = event.submitter;
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.dataset.label = submitBtn.textContent; submitBtn.textContent = 'Uploading…'; }
     try {
-        localStorage.setItem(`certs_${emp.employeeId}`, JSON.stringify(emp.certificates));
+        const cert  = await sbUpload('certificates', fileInput.files[0]);
+        const photo = await sbUpload('certificates', photoInput.files[0]);
+
+        const { data, error } = await _sb.from('certificates').insert({
+            employee_id: emp.employeeId,
+            event_name: eventName,
+            event_date: eventDate,
+            place: place,
+            award: award || '',
+            certificate_url: cert ? cert.url : null,
+            certificate_name: cert ? cert.name : null,
+            photo_url: photo ? photo.url : null
+        }).select().single();
+        if (error) throw error;
+
+        emp.certificates.unshift(_mapCertRow(data));
+        alert(`Certificate uploaded successfully for ${emp.name}!`);
+        closeCertModal();
+        renderEmployeeSpace();
+        renderAchievementsWall();
     } catch (e) {
-        console.error('Failed to save to localStorage:', e);
-        alert('Warning: LocalStorage limit exceeded, certificate saved in memory only.');
+        console.error('Certificate upload failed:', e);
+        alert('Upload failed: ' + (e.message || e));
+    } finally {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = submitBtn.dataset.label || 'Save Certificate'; }
     }
-    
-    alert(`Certificate uploaded successfully for ${emp.name}!`);
-    closeCertModal();
-    renderEmployeeSpace();
-    renderAchievementsWall();
 }
 
 function openViewCertsModal(empId) {
@@ -5712,7 +5746,7 @@ function openViewCertsModal(empId) {
             }
 
             const certBtns = cert.certificate ? `
-                <button type="button" class="cert-file-btn view" onclick="viewCertFile(${emp.id}, ${cert.id}, 'certificate')">
+                <button type="button" class="cert-file-btn view" onclick="viewCertFile(${emp.id}, '${cert.id}', 'certificate')">
                     <i data-lucide="eye" style="width:14px;height:14px;"></i> View Certificate
                 </button>
                 <a href="${cert.certificate.data}" download="${cert.certificate.name}" class="cert-file-btn download">
@@ -5720,7 +5754,7 @@ function openViewCertsModal(empId) {
                 </a>` : '';
 
             const photoBtns = cert.photo && cert.photo.data ? `
-                <button type="button" class="cert-file-btn view" onclick="viewCertFile(${emp.id}, ${cert.id}, 'photo')">
+                <button type="button" class="cert-file-btn view" onclick="viewCertFile(${emp.id}, '${cert.id}', 'photo')">
                     <i data-lucide="image" style="width:14px;height:14px;"></i> View Photo
                 </button>` : '';
 
@@ -5735,7 +5769,7 @@ function openViewCertsModal(empId) {
                                 ${cert.award ? `<span><i data-lucide="trophy" style="width:13px;height:13px;"></i> ${cert.award}</span>` : ''}
                             </div>
                         </div>
-                        <button class="cert-delete-btn" onclick="deleteSingleCert(${emp.id}, ${cert.id})" title="Delete">
+                        <button class="cert-delete-btn" onclick="deleteSingleCert(${emp.id}, '${cert.id}')" title="Delete">
                             <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
                         </button>
                     </div>
@@ -5754,14 +5788,24 @@ function closeViewCertsModal(event) {
     document.getElementById('view-certs-modal').style.display = 'none';
 }
 
-function deleteSingleCert(empId, certId) {
+async function deleteSingleCert(empId, certId) {
     const emp = employees.find(e => e.id === empId);
     if (!emp) return;
     if (!confirm('Delete this certificate? This cannot be undone.')) return;
-    emp.certificates = emp.certificates.filter(c => c.id !== certId);
+    const cert = emp.certificates.find(c => c.id == certId);
     try {
-        localStorage.setItem(`certs_${emp.employeeId}`, JSON.stringify(emp.certificates));
-    } catch (e) {}
+        const { error } = await _sb.from('certificates').delete().eq('id', certId);
+        if (error) throw error;
+        if (cert) {
+            await sbDeleteByUrl('certificates', cert.certificate && cert.certificate.data);
+            await sbDeleteByUrl('certificates', cert.photo && cert.photo.data);
+        }
+    } catch (e) {
+        console.error('Delete certificate failed:', e);
+        alert('Delete failed: ' + (e.message || e));
+        return;
+    }
+    emp.certificates = emp.certificates.filter(c => c.id != certId);
     const el = document.getElementById(`cert-post-${certId}`);
     if (el) el.remove();
     if (emp.certificates.length === 0) {
@@ -5832,21 +5876,34 @@ function previewAvatarColor(color, encodedName) {
         `https://ui-avatars.com/api/?name=${encodedName}&background=${color}&color=fff`;
 }
 
-function saveAvatarChange() {
+async function saveAvatarChange() {
     const empId = parseInt(document.getElementById('avatar-emp-id').value);
     const emp = employees.find(e => e.id === empId);
     if (!emp) return;
 
-    const preview = document.getElementById('avatar-preview').src;
-    emp.avatar = _avatarCustomDataUrl || preview;
+    const fileInput = document.getElementById('avatar-file-input');
+    const file = fileInput && fileInput.files && fileInput.files[0];
 
+    let avatarUrl;
     try {
-        localStorage.setItem(`avatar_${emp.employeeId}`, emp.avatar);
+        if (file) {
+            // Uploaded photo -> store the file in the avatars bucket.
+            const up = await sbUpload('avatars', file);
+            avatarUrl = up.url;
+        } else {
+            // Generated colour avatar (ui-avatars URL) -> store the URL as-is.
+            avatarUrl = document.getElementById('avatar-preview').src;
+        }
+        const { error } = await _sb.from('employee_avatars')
+            .upsert({ employee_id: emp.employeeId, avatar_url: avatarUrl, updated_at: new Date().toISOString() });
+        if (error) throw error;
     } catch(e) {
-        alert('Image too large to save locally. Try a smaller photo.');
+        console.error('Avatar save failed:', e);
+        alert('Could not save photo: ' + (e.message || e));
         return;
     }
 
+    emp.avatar = avatarUrl;
     closeAvatarModal();
     renderEmployeeSpace();
 
@@ -6041,7 +6098,7 @@ function handleAddEmployee(event) {
         work: 'N/A',
         analysis: 'N/A',
         samples: 'N/A',
-        certificates: JSON.parse(localStorage.getItem(`certs_${employeeId}`)) || [],
+        certificates: [],
         avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`
     };
 
@@ -6105,17 +6162,17 @@ function renderAchievementsWall() {
 
         // Inline previews for the uploaded photo and certificate.
         const photoMedia = cert.photo && cert.photo.data
-            ? `<img src="${cert.photo.data}" class="ach-card-media-img" title="View photo" onclick="viewCertFile(${emp.id},${cert.id},'photo')">`
+            ? `<img src="${cert.photo.data}" class="ach-card-media-img" title="View photo" onclick="viewCertFile(${emp.id},'${cert.id}','photo')">`
             : '';
         const certMedia = cert.certificate && cert.certificate.data
             ? (isImage(cert.certificate)
-                ? `<img src="${cert.certificate.data}" class="ach-card-media-img" title="View certificate" onclick="viewCertFile(${emp.id},${cert.id},'certificate')">`
-                : `<div class="ach-card-doc" title="View certificate" onclick="viewCertFile(${emp.id},${cert.id},'certificate')"><i data-lucide="file-text" style="width:26px;height:26px;"></i><span>Certificate</span></div>`)
+                ? `<img src="${cert.certificate.data}" class="ach-card-media-img" title="View certificate" onclick="viewCertFile(${emp.id},'${cert.id}','certificate')">`
+                : `<div class="ach-card-doc" title="View certificate" onclick="viewCertFile(${emp.id},'${cert.id}','certificate')"><i data-lucide="file-text" style="width:26px;height:26px;"></i><span>Certificate</span></div>`)
             : '';
         const mediaBlock = (photoMedia || certMedia) ? `<div class="ach-card-media">${certMedia}${photoMedia}</div>` : '';
 
         const certBtn = cert.certificate && cert.certificate.data
-            ? `<button class="cert-file-btn view" onclick="viewCertFile(${emp.id},${cert.id},'certificate')"><i data-lucide="eye" style="width:13px;height:13px;"></i> View</button>
+            ? `<button class="cert-file-btn view" onclick="viewCertFile(${emp.id},'${cert.id}','certificate')"><i data-lucide="eye" style="width:13px;height:13px;"></i> View</button>
                <a class="cert-file-btn download" href="${cert.certificate.data}" download="${cert.certificate.name}"><i data-lucide="download" style="width:13px;height:13px;"></i> Download</a>`
             : '';
 
@@ -6162,20 +6219,27 @@ async function submitEmpCert() {
     const emp = employees.find(e => e.name === name);
     if (!emp) return;
 
-    const certFile = await readFileAsDataURL(fileInput.files[0]);
-    const photoFile = await readFileAsDataURL(photoInput.files[0] || null);
-
-    const newCert = {
-        id: Date.now(),
-        eventName, date: eventDate, place, award,
-        certificate: certFile, photo: photoFile
-    };
-
-    emp.certificates.unshift(newCert);
     try {
-        localStorage.setItem(`certs_${emp.employeeId}`, JSON.stringify(emp.certificates));
-    } catch(e) {
-        alert('Warning: LocalStorage limit exceeded; saved in memory only.');
+        const cert  = await sbUpload('certificates', fileInput.files[0]);
+        const photo = await sbUpload('certificates', photoInput.files[0] || null);
+
+        const { data, error } = await _sb.from('certificates').insert({
+            employee_id: emp.employeeId,
+            event_name: eventName,
+            event_date: eventDate,
+            place: place,
+            award: award,
+            certificate_url: cert ? cert.url : null,
+            certificate_name: cert ? cert.name : null,
+            photo_url: photo ? photo.url : null
+        }).select().single();
+        if (error) throw error;
+
+        emp.certificates.unshift(_mapCertRow(data));
+    } catch (e) {
+        console.error('Achievement upload failed:', e);
+        alert('Upload failed: ' + (e.message || e));
+        return;
     }
 
     // Clear form (keep the logged-in name fixed)
@@ -6188,6 +6252,7 @@ async function submitEmpCert() {
 
     alert(`Achievement uploaded for ${emp.name}!`);
     renderAchievementsWall();
+    renderEmployeeSpace();
 }
 
 // Directory — replaced below; stub kept to avoid reference errors during load
@@ -6488,22 +6553,47 @@ function handleSysExcelUpload(event) {
 }
 
 // ===== ALBUM =====
-const ALBUM_PHOTOS_KEY   = 'album_photos';
-const ALBUM_HERO_KEY     = 'album_hero';
-const ALBUM_HERO_POS_KEY = 'album_hero_pos';
-
+// Photos + hero settings live in Supabase (album_photos table, album bucket,
+// app_settings rows). In-memory caches keep render functions synchronous.
 let albumPendingFiles = [];
+let albumPhotosCache  = [];
+let albumSettingsCache = { hero: '', heroPos: { x: 50, y: 50 } };
 
-function getAlbumPhotos() {
-    try { return JSON.parse(localStorage.getItem(ALBUM_PHOTOS_KEY)) || []; } catch { return []; }
+// Load shared album data from Supabase into the caches, then render.
+async function loadAlbum() {
+    try {
+        const [{ data: photos, error: pErr }, { data: settings, error: sErr }] = await Promise.all([
+            _sb.from('album_photos').select('*').order('created_at', { ascending: false }),
+            _sb.from('app_settings').select('*').in('key', ['album_hero', 'album_hero_pos'])
+        ]);
+        if (pErr) throw pErr;
+        if (sErr) throw sErr;
+        albumPhotosCache = (photos || []).map(r => ({ id: r.id, src: r.src_url, name: r.name || '', date: r.photo_date || '' }));
+        const heroRow = (settings || []).find(s => s.key === 'album_hero');
+        const posRow  = (settings || []).find(s => s.key === 'album_hero_pos');
+        albumSettingsCache.hero    = heroRow ? (heroRow.value || '') : '';
+        albumSettingsCache.heroPos = posRow && posRow.value ? posRow.value : { x: 50, y: 50 };
+    } catch (e) {
+        console.error('loadAlbum failed:', e);
+    }
+    renderAlbum();
 }
-function setAlbumPhotos(arr) { localStorage.setItem(ALBUM_PHOTOS_KEY, JSON.stringify(arr)); }
-function getAlbumHero() { return localStorage.getItem(ALBUM_HERO_KEY) || ''; }
-function setAlbumHero(src) { localStorage.setItem(ALBUM_HERO_KEY, src); }
-function getAlbumHeroPos() {
-    try { return JSON.parse(localStorage.getItem(ALBUM_HERO_POS_KEY)) || { x: 50, y: 50 }; } catch { return { x: 50, y: 50 }; }
+
+function getAlbumPhotos() { return albumPhotosCache; }
+function getAlbumHero() { return albumSettingsCache.hero; }
+function getAlbumHeroPos() { return albumSettingsCache.heroPos; }
+
+// Persist hero src/position to app_settings; cache updates immediately for render.
+function setAlbumHero(src) {
+    albumSettingsCache.hero = src;
+    _sb.from('app_settings').upsert({ key: 'album_hero', value: src })
+        .then(({ error }) => { if (error) console.error('setAlbumHero failed:', error); });
 }
-function setAlbumHeroPos(pos) { localStorage.setItem(ALBUM_HERO_POS_KEY, JSON.stringify(pos)); }
+function setAlbumHeroPos(pos) {
+    albumSettingsCache.heroPos = pos;
+    _sb.from('app_settings').upsert({ key: 'album_hero_pos', value: pos })
+        .then(({ error }) => { if (error) console.error('setAlbumHeroPos failed:', error); });
+}
 
 // --- Hero adjust mode ---
 let _heroAdjust = {
@@ -6706,7 +6796,7 @@ function handleAlbumFileSelect(files) {
     Array.from(files).forEach(file => {
         const reader = new FileReader();
         reader.onload = ev => {
-            albumPendingFiles.push({ dataUrl: ev.target.result, name: file.name });
+            albumPendingFiles.push({ dataUrl: ev.target.result, name: file.name, file });
             const img = document.createElement('img');
             img.src = ev.target.result;
             img.className = 'album-preview-thumb';
@@ -6716,18 +6806,33 @@ function handleAlbumFileSelect(files) {
     });
 }
 
-function handleAddPhoto() {
+async function handleAddPhoto() {
     if (!albumPendingFiles.length) { alert('Please select at least one photo.'); return; }
     const date    = document.getElementById('album-photo-date').value || new Date().toISOString().slice(0, 10);
     const setHero = document.getElementById('album-set-hero').checked;
-    const photos  = getAlbumPhotos();
 
-    albumPendingFiles.forEach((f, i) => {
-        photos.unshift({ id: Date.now() + i, src: f.dataUrl, name: f.name, date });
-    });
-    setAlbumPhotos(photos);
+    const btn = document.getElementById('album-add-confirm-btn');
+    if (btn) { btn.disabled = true; btn.dataset.label = btn.textContent; btn.textContent = 'Uploading…'; }
 
-    if (setHero) setAlbumHero(albumPendingFiles[0].dataUrl);
+    let firstHeroUrl = null;
+    try {
+        // Upload each pending file, then insert its metadata row.
+        for (const f of albumPendingFiles) {
+            const up = await sbUpload('album', f.file);
+            const { data, error } = await _sb.from('album_photos')
+                .insert({ src_url: up.url, name: f.name, photo_date: date })
+                .select().single();
+            if (error) throw error;
+            albumPhotosCache.unshift({ id: data.id, src: data.src_url, name: data.name || '', date: data.photo_date || '' });
+            if (firstHeroUrl === null) firstHeroUrl = up.url;
+        }
+        if (setHero && firstHeroUrl) setAlbumHero(firstHeroUrl);
+    } catch (e) {
+        console.error('Add photo failed:', e);
+        alert('Upload failed: ' + (e.message || e));
+    } finally {
+        if (btn) { btn.disabled = false; btn.textContent = btn.dataset.label || 'Save Photos'; }
+    }
 
     document.getElementById('album-add-modal').style.display = 'none';
     albumPendingFiles = [];
@@ -6753,7 +6858,7 @@ function openAlbumLightbox(monthKey) {
             <div class="album-lb-thumb-actions">
                 <button class="album-lb-thumb-btn" onclick="event.stopPropagation();openPhotoViewer('${safeSrc}')">View</button>
                 <button class="album-lb-thumb-btn" onclick="event.stopPropagation();setAsHero('${safeSrc}')">Set Hero</button>
-                <button class="album-lb-thumb-btn danger" onclick="event.stopPropagation();deleteAlbumPhoto(${p.id},'${monthKey}')">Delete</button>
+                <button class="album-lb-thumb-btn danger" onclick="event.stopPropagation();deleteAlbumPhoto('${p.id}','${monthKey}')">Delete</button>
             </div>
         </div>`;
     }).join('');
@@ -6772,15 +6877,23 @@ function formatAlbumDate(dateStr) {
     return `${d} ${mons[m - 1]} ${y}`;
 }
 
-function deleteAlbumPhoto(id, monthKey) {
+async function deleteAlbumPhoto(id, monthKey) {
     if (!confirm('Delete this photo?')) return;
-    const photos = getAlbumPhotos().filter(p => p.id !== id);
-    setAlbumPhotos(photos);
-    // If hero was this photo, clear it
-    const hero = getAlbumHero();
-    const deleted = getAlbumPhotos().find(p => p.id === id); // already filtered out
+    const photo = albumPhotosCache.find(p => p.id == id);
+    try {
+        const { error } = await _sb.from('album_photos').delete().eq('id', id);
+        if (error) throw error;
+        if (photo) await sbDeleteByUrl('album', photo.src);
+    } catch (e) {
+        console.error('Delete photo failed:', e);
+        alert('Delete failed: ' + (e.message || e));
+        return;
+    }
+    albumPhotosCache = albumPhotosCache.filter(p => p.id != id);
+    // If the hero pointed at this photo, clear it.
+    if (photo && getAlbumHero() === photo.src) setAlbumHero('');
     renderAlbum();
-    if (photos.filter(p => (p.date || '').slice(0, 7) === monthKey).length) {
+    if (albumPhotosCache.filter(p => (p.date || '').slice(0, 7) === monthKey).length) {
         openAlbumLightbox(monthKey);
     } else {
         closeAlbumLightbox();
@@ -6829,6 +6942,79 @@ function closeChangeHeroModal() {
 const SUPABASE_URL  = 'https://boghqathvnkygdzxnzkh.supabase.co';
 const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJvZ2hxYXRodm5reWdkenhuemtoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NzAzODAsImV4cCI6MjA5NTM0NjM4MH0.c9KemDmU7d4YGhkizU3TZx-hYaXSftazb-5RuHgV0Rs';
 const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ===== SUPABASE STORAGE HELPERS =====
+// Upload a File to a public bucket and return { url, name }.
+async function sbUpload(bucket, file) {
+    if (!file) return null;
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${safeName}`;
+    const { error } = await _sb.storage.from(bucket).upload(path, file, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: file.type || undefined
+    });
+    if (error) throw error;
+    const { data } = _sb.storage.from(bucket).getPublicUrl(path);
+    return { url: data.publicUrl, name: file.name, path };
+}
+
+// Best-effort removal of a stored object given its public URL. Never throws.
+async function sbDeleteByUrl(bucket, url) {
+    if (!url) return;
+    try {
+        const marker = `/object/public/${bucket}/`;
+        const idx = url.indexOf(marker);
+        if (idx === -1) return;
+        const path = decodeURIComponent(url.slice(idx + marker.length));
+        await _sb.storage.from(bucket).remove([path]);
+    } catch (e) {
+        console.warn('Storage cleanup failed (ignored):', e);
+    }
+}
+
+// ===== SUPABASE DATA LOADERS =====
+// Classify a stored file as image vs document from its name (for inline preview).
+function _certTypeFromName(name) {
+    const ext = (name || '').split('.').pop().toLowerCase();
+    return ['png','jpg','jpeg','gif','webp','bmp','svg'].includes(ext) ? 'image' : 'application';
+}
+// Map a `certificates` table row into the shape the UI already renders.
+function _mapCertRow(row) {
+    return {
+        id: row.id,
+        eventName: row.event_name || '',
+        date: row.event_date || '',
+        place: row.place || '',
+        award: row.award || '',
+        certificate: row.certificate_url
+            ? { name: row.certificate_name || 'certificate', data: row.certificate_url, type: _certTypeFromName(row.certificate_name) }
+            : null,
+        photo: row.photo_url ? { name: 'photo', data: row.photo_url, type: 'image' } : null
+    };
+}
+// Fetch all certificates grouped by employee_id.
+async function loadCertificatesMap() {
+    const map = {};
+    try {
+        const { data, error } = await _sb.from('certificates').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        (data || []).forEach(row => {
+            (map[row.employee_id] = map[row.employee_id] || []).push(_mapCertRow(row));
+        });
+    } catch (e) { console.error('loadCertificatesMap failed:', e); }
+    return map;
+}
+// Fetch all avatars as { employee_id: url }.
+async function loadAvatarsMap() {
+    const map = {};
+    try {
+        const { data, error } = await _sb.from('employee_avatars').select('*');
+        if (error) throw error;
+        (data || []).forEach(row => { if (row.avatar_url) map[row.employee_id] = row.avatar_url; });
+    } catch (e) { console.error('loadAvatarsMap failed:', e); }
+    return map;
+}
 
 const AUTH_SESSION_KEY = 'auth_session';
 
@@ -7041,7 +7227,7 @@ function renderHomeTab() {
             const empId = baseEmp.employeeId;
             const over = safeParseJSON(localStorage.getItem('emp_override_' + empId), {});
             const emp = Object.assign({}, baseEmp, over);
-            emp.avatar = localStorage.getItem('avatar_' + empId) || baseEmp.avatar;
+            emp.avatar = baseEmp.avatar;   // avatar comes from Supabase via employees[]
 
             wrap.innerHTML = `
                 <div class="home-welcome-card">
@@ -7299,7 +7485,7 @@ function renderProfileTab() {
     const empId = baseEmp.employeeId;
     const over = safeParseJSON(localStorage.getItem('emp_override_' + empId), {});
     const emp = Object.assign({}, baseEmp, over);
-    emp.avatar = localStorage.getItem('avatar_' + empId) || baseEmp.avatar;
+    emp.avatar = baseEmp.avatar;   // avatar comes from Supabase via employees[]
 
     const el = (id) => document.getElementById(id);
     if (el('profile-avatar-img')) el('profile-avatar-img').src = emp.avatar;
@@ -7605,7 +7791,7 @@ function closeLeaveDetailModal(event) {
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
     loadDirData();
-    renderAlbum();
+    loadAlbum();   // loads shared album photos + hero from Supabase, then renders
     lucide.createIcons();
 
     const addForm = document.getElementById('add-emp-form');
