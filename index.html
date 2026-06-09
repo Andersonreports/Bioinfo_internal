@@ -815,6 +815,7 @@ body {
 .icon-blue { color: var(--accent-blue); }
 .icon-purple { color: var(--accent-purple); }
 .icon-gold { color: var(--accent-gold); }
+.icon-red  { color: #e11d48; }
 
 .kpi-card h3 {
     font-size: 2.5rem;
@@ -1029,6 +1030,14 @@ body {
 .ach-wall-scroll::-webkit-scrollbar-track { background: transparent; }
 .ach-wall-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
 
+/* Achievements full-page wall */
+.achievements-full-wall {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+    padding-bottom: 2rem;
+}
+
 @media (max-width: 1100px) {
     .mgr-main-row { grid-template-columns: 1fr; }
     .employee-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
@@ -1121,6 +1130,91 @@ body {
 .stat-team-chip.secondary { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; }
 .stat-team-chip.tertiary  { background: #f3e8ff; color: #7c3aed; border-color: #ddd6fe; }
 .stat-team-chip.cmc       { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
+
+/* Past Employees Modal Grid */
+.past-emp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1.25rem;
+    padding: 0.5rem 0;
+}
+
+.past-emp-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #fff5f6;
+    border-radius: 14px;
+    padding: 1.25rem 0.75rem 1rem;
+    text-align: center;
+    border: 1.5px solid #fecdd3;
+    gap: 0;
+    position: relative;
+}
+
+.past-emp-card img {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #fecdd3;
+    margin-bottom: 0.7rem;
+    filter: grayscale(30%);
+}
+
+.past-emp-card h4 {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 0.2rem;
+}
+
+.past-emp-card .past-role {
+    font-size: 0.74rem;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+}
+
+.past-emp-card .past-meta {
+    font-size: 0.68rem;
+    color: #94a3b8;
+    background: #fff1f2;
+    padding: 2px 8px;
+    border-radius: 8px;
+    border: 1px solid #fecdd3;
+    margin-bottom: 0.3rem;
+    display: inline-block;
+}
+
+.past-emp-alumni-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    background: #fecdd3;
+    color: #e11d48;
+    padding: 2px 6px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.past-emp-remove-btn {
+    margin-top: 0.5rem;
+    font-size: 0.68rem;
+    background: none;
+    border: 1px solid #fecdd3;
+    color: #e11d48;
+    border-radius: 6px;
+    padding: 3px 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.past-emp-remove-btn:hover {
+    background: #fecdd3;
+}
 
 .icon-btn-small {
     background: #fff5f8;
@@ -4090,6 +4184,10 @@ body {
                 <i data-lucide="user"></i>
                 <span>Employee Dashboard</span>
             </button>
+            <button class="nav-tab" id="btn-achievements-view" onclick="switchView('achievements')">
+                <i data-lucide="trophy"></i>
+                <span>Achievements</span>
+            </button>
             <button class="nav-tab" id="btn-tools-view" onclick="switchView('tools')">
                 <i data-lucide="wrench"></i>
                 <span>Tools</span>
@@ -4137,6 +4235,14 @@ body {
                         </div>
                         <h3 id="kpi-active-teams">0</h3>
                         <p class="trend">On track</p>
+                    </div>
+                    <div class="kpi-card glass-panel clickable" onclick="openPastEmployeesModal()">
+                        <div class="kpi-header">
+                            <i data-lucide="user-x" class="icon-red"></i>
+                            <span>Past Employees</span>
+                        </div>
+                        <h3 id="kpi-past-employees">0</h3>
+                        <p class="trend">View alumni</p>
                     </div>
                 </div>
 
@@ -4481,6 +4587,17 @@ body {
                 <div class="album-months-label">Photos by Month</div>
                 <div class="album-stacks-grid" id="album-stacks-grid">
                     <div class="album-empty-state" id="album-empty-state">No photos added yet. Click "Add Photo" to get started.</div>
+                </div>
+            </section>
+
+            <!-- Achievements View -->
+            <section id="achievements-view" class="view-section" style="display: none;">
+                <div class="view-header">
+                    <h1>Achievements</h1>
+                    <p>Certificates and achievements from all team members.</p>
+                </div>
+                <div class="js-achievements-wall achievements-full-wall">
+                    <!-- Populated by JS -->
                 </div>
             </section>
 
@@ -4904,7 +5021,12 @@ body {
             <div class="profile-right">
                 <div class="profile-right-header">
                     <h3 class="profile-right-title">Employee Profile</h3>
-                    <button class="icon-btn" onclick="closeDetailsModal()"><i data-lucide="x"></i></button>
+                    <div style="display:flex;gap:0.5rem;align-items:center;">
+                        <button id="mark-past-btn" class="btn-outline" style="font-size:0.75rem;padding:0.3rem 0.75rem;color:#e11d48;border-color:#fecdd3;" onclick="markAsPastEmployee()">
+                            <i data-lucide="user-x" style="width:13px;height:13px;"></i> Mark as Past
+                        </button>
+                        <button class="icon-btn" onclick="closeDetailsModal()"><i data-lucide="x"></i></button>
+                    </div>
                 </div>
                 <div class="profile-section">
                     <div class="profile-section-title"><i data-lucide="briefcase" style="width:15px;height:15px;"></i> Work Responsibilities</div>
@@ -4942,6 +5064,27 @@ body {
             <div class="details-content">
                 <div id="teams-modal-list" class="teams-grid-modal">
                     <!-- Dynamic team content goes here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Past Employees Modal -->
+    <div class="modal-overlay" id="past-employees-modal" style="display: none;" onclick="closePastEmployeesModal(event)">
+        <div class="modal glass-panel teams-modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="details-header-info">
+                    <i data-lucide="user-x" style="color: #e11d48; width: 32px; height: 32px;"></i>
+                    <div>
+                        <h2>Past Employees</h2>
+                        <p>Alumni who have previously worked with the team</p>
+                    </div>
+                </div>
+                <button class="icon-btn" onclick="closePastEmployeesModal()"><i data-lucide="x"></i></button>
+            </div>
+            <div class="details-content">
+                <div id="past-employees-list" class="past-emp-grid">
+                    <!-- Dynamic content -->
                 </div>
             </div>
         </div>
@@ -5070,6 +5213,8 @@ const SHEET_ID = '1ZIs0bbHxkwpo1nUvDcLr-oRei1mUOlaOJISOoeNI6Pc';
 const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
 
 let employees = [];
+let pastEmployees = JSON.parse(localStorage.getItem('pastEmployees') || '[]');
+let _currentDetailsEmpId = null;
 
 // --- Field normalisation helpers ---
 // Split a comma-separated field string without breaking on commas inside parentheses
@@ -5216,9 +5361,10 @@ function switchView(viewName) {
         targetSection.offsetHeight;
         targetSection.style.animation = null;
     }
-    if (viewName === 'album')   renderAlbum();
-    if (viewName === 'home')    renderHomeTab();
-    if (viewName === 'profile') renderProfileTab();
+    if (viewName === 'album')        renderAlbum();
+    if (viewName === 'home')         renderHomeTab();
+    if (viewName === 'profile')      renderProfileTab();
+    if (viewName === 'achievements') renderAchievementsWall();
 }
 
 // Sidebar Logic
@@ -5364,6 +5510,7 @@ function updateKPIs() {
     document.getElementById('kpi-total-team').textContent = employees.length;
     const activeTeams = [...new Set(employees.map(emp => emp.team))].filter(t => t && t !== 'Team' && t.trim() !== '').length;
     document.getElementById('kpi-active-teams').textContent = activeTeams;
+    document.getElementById('kpi-past-employees').textContent = pastEmployees.length;
     const today = new Date().toISOString().slice(0, 10);
     const todayUpdates = workUpdates.filter(u => u.date === today);
     const [ty, tm, td] = today.split('-').map(Number);
@@ -5453,6 +5600,7 @@ function openMemberProfile(id) {
 function openEmployeeDetails(id) {
     const baseEmp = employees.find(e => e.id == id);
     if (!baseEmp) return;
+    _currentDetailsEmpId = id;
     // Merge localStorage overrides on top of sheet data
     const over = safeParseJSON(localStorage.getItem('emp_override_' + baseEmp.employeeId), {});
     const emp = Object.assign({}, baseEmp, over);
@@ -5474,6 +5622,12 @@ function openEmployeeDetails(id) {
     document.getElementById('details-analysis').innerHTML = renderFieldList(emp.analysis);
     document.getElementById('details-samples').innerHTML = renderFieldList(emp.samples);
     document.getElementById('details-address').textContent = emp.address || 'Not provided';
+
+    const alreadyPast = pastEmployees.some(p => p.employeeId === emp.employeeId);
+    const markBtn = document.getElementById('mark-past-btn');
+    if (markBtn) {
+        markBtn.style.display = alreadyPast ? 'none' : '';
+    }
 
     document.getElementById('employee-details-modal').classList.add('panel-open');
     lucide.createIcons();
@@ -5533,6 +5687,86 @@ function closeActiveTeamsModal(event) {
     if (modal) {
         modal.style.display = 'none';
     }
+}
+
+// Past Employees Logic
+function markAsPastEmployee() {
+    const emp = employees.find(e => e.id == _currentDetailsEmpId);
+    if (!emp) return;
+    if (pastEmployees.some(p => p.employeeId === emp.employeeId)) {
+        alert(`${emp.name} is already listed as a past employee.`);
+        return;
+    }
+    if (!confirm(`Mark ${emp.name} as a past employee? They will be added to the alumni list.`)) return;
+
+    const record = {
+        employeeId: emp.employeeId,
+        name: emp.name,
+        role: emp.role,
+        team: emp.team,
+        teamLeader: emp.teamLeader,
+        doj: emp.doj,
+        email: emp.email,
+        phone: emp.phone || '',
+        avatar: emp.avatar,
+        markedDate: new Date().toISOString().slice(0, 10)
+    };
+    pastEmployees.push(record);
+    localStorage.setItem('pastEmployees', JSON.stringify(pastEmployees));
+    updateKPIs();
+    document.getElementById('mark-past-btn').style.display = 'none';
+    alert(`${emp.name} has been added to Past Employees.`);
+}
+
+function openPastEmployeesModal() {
+    renderPastEmployeesModal();
+    document.getElementById('past-employees-modal').style.display = 'flex';
+    lucide.createIcons();
+}
+
+function closePastEmployeesModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('past-employees-modal').style.display = 'none';
+}
+
+function renderPastEmployeesModal() {
+    const list = document.getElementById('past-employees-list');
+    if (!list) return;
+
+    if (!pastEmployees.length) {
+        list.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:#94a3b8;font-size:0.85rem;padding:2rem;">No past employees yet. Use "Mark as Past" in an employee profile to add alumni.</div>`;
+        return;
+    }
+
+    list.innerHTML = pastEmployees.map((p, idx) => {
+        const teamLower = (p.team || '').toLowerCase();
+        const chipClass = teamLower.includes('secondary') ? 'secondary'
+                        : teamLower.includes('tertiary')  ? 'tertiary'
+                        : teamLower === 'cmc'             ? 'cmc' : '';
+        return `
+        <div class="past-emp-card">
+            <span class="past-emp-alumni-badge">Alumni</span>
+            <img src="${p.avatar}" alt="${p.name}">
+            <h4>${p.name}</h4>
+            <div class="past-role">${p.role}</div>
+            <span class="past-meta">${p.employeeId}</span>
+            <span class="stat-team-chip ${chipClass}" style="font-size:0.65rem;margin-bottom:0.3rem;">${p.team}</span>
+            <div style="font-size:0.7rem;color:#94a3b8;margin-bottom:0.2rem;">Leader: ${p.teamLeader || '—'}</div>
+            <div style="font-size:0.7rem;color:#94a3b8;margin-bottom:0.5rem;">Joined: ${formatDate(p.doj)}</div>
+            <button class="past-emp-remove-btn" onclick="removePastEmployee(${idx})">Remove</button>
+        </div>`;
+    }).join('');
+
+    lucide.createIcons();
+}
+
+function removePastEmployee(idx) {
+    const name = pastEmployees[idx] ? pastEmployees[idx].name : 'this employee';
+    if (!confirm(`Remove ${name} from the alumni list?`)) return;
+    pastEmployees.splice(idx, 1);
+    localStorage.setItem('pastEmployees', JSON.stringify(pastEmployees));
+    updateKPIs();
+    renderPastEmployeesModal();
 }
 
 // Render Manager Directory
