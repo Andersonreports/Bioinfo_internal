@@ -54,6 +54,38 @@ create table if not exists public.app_settings (
     value jsonb
 );
 
+create table if not exists public.publications (
+    id           uuid primary key default gen_random_uuid(),
+    employee_id  text not null,
+    author_name  text,
+    title        text,
+    authors      text,
+    venue        text,
+    pub_date     text,
+    link         text,
+    file_url     text,
+    file_name    text,
+    cover_url    text,
+    created_at   timestamptz not null default now()
+);
+create index if not exists publications_employee_id_idx on public.publications (employee_id);
+
+create table if not exists public.presentations (
+    id           uuid primary key default gen_random_uuid(),
+    employee_id  text not null,
+    author_name  text,
+    title        text,
+    event_name   text,
+    pres_date    text,
+    place        text,
+    pres_type    text,
+    file_url     text,
+    file_name    text,
+    photo_url    text,
+    created_at   timestamptz not null default now()
+);
+create index if not exists presentations_employee_id_idx on public.presentations (employee_id);
+
 
 -- ============================================================================
 -- STEP 3 — ROW LEVEL SECURITY
@@ -65,6 +97,8 @@ alter table public.certificates     enable row level security;
 alter table public.album_photos      enable row level security;
 alter table public.employee_avatars  enable row level security;
 alter table public.app_settings      enable row level security;
+alter table public.publications      enable row level security;
+alter table public.presentations     enable row level security;
 
 -- certificates
 drop policy if exists certificates_read  on public.certificates;
@@ -92,6 +126,20 @@ drop policy if exists app_settings_read  on public.app_settings;
 drop policy if exists app_settings_write on public.app_settings;
 create policy app_settings_read  on public.app_settings for select using (true);
 create policy app_settings_write on public.app_settings for all
+    to authenticated using (true) with check (true);
+
+-- publications
+drop policy if exists publications_read  on public.publications;
+drop policy if exists publications_write on public.publications;
+create policy publications_read  on public.publications for select using (true);
+create policy publications_write on public.publications for all
+    to authenticated using (true) with check (true);
+
+-- presentations
+drop policy if exists presentations_read  on public.presentations;
+drop policy if exists presentations_write on public.presentations;
+create policy presentations_read  on public.presentations for select using (true);
+create policy presentations_write on public.presentations for all
     to authenticated using (true) with check (true);
 
 
