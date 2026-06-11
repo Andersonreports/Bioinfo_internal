@@ -6822,14 +6822,14 @@ function _achCertCard(emp, cert, showActions) {
                     <div class="ach-card-role">${emp.role}</div>
                 </div>
             </div>
-            <div class="ach-card-event">${cert.eventName}</div>
+            <div class="ach-card-event">${buildCaption(emp.name, cert)}</div>
             <div class="ach-card-meta">
                 ${cert.place ? `<span class="ach-meta-tag"><i data-lucide="map-pin" style="width:11px;height:11px;"></i>${cert.place}</span>` : ''}
                 ${dateDisplay ? `<span class="ach-meta-tag"><i data-lucide="calendar" style="width:11px;height:11px;"></i>${dateDisplay}</span>` : ''}
                 ${cert.award ? `<span class="ach-meta-tag ach-award-tag"><i data-lucide="trophy" style="width:11px;height:11px;"></i>${cert.award}</span>` : ''}
             </div>
             ${mediaBlock}
-            <div class="ach-card-caption">${buildCaption(emp.name, cert)}</div>
+            ${cert.eventName ? `<div class="ach-card-caption">${cert.eventName}</div>` : ''}
             ${actionsHtml ? `<div class="ach-card-actions">${actionsHtml}</div>` : ''}
         </div>`;
 }
@@ -7062,13 +7062,13 @@ function _achPresCard(row, showActions) {
 
     return `<div class="ach-card">
         ${_authorBlock(row)}
-        <div class="ach-card-event">${presEvent || presTitle}</div>
+        <div class="ach-card-event">${presCaption || presEvent || presTitle}</div>
         <div class="ach-card-meta">
             ${dateDisplay ? `<span class="ach-meta-tag"><i data-lucide="calendar" style="width:11px;height:11px;"></i>${dateDisplay}</span>` : ''}
             ${row.pres_type ? `<span class="ach-meta-tag ach-award-tag"><i data-lucide="presentation" style="width:11px;height:11px;"></i>${row.pres_type}</span>` : ''}
         </div>
         ${mediaBlock}
-        ${presCaption ? `<div class="ach-card-caption">${presCaption}</div>` : ''}
+        ${(presEvent || presTitle) ? `<div class="ach-card-caption">${presEvent || presTitle}</div>` : ''}
         ${actions.length ? `<div class="ach-card-actions">${actions.join('')}</div>` : ''}
     </div>`;
 }
