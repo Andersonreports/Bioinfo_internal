@@ -7085,7 +7085,7 @@ function _achPresCard(row, showActions) {
         ${(presEvent || presTitle) ? `<div class="ach-card-caption">${presEvent || presTitle}</div>` : ''}
         <div class="ach-card-meta">
             ${dateDisplay ? `<span class="ach-meta-tag"><i data-lucide="calendar" style="width:11px;height:11px;"></i>${dateDisplay}</span>` : ''}
-            ${row.pres_type ? `<span class="ach-meta-tag ach-award-tag"><i data-lucide="presentation" style="width:11px;height:11px;"></i>${row.pres_type}</span>` : ''}
+            ${row.pres_type ? `<span class="ach-meta-tag ach-award-tag"><i data-lucide="presentation" style="width:11px;height:11px;"></i>${row.pres_type === 'Outer Event' ? 'Conference' : row.pres_type}</span>` : ''}
         </div>
         ${mediaBlock}
         ${actions.length ? `<div class="ach-card-actions">${actions.join('')}</div>` : ''}
