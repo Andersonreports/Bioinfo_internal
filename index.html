@@ -6774,8 +6774,9 @@ function handleAddEmployee(event) {
 }
 
 // Single certificate/achievement card.
-function _achCertCard(emp, cert) {
-    const canDelete = !!getSession();
+function _achCertCard(emp, cert, showActions) {
+    if (showActions === undefined) showActions = true;
+    const canDelete = showActions && !!getSession();
     const dateDisplay = _fmtLongDate(cert.date);
     const isImage = (f) => f && f.data && (f.type ? f.type.startsWith('image') : /^data:image/.test(f.data));
     const buildCaption = (name, c) => {
@@ -6853,8 +6854,10 @@ function renderAchievementsWall() {
     }
 
     items.sort((a, b) => b.date.localeCompare(a.date));
-    const html = items.map(it => it.kind === 'cert' ? _achCertCard(it.emp, it.cert) : _achPresCard(it.row)).join('');
-    walls.forEach(w => w.innerHTML = html);
+    walls.forEach(w => {
+        const showActions = !w.classList.contains('home-ach-wall-scroll');
+        w.innerHTML = items.map(it => it.kind === 'cert' ? _achCertCard(it.emp, it.cert, showActions) : _achPresCard(it.row, showActions)).join('');
+    });
     lucide.createIcons();
 }
 
@@ -7029,8 +7032,9 @@ function renderPublications() {
 
 // Single presentation/poster card (used by the Lab Presentations tab and, for
 // outer events, the Achievements wall).
-function _achPresCard(row) {
-    const canDelete = !!getSession();
+function _achPresCard(row, showActions) {
+    if (showActions === undefined) showActions = true;
+    const canDelete = showActions && !!getSession();
     const dateDisplay = _fmtLongDate(row.pres_date);
     const photoMedia = row.photo_url
         ? `<img src="${row.photo_url}" class="ach-card-media-img" title="View photo" onclick="window.open('${row.photo_url}','_blank')">`
