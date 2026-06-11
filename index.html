@@ -5680,10 +5680,17 @@ function refreshData() {
     fetchData();
 }
 
-function clearAllWorkUpdates() {
+async function clearAllWorkUpdates() {
     if (!confirm('Clear ALL work updates? This cannot be undone.')) return;
+    try {
+        const { error } = await _sb.from('work_updates').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        if (error) throw error;
+    } catch (e) {
+        console.error('clearAllWorkUpdates failed:', e);
+        alert('Clear failed: ' + (e.message || e));
+        return;
+    }
     workUpdates = [];
-    localStorage.removeItem('workUpdates');
     renderWorkUpdates();
     updateKPIs();
     toggleHdrDropdown('settings-panel');
@@ -5837,7 +5844,7 @@ async function fetchData() {
         // Layer shared content (Supabase certificates/avatars/leaves + the Past
         // Employees sheet tab) before rendering so stats exclude alumni.
         const [certMap, avatarMap, leavesMap] = await Promise.all([
-            loadCertificatesMap(), loadAvatarsMap(), loadLeaves(), loadPastEmployees()
+            loadCertificatesMap(), loadAvatarsMap(), loadLeaves(), loadPastEmployees(), loadWorkUpdates()
         ]);
 
         // Add any past employee who isn't in the main roster as an alumni record,
@@ -6594,8 +6601,23 @@ async function saveAvatarChange() {
     }
 }
 
-// Work Updates Logic
-let workUpdates = JSON.parse(localStorage.getItem('workUpdates') || '[]');
+// Work Updates Logic — shared across all users via Supabase
+let workUpdates = [];
+
+async function loadWorkUpdates() {
+    try {
+        const { data, error } = await _sb.from('work_updates').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        workUpdates = (data || []).map(row => ({
+            id: row.id,
+            name: row.name,
+            avatar: row.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(row.name)}&background=ad1457&color=fff`,
+            role: row.role || '',
+            date: row.update_date,
+            text: row.update_text
+        }));
+    } catch (e) { console.error('loadWorkUpdates failed:', e); }
+}
 
 function switchEmpSubtab(tab) {
     document.querySelectorAll('.emp-subtab').forEach(b => b.classList.remove('active'));
@@ -6672,7 +6694,7 @@ function setDefaultWuDate() {
     d.readOnly = false;
 }
 
-function submitWorkUpdate() {
+async function submitWorkUpdate() {
     const name = document.getElementById('wu-name').value.trim();
     const date = document.getElementById('wu-date').value;
     const text = document.getElementById('wu-text').value.trim();
@@ -6689,25 +6711,38 @@ function submitWorkUpdate() {
     if (date < earliestKey) { alert('You can only back-date a work update up to 5 days.'); return; }
 
     const emp = employees.find(e => e.name === name);
-    workUpdates.unshift({
-        id: Date.now(),
-        name,
-        avatar: emp ? emp.avatar : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=ad1457&color=fff`,
-        role: emp ? emp.role : '',
-        date,
-        text
-    });
-    localStorage.setItem('workUpdates', JSON.stringify(workUpdates));
+    const avatar = emp ? emp.avatar : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=ad1457&color=fff`;
+    const role = emp ? emp.role : '';
+
+    try {
+        const { data, error } = await _sb.from('work_updates').insert({
+            name, avatar, role, update_date: date, update_text: text
+        }).select().single();
+        if (error) throw error;
+        workUpdates.unshift({ id: data.id, name, avatar, role, date, text });
+    } catch (e) {
+        console.error('submitWorkUpdate failed:', e);
+        alert('Failed to post update: ' + (e.message || e));
+        return;
+    }
+
     document.getElementById('wu-text').value = '';
     renderWorkUpdates();
     updateKPIs();
     lucide.createIcons();
 }
 
-function deleteWorkUpdate(id) {
+async function deleteWorkUpdate(id) {
     if (!confirm('Delete this update?')) return;
+    try {
+        const { error } = await _sb.from('work_updates').delete().eq('id', id);
+        if (error) throw error;
+    } catch (e) {
+        console.error('deleteWorkUpdate failed:', e);
+        alert('Delete failed: ' + (e.message || e));
+        return;
+    }
     workUpdates = workUpdates.filter(u => u.id !== id);
-    localStorage.setItem('workUpdates', JSON.stringify(workUpdates));
     renderWorkUpdates();
     updateKPIs();
 }
@@ -6761,7 +6796,7 @@ function renderWorkUpdates() {
                         </div>
                         <p class="wu-entry-text">${u.text.replace(/\n/g, '<br>')}</p>
                     </div>
-                    <button class="cert-delete-btn" onclick="deleteWorkUpdate(${u.id})" title="Delete">
+                    <button class="cert-delete-btn" onclick="deleteWorkUpdate('${u.id}')" title="Delete">
                         <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
                     </button>
                 </div>

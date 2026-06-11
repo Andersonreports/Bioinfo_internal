@@ -95,6 +95,17 @@ create table if not exists public.leaves (
 );
 create index if not exists leaves_employee_id_idx on public.leaves (employee_id);
 
+create table if not exists public.work_updates (
+    id           uuid primary key default gen_random_uuid(),
+    name         text not null,
+    role         text,
+    avatar       text,
+    update_date  text not null,
+    update_text  text not null,
+    created_at   timestamptz not null default now()
+);
+create index if not exists work_updates_date_idx on public.work_updates (update_date);
+
 
 -- ============================================================================
 -- STEP 3 — ROW LEVEL SECURITY
@@ -109,6 +120,7 @@ alter table public.app_settings      enable row level security;
 alter table public.publications      enable row level security;
 alter table public.presentations     enable row level security;
 alter table public.leaves            enable row level security;
+alter table public.work_updates      enable row level security;
 
 -- certificates
 drop policy if exists certificates_read  on public.certificates;
@@ -157,6 +169,13 @@ drop policy if exists leaves_read  on public.leaves;
 drop policy if exists leaves_write on public.leaves;
 create policy leaves_read  on public.leaves for select using (true);
 create policy leaves_write on public.leaves for all
+    to authenticated using (true) with check (true);
+
+-- work_updates
+drop policy if exists work_updates_read  on public.work_updates;
+drop policy if exists work_updates_write on public.work_updates;
+create policy work_updates_read  on public.work_updates for select using (true);
+create policy work_updates_write on public.work_updates for all
     to authenticated using (true) with check (true);
 
 
