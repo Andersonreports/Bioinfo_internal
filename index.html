@@ -2526,12 +2526,14 @@ body {
     overflow: hidden;
     position: relative;
     background: #f1f5f9;
+    height: 220px;
 }
 .ach-card-pdf iframe {
-    width: 100%;
+    width: calc(100% + 20px);
     height: 100%;
     border: none;
     pointer-events: none;
+    display: block;
 }
 
 /* Auto-generated achievement caption (conference / event name) */
@@ -2570,6 +2572,9 @@ body {
 .home-ach-wall-scroll .ach-card-media-img {
     object-fit: contain;
     background: #f1f5f9;
+}
+.home-ach-wall-scroll .ach-card-pdf {
+    height: 420px;
 }
 .home-ach-wall-scroll > div:only-child { grid-column: 1 / -1; }
 
