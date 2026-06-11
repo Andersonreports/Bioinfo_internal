@@ -2504,6 +2504,18 @@ body {
     font-weight: 600;
     background: #f8fafc;
 }
+.ach-card-pdf {
+    padding: 0;
+    overflow: hidden;
+    position: relative;
+    background: #f1f5f9;
+}
+.ach-card-pdf iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    pointer-events: none;
+}
 
 /* Auto-generated achievement caption */
 .ach-card-caption {
@@ -6779,6 +6791,11 @@ function _achCertCard(emp, cert, showActions) {
     const canDelete = showActions && !!getSession();
     const dateDisplay = _fmtLongDate(cert.date);
     const isImage = (f) => f && f.data && (f.type ? f.type.startsWith('image') : /^data:image/.test(f.data));
+    const isPdf = (f) => f && f.data && (
+        (f.type && f.type === 'application/pdf') ||
+        /\.pdf$/i.test(f.name || '') ||
+        /^data:application\/pdf/.test(f.data)
+    );
     const buildCaption = (name, c) => {
         const ev = (c.eventName || '').trim();
         if (c.award && c.award.trim()) {
@@ -6797,7 +6814,9 @@ function _achCertCard(emp, cert, showActions) {
     const certMedia = cert.certificate && cert.certificate.data
         ? (isImage(cert.certificate)
             ? `<img src="${cert.certificate.data}" class="ach-card-media-img" title="View certificate" onclick="viewCertFile(${emp.id},'${cert.id}','certificate')">`
-            : `<div class="ach-card-doc" title="View certificate" onclick="viewCertFile(${emp.id},'${cert.id}','certificate')"><i data-lucide="file-text" style="width:26px;height:26px;"></i><span>Certificate</span></div>`)
+            : isPdf(cert.certificate)
+                ? `<div class="ach-card-doc ach-card-pdf" title="View certificate" onclick="viewCertFile(${emp.id},'${cert.id}','certificate')"><iframe src="${cert.certificate.data}#toolbar=0&navpanes=0&view=FitH" loading="lazy"></iframe></div>`
+                : `<div class="ach-card-doc" title="View certificate" onclick="viewCertFile(${emp.id},'${cert.id}','certificate')"><i data-lucide="file-text" style="width:26px;height:26px;"></i><span>Certificate</span></div>`)
         : '';
     const mediaBlock = (photoMedia || certMedia) ? `<div class="ach-card-media">${certMedia}${photoMedia}</div>` : '';
 
