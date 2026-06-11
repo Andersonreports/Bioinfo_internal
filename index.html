@@ -2563,6 +2563,14 @@ body {
     gap: 1rem;
     align-content: start;
 }
+.home-ach-wall-scroll .ach-card-media-img,
+.home-ach-wall-scroll .ach-card-doc {
+    height: 240px;
+}
+.home-ach-wall-scroll .ach-card-media-img {
+    object-fit: contain;
+    background: #f1f5f9;
+}
 .home-ach-wall-scroll > div:only-child { grid-column: 1 / -1; }
 
 /* Employee Dashboard: cert upload */
@@ -3394,7 +3402,7 @@ body {
 
 /* Left column holds the (reduced) calendar with work updates stacked below */
 .home-left-col {
-    flex: 0 0 380px;
+    flex: 0 0 320px;
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
