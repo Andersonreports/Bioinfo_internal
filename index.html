@@ -6803,7 +6803,7 @@ function _achCertCard(emp, cert, showActions) {
 
     const certBtn = cert.certificate && cert.certificate.data
         ? `<button class="cert-file-btn view" onclick="viewCertFile(${emp.id},'${cert.id}','certificate')"><i data-lucide="eye" style="width:13px;height:13px;"></i> View</button>
-           <a class="cert-file-btn download" href="${cert.certificate.data}" download="${cert.certificate.name}"><i data-lucide="download" style="width:13px;height:13px;"></i> Download</a>`
+           ${showActions ? `<a class="cert-file-btn download" href="${cert.certificate.data}" download="${cert.certificate.name}"><i data-lucide="download" style="width:13px;height:13px;"></i> Download</a>` : ''}`
         : '';
     const editBtn = canDelete
         ? `<button class="cert-file-btn" onclick="openEditAchievementModal('cert','${cert.id}',${emp.id})"><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button>`
@@ -7047,7 +7047,7 @@ function _achPresCard(row, showActions) {
     const actions = [];
     if (row.file_url) {
         actions.push(`<a class="cert-file-btn view" href="${_driveView(row.file_url)}" target="_blank" rel="noopener"><i data-lucide="eye" style="width:13px;height:13px;"></i> View</a>`);
-        actions.push(`<a class="cert-file-btn download" href="${_driveDownload(row.file_url)}" target="_blank" rel="noopener"><i data-lucide="download" style="width:13px;height:13px;"></i> Download</a>`);
+        if (showActions) actions.push(`<a class="cert-file-btn download" href="${_driveDownload(row.file_url)}" target="_blank" rel="noopener"><i data-lucide="download" style="width:13px;height:13px;"></i> Download</a>`);
     }
     if (canDelete) actions.push(`<button class="cert-file-btn" onclick="openEditAchievementModal('pres','${row.id}')"><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button>`);
     if (canDelete) actions.push(`<button class="cert-file-btn" onclick="deletePresentation('${row.id}')" style="color:#dc2626;"><i data-lucide="trash-2" style="width:13px;height:13px;"></i> Delete</button>`);
