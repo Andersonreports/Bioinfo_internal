@@ -5396,6 +5396,111 @@ body {
         </div>
     </div>
 
+    <!-- Edit Achievement Modal (certificates / publications / presentations) -->
+    <div class="modal-overlay" id="edit-achievement-modal" style="display: none;">
+        <div class="modal glass-panel">
+            <div class="modal-header">
+                <h2 id="edit-ach-title">Edit</h2>
+                <button class="icon-btn" onclick="closeEditAchievementModal()"><i data-lucide="x"></i></button>
+            </div>
+            <form onsubmit="return false;">
+                <input type="hidden" id="edit-ach-type">
+                <input type="hidden" id="edit-ach-id">
+                <input type="hidden" id="edit-ach-emp-id">
+                <div class="form-grid">
+                    <!-- Certificate fields -->
+                    <div class="form-group col-span-2 ea-cert">
+                        <label>Event Name</label>
+                        <input type="text" id="edit-ach-event-name" placeholder="e.g., Clinical Genomics Summit 2026">
+                    </div>
+                    <div class="form-group ea-cert">
+                        <label>Event Date</label>
+                        <input type="date" id="edit-ach-date">
+                    </div>
+                    <div class="form-group ea-cert">
+                        <label>Place</label>
+                        <input type="text" id="edit-ach-place" placeholder="e.g., Chennai, India">
+                    </div>
+                    <div class="form-group col-span-2 ea-cert">
+                        <label>Award / Achievement</label>
+                        <input type="text" id="edit-ach-award" placeholder="e.g., Best Poster Award (Optional)">
+                    </div>
+                    <div class="form-group col-span-2 ea-cert">
+                        <label>Replace Certificate File (optional)</label>
+                        <input type="file" id="edit-ach-cert-file">
+                    </div>
+                    <div class="form-group col-span-2 ea-cert">
+                        <label>Replace Photo (optional)</label>
+                        <input type="file" id="edit-ach-photo" accept="image/*">
+                    </div>
+
+                    <!-- Publication fields -->
+                    <div class="form-group col-span-2 ea-pub">
+                        <label>Title</label>
+                        <input type="text" id="edit-ach-pub-title">
+                    </div>
+                    <div class="form-group ea-pub">
+                        <label>Authors</label>
+                        <input type="text" id="edit-ach-pub-authors">
+                    </div>
+                    <div class="form-group ea-pub">
+                        <label>Journal / Venue</label>
+                        <input type="text" id="edit-ach-pub-venue">
+                    </div>
+                    <div class="form-group ea-pub">
+                        <label>Publication Date</label>
+                        <input type="date" id="edit-ach-pub-date">
+                    </div>
+                    <div class="form-group ea-pub">
+                        <label>DOI / Link</label>
+                        <input type="text" id="edit-ach-pub-link">
+                    </div>
+                    <div class="form-group col-span-2 ea-pub">
+                        <label>File Link (Google Drive)</label>
+                        <input type="text" id="edit-ach-pub-file-link">
+                    </div>
+                    <div class="form-group col-span-2 ea-pub">
+                        <label>Replace Cover Image (optional)</label>
+                        <input type="file" id="edit-ach-cover" accept="image/*">
+                    </div>
+
+                    <!-- Presentation / poster fields -->
+                    <div class="form-group col-span-2 ea-pres">
+                        <label>Title</label>
+                        <input type="text" id="edit-ach-pres-title">
+                    </div>
+                    <div class="form-group ea-pres">
+                        <label>Type</label>
+                        <select id="edit-ach-pres-type" onchange="toggleEditPresEventField()">
+                            <option value="Internal Presentation">Internal Presentation</option>
+                            <option value="Outer Event">Outer Event</option>
+                        </select>
+                    </div>
+                    <div class="form-group ea-pres" id="edit-ach-pres-event-name-group" style="display:none;">
+                        <label>Event Name</label>
+                        <input type="text" id="edit-ach-pres-event-name">
+                    </div>
+                    <div class="form-group ea-pres">
+                        <label>Date</label>
+                        <input type="date" id="edit-ach-pres-date">
+                    </div>
+                    <div class="form-group col-span-2 ea-pres">
+                        <label>File Link (Google Drive)</label>
+                        <input type="text" id="edit-ach-pres-file-link">
+                    </div>
+                    <div class="form-group col-span-2 ea-pres">
+                        <label>Replace Photo (optional)</label>
+                        <input type="file" id="edit-ach-pres-photo" accept="image/*">
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-outline" onclick="closeEditAchievementModal()">Cancel</button>
+                    <button type="button" class="btn-primary" onclick="saveEditAchievement()">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- View Certificates Modal (LinkedIn Style) -->
     <div class="modal-overlay" id="view-certs-modal" style="display: none;" onclick="closeViewCertsModal(event)">
         <div class="modal glass-panel view-certs-modal" onclick="event.stopPropagation()">
@@ -6670,6 +6775,7 @@ function handleAddEmployee(event) {
 
 // Single certificate/achievement card.
 function _achCertCard(emp, cert) {
+    const canDelete = !!getSession();
     const dateDisplay = _fmtLongDate(cert.date);
     const isImage = (f) => f && f.data && (f.type ? f.type.startsWith('image') : /^data:image/.test(f.data));
     const buildCaption = (name, c) => {
@@ -6698,6 +6804,13 @@ function _achCertCard(emp, cert) {
         ? `<button class="cert-file-btn view" onclick="viewCertFile(${emp.id},'${cert.id}','certificate')"><i data-lucide="eye" style="width:13px;height:13px;"></i> View</button>
            <a class="cert-file-btn download" href="${cert.certificate.data}" download="${cert.certificate.name}"><i data-lucide="download" style="width:13px;height:13px;"></i> Download</a>`
         : '';
+    const editBtn = canDelete
+        ? `<button class="cert-file-btn" onclick="openEditAchievementModal('cert','${cert.id}',${emp.id})"><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button>`
+        : '';
+    const deleteBtn = canDelete
+        ? `<button class="cert-file-btn" onclick="deleteSingleCert(${emp.id},'${cert.id}')" style="color:#dc2626;"><i data-lucide="trash-2" style="width:13px;height:13px;"></i> Delete</button>`
+        : '';
+    const actionsHtml = certBtn + editBtn + deleteBtn;
 
     return `
         <div class="ach-card">
@@ -6716,7 +6829,7 @@ function _achCertCard(emp, cert) {
             </div>
             ${mediaBlock}
             <div class="ach-card-caption">${buildCaption(emp.name, cert)}</div>
-            ${certBtn ? `<div class="ach-card-actions">${certBtn}</div>` : ''}
+            ${actionsHtml ? `<div class="ach-card-actions">${actionsHtml}</div>` : ''}
         </div>`;
 }
 
@@ -6896,6 +7009,7 @@ function renderPublications() {
             actions.push(`<a class="cert-file-btn view" href="${_driveView(row.file_url)}" target="_blank" rel="noopener"><i data-lucide="eye" style="width:13px;height:13px;"></i> View</a>`);
             actions.push(`<a class="cert-file-btn download" href="${_driveDownload(row.file_url)}" target="_blank" rel="noopener"><i data-lucide="download" style="width:13px;height:13px;"></i> Download</a>`);
         }
+        if (canDelete) actions.push(`<button class="cert-file-btn" onclick="openEditAchievementModal('pub','${row.id}')"><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button>`);
         if (canDelete) actions.push(`<button class="cert-file-btn" onclick="deletePublication('${row.id}')" style="color:#dc2626;"><i data-lucide="trash-2" style="width:13px;height:13px;"></i> Delete</button>`);
 
         return `<div class="ach-card">
@@ -6931,6 +7045,7 @@ function _achPresCard(row) {
         actions.push(`<a class="cert-file-btn view" href="${_driveView(row.file_url)}" target="_blank" rel="noopener"><i data-lucide="eye" style="width:13px;height:13px;"></i> View</a>`);
         actions.push(`<a class="cert-file-btn download" href="${_driveDownload(row.file_url)}" target="_blank" rel="noopener"><i data-lucide="download" style="width:13px;height:13px;"></i> Download</a>`);
     }
+    if (canDelete) actions.push(`<button class="cert-file-btn" onclick="openEditAchievementModal('pres','${row.id}')"><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button>`);
     if (canDelete) actions.push(`<button class="cert-file-btn" onclick="deletePresentation('${row.id}')" style="color:#dc2626;"><i data-lucide="trash-2" style="width:13px;height:13px;"></i> Delete</button>`);
 
     return `<div class="ach-card">
@@ -7097,6 +7212,200 @@ async function deletePresentation(id) {
     } catch (e) { console.error('deletePresentation failed:', e); alert('Delete failed: ' + (e.message || e)); return; }
     presentationsCache = presentationsCache.filter(r => r.id !== id);
     renderPresentations();
+    renderAchievementsWall();
+}
+
+// ---- Edit (certificates / publications / presentations) ----
+function _eaSetGroupVisible(cls, visible) {
+    document.querySelectorAll(`#edit-achievement-modal .${cls}`).forEach(el => el.style.display = visible ? '' : 'none');
+}
+
+function openEditAchievementModal(type, id, empId) {
+    const modal = document.getElementById('edit-achievement-modal');
+    const title = document.getElementById('edit-ach-title');
+    if (!modal) return;
+
+    document.getElementById('edit-ach-type').value = type;
+    document.getElementById('edit-ach-id').value = id;
+    document.getElementById('edit-ach-emp-id').value = empId != null ? empId : '';
+
+    _eaSetGroupVisible('ea-cert', false);
+    _eaSetGroupVisible('ea-pub', false);
+    _eaSetGroupVisible('ea-pres', false);
+
+    if (type === 'cert') {
+        const emp = employees.find(e => e.id === empId);
+        const cert = emp && emp.certificates.find(c => c.id == id);
+        if (!cert) return;
+        title.textContent = 'Edit Certificate';
+        _eaSetGroupVisible('ea-cert', true);
+        document.getElementById('edit-ach-event-name').value = cert.eventName || '';
+        document.getElementById('edit-ach-date').value = cert.date || '';
+        document.getElementById('edit-ach-place').value = cert.place || '';
+        document.getElementById('edit-ach-award').value = cert.award || '';
+        document.getElementById('edit-ach-cert-file').value = '';
+        document.getElementById('edit-ach-photo').value = '';
+    } else if (type === 'pub') {
+        const row = publicationsCache.find(r => r.id === id);
+        if (!row) return;
+        title.textContent = 'Edit Publication';
+        _eaSetGroupVisible('ea-pub', true);
+        document.getElementById('edit-ach-pub-title').value = row.title || '';
+        document.getElementById('edit-ach-pub-authors').value = row.authors || '';
+        document.getElementById('edit-ach-pub-venue').value = row.venue || '';
+        document.getElementById('edit-ach-pub-date').value = row.pub_date || '';
+        document.getElementById('edit-ach-pub-link').value = row.link || '';
+        document.getElementById('edit-ach-pub-file-link').value = row.file_url || '';
+        document.getElementById('edit-ach-cover').value = '';
+    } else if (type === 'pres') {
+        const row = presentationsCache.find(r => r.id === id);
+        if (!row) return;
+        title.textContent = 'Edit Presentation';
+        _eaSetGroupVisible('ea-pres', true);
+        document.getElementById('edit-ach-pres-title').value = row.title || '';
+        document.getElementById('edit-ach-pres-type').value = row.pres_type || 'Internal Presentation';
+        document.getElementById('edit-ach-pres-event-name').value = row.event_name || '';
+        document.getElementById('edit-ach-pres-date').value = row.pres_date || '';
+        document.getElementById('edit-ach-pres-file-link').value = row.file_url || '';
+        document.getElementById('edit-ach-pres-photo').value = '';
+        toggleEditPresEventField();
+    } else {
+        return;
+    }
+
+    modal.style.display = 'flex';
+    lucide.createIcons();
+}
+
+function closeEditAchievementModal() {
+    document.getElementById('edit-achievement-modal').style.display = 'none';
+}
+
+function toggleEditPresEventField() {
+    const type = document.getElementById('edit-ach-pres-type').value;
+    const group = document.getElementById('edit-ach-pres-event-name-group');
+    if (group) group.style.display = type === 'Outer Event' ? '' : 'none';
+}
+
+async function saveEditAchievement() {
+    const type = document.getElementById('edit-ach-type').value;
+    const id = document.getElementById('edit-ach-id').value;
+    const empId = parseInt(document.getElementById('edit-ach-emp-id').value);
+
+    if (type === 'cert') {
+        const emp = employees.find(e => e.id === empId);
+        const cert = emp && emp.certificates.find(c => c.id == id);
+        if (!cert) return;
+
+        const eventName = document.getElementById('edit-ach-event-name').value.trim();
+        const eventDate = document.getElementById('edit-ach-date').value;
+        const place = document.getElementById('edit-ach-place').value.trim();
+        const award = document.getElementById('edit-ach-award').value.trim();
+        const fileInput = document.getElementById('edit-ach-cert-file');
+        const photoInput = document.getElementById('edit-ach-photo');
+
+        if (!eventName) { alert('Please enter the event name.'); return; }
+        if (!eventDate) { alert('Please select the event date.'); return; }
+        if (!place) { alert('Please enter the place.'); return; }
+
+        const update = { event_name: eventName, event_date: eventDate, place: place, award: award };
+
+        try {
+            if (fileInput.files[0]) {
+                const file = await sbUpload('certificates', fileInput.files[0]);
+                await sbDeleteByUrl('certificates', cert.certificate && cert.certificate.data);
+                update.certificate_url = file.url;
+                update.certificate_name = file.name;
+            }
+            if (photoInput.files[0]) {
+                const photo = await sbUpload('certificates', photoInput.files[0]);
+                await sbDeleteByUrl('certificates', cert.photo && cert.photo.data);
+                update.photo_url = photo.url;
+            }
+            const { data, error } = await _sb.from('certificates').update(update).eq('id', id).select().single();
+            if (error) throw error;
+            const idx = emp.certificates.findIndex(c => c.id == id);
+            emp.certificates[idx] = _mapCertRow(data);
+        } catch (e) {
+            console.error('Update certificate failed:', e);
+            alert('Update failed: ' + (e.message || e));
+            return;
+        }
+        renderEmployeeSpace();
+    } else if (type === 'pub') {
+        const row = publicationsCache.find(r => r.id === id);
+        if (!row) return;
+
+        const titleVal = document.getElementById('edit-ach-pub-title').value.trim();
+        const authors = document.getElementById('edit-ach-pub-authors').value.trim();
+        const venue = document.getElementById('edit-ach-pub-venue').value.trim();
+        const pubDate = document.getElementById('edit-ach-pub-date').value;
+        const link = document.getElementById('edit-ach-pub-link').value.trim();
+        const fileLink = document.getElementById('edit-ach-pub-file-link').value.trim();
+        const coverInput = document.getElementById('edit-ach-cover');
+
+        if (!titleVal) { alert('Please enter the title.'); return; }
+        if (!authors)  { alert('Please enter the authors.'); return; }
+        if (!venue)    { alert('Please enter the journal / venue.'); return; }
+        if (!pubDate)  { alert('Please select the publication date.'); return; }
+
+        const update = { title: titleVal, authors: authors, venue: venue, pub_date: pubDate, link: link || null, file_url: fileLink || null };
+
+        try {
+            if (coverInput.files[0]) {
+                const cover = await sbUpload('publications', coverInput.files[0]);
+                await sbDeleteByUrl('publications', row.cover_url);
+                update.cover_url = cover.url;
+            }
+            const { data, error } = await _sb.from('publications').update(update).eq('id', id).select().single();
+            if (error) throw error;
+            const idx = publicationsCache.findIndex(r => r.id === id);
+            publicationsCache[idx] = data;
+        } catch (e) {
+            console.error('Update publication failed:', e);
+            alert('Update failed: ' + (e.message || e));
+            return;
+        }
+        renderPublications();
+    } else if (type === 'pres') {
+        const row = presentationsCache.find(r => r.id === id);
+        if (!row) return;
+
+        const titleVal = document.getElementById('edit-ach-pres-title').value.trim();
+        const presType = document.getElementById('edit-ach-pres-type').value;
+        const isOuter = presType === 'Outer Event';
+        const eventName = document.getElementById('edit-ach-pres-event-name').value.trim();
+        const presDate = document.getElementById('edit-ach-pres-date').value;
+        const fileLink = document.getElementById('edit-ach-pres-file-link').value.trim();
+        const photoInput = document.getElementById('edit-ach-pres-photo');
+
+        if (!titleVal) { alert('Please enter the title.'); return; }
+        if (!presDate) { alert('Please select the date.'); return; }
+        if (isOuter && !eventName) { alert('Please enter the event name.'); return; }
+
+        const update = { title: titleVal, pres_type: presType, event_name: isOuter ? eventName : null, pres_date: presDate, file_url: fileLink || null };
+
+        try {
+            if (photoInput.files[0]) {
+                const photo = await sbUpload('presentations', photoInput.files[0]);
+                await sbDeleteByUrl('presentations', row.photo_url);
+                update.photo_url = photo.url;
+            }
+            const { data, error } = await _sb.from('presentations').update(update).eq('id', id).select().single();
+            if (error) throw error;
+            const idx = presentationsCache.findIndex(r => r.id === id);
+            presentationsCache[idx] = data;
+        } catch (e) {
+            console.error('Update presentation failed:', e);
+            alert('Update failed: ' + (e.message || e));
+            return;
+        }
+        renderPresentations();
+    } else {
+        return;
+    }
+
+    closeEditAchievementModal();
     renderAchievementsWall();
 }
 
