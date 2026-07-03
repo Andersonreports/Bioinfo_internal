@@ -4526,6 +4526,41 @@ body {
                 <div id="employee-cards-container" class="employee-grid">
                     <!-- Populated by JS -->
                 </div>
+
+                <!-- Presentation Assignments -->
+                <div class="view-header-row" style="margin-top: 2rem;">
+                    <div class="header-title-group">
+                        <h2 style="font-size: 1.2rem; color: #1e293b; margin-bottom: 0.5rem;"><i data-lucide="presentation" style="width:20px;height:20px;color:#0ea5e9;vertical-align:middle;margin-right:8px;"></i>Presentation Assignments</h2>
+                        <p style="color: #64748b; font-size: 0.9rem;">Assign LinkedIn posts to employees</p>
+                    </div>
+                    <button class="btn-primary" onclick="openAssignPresentationModal()" style="display:flex;align-items:center;gap:0.4rem;white-space:nowrap;">
+                        <i data-lucide="plus" style="width:16px;height:16px;"></i> Assign Work
+                    </button>
+                </div>
+
+                <!-- Assignments Table -->
+                <div style="background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; margin-top: 1rem;">
+                    <div style="overflow-x: auto;">
+                        <table id="assignments-table" style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                            <thead>
+                                <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+                                    <th style="padding: 1rem; text-align: left; font-weight: 600; color: #475569;">Assigned To</th>
+                                    <th style="padding: 1rem; text-align: left; font-weight: 600; color: #475569;">Title</th>
+                                    <th style="padding: 1rem; text-align: left; font-weight: 600; color: #475569;">Assigned Date</th>
+                                    <th style="padding: 1rem; text-align: left; font-weight: 600; color: #475569;">Due Date</th>
+                                    <th style="padding: 1rem; text-align: left; font-weight: 600; color: #475569;">Status</th>
+                                    <th style="padding: 1rem; text-align: left; font-weight: 600; color: #475569;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="assignments-table-body">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="assignments-empty" style="text-align: center; padding: 2rem; color: #94a3b8;">
+                        No presentations assigned yet. <a href="#" onclick="openAssignPresentationModal(); return false;" style="color: #0ea5e9; text-decoration: none; font-weight: 600;">Create one</a>
+                    </div>
+                </div>
             </section>
 
             <!-- Employee View (Employee Space) -->
@@ -4538,6 +4573,17 @@ body {
                 </div>
 
                 <div class="employee-grid" id="employee-cards-container" style="display:none;"></div>
+
+                <!-- Assigned Presentations Panel -->
+                <div style="background: #f0f9ff; border-left: 4px solid #0ea5e9; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+                        <i data-lucide="presentation" style="width:24px;height:24px;color:#0ea5e9;"></i>
+                        <h2 style="font-size: 1.1rem; color: #1e293b; margin: 0;">Your Assigned Presentations</h2>
+                    </div>
+                    <div id="emp-assignments-container" style="display: grid; gap: 1rem;">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
 
                 <!-- Work Updates panel -->
                 <div id="emp-panel-updates">
@@ -5642,6 +5688,54 @@ body {
         </div>
     </div>
 
+    <!-- Assign Presentation Modal -->
+    <div class="modal-overlay" id="assign-presentation-modal" style="display: none;" onclick="closeAssignPresentationModal(event)">
+        <div class="modal glass-panel" onclick="event.stopPropagation()" style="max-width: 550px;">
+            <div class="modal-header">
+                <div class="details-header-info">
+                    <i data-lucide="presentation" style="color: #0ea5e9; width: 32px; height: 32px;"></i>
+                    <div>
+                        <h2>Assign LinkedIn Post</h2>
+                        <p>Employee prepares presentation based on the post</p>
+                    </div>
+                </div>
+                <button class="icon-btn" onclick="closeAssignPresentationModal()"><i data-lucide="x"></i></button>
+            </div>
+            <div class="details-content">
+                <div style="display: grid; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Assign To</label>
+                        <select id="assign-emp-name" style="border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; font-size: 0.9rem; font-family: inherit; background: white; color: #1e293b; width: 100%; box-sizing: border-box;">
+                            <option value="">Select employee…</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Post Title <span style="color:#94a3b8;font-weight:400;">(e.g., "Genomics in Clinical Practice")</span></label>
+                        <input type="text" id="assign-title" placeholder="Title of the LinkedIn post" style="border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; font-size: 0.9rem; font-family: inherit; background: white; color: #1e293b; width: 100%; box-sizing: border-box;">
+                    </div>
+                    <div class="form-group">
+                        <label>LinkedIn Post URL</label>
+                        <input type="url" id="assign-linkedin-url" placeholder="https://linkedin.com/feed/update/..." style="border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; font-size: 0.9rem; font-family: inherit; background: white; color: #1e293b; width: 100%; box-sizing: border-box;">
+                    </div>
+                    <div class="form-group">
+                        <label>Post Content / Notes <span style="color:#94a3b8;font-weight:400;">(optional - brief summary or key points)</span></label>
+                        <textarea id="assign-description" placeholder="Key points to cover in the presentation..." rows="3" style="border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; font-size: 0.9rem; font-family: inherit; background: white; color: #1e293b; width: 100%; box-sizing: border-box; resize: vertical;"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Due Date</label>
+                        <input type="date" id="assign-due-date" style="border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; font-size: 0.9rem; font-family: inherit; background: white; color: #1e293b; width: 100%; box-sizing: border-box;">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem; justify-content: flex-end;">
+                    <button class="btn-secondary" onclick="closeAssignPresentationModal()" style="padding: 0.5rem 1.5rem;">Cancel</button>
+                    <button class="btn-primary" onclick="submitPresentationAssignment()" style="padding: 0.5rem 1.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                        <i data-lucide="check" style="width:16px;height:16px;"></i> Assign
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
 // Configuration
 const SHEET_ID = '1ZIs0bbHxkwpo1nUvDcLr-oRei1mUOlaOJISOoeNI6Pc';
@@ -5813,6 +5907,8 @@ function switchView(viewName) {
     if (viewName === 'achievements') renderAchievementsWall();
     if (viewName === 'publications')  renderPublications();
     if (viewName === 'presentations') renderPresentations();
+    if (viewName === 'manager')      renderPresentationAssignments();
+    if (viewName === 'employee')     renderEmployeeAssignments();
 }
 
 // Sidebar Logic
@@ -5987,6 +6083,8 @@ async function fetchData() {
         renderAchievementsWall();
         renderPublications();
         renderPresentations();
+        renderPresentationAssignments();
+        renderEmployeeAssignments();
         populateWuNameDropdowns();
         setDefaultWuDate();
         renderWorkUpdates();
@@ -9322,6 +9420,194 @@ document.addEventListener('DOMContentLoaded', async () => {
         fetchData();
     }
 });
+
+// ============================================================================
+// Presentation Assignments
+// ============================================================================
+
+let presentationAssignmentsCache = [];
+
+function openAssignPresentationModal() {
+    const modal = document.getElementById('assign-presentation-modal');
+    const select = document.getElementById('assign-emp-name');
+    select.innerHTML = '<option value="">Select employee…</option>';
+    employees.filter(e => !_pastIdSet.has(e.employee_id)).forEach(e => {
+        const opt = document.createElement('option');
+        opt.value = e.employee_id;
+        opt.textContent = e.name || e.employee_id;
+        select.appendChild(opt);
+    });
+    document.getElementById('assign-title').value = '';
+    document.getElementById('assign-linkedin-url').value = '';
+    document.getElementById('assign-description').value = '';
+    document.getElementById('assign-due-date').value = '';
+    modal.style.display = 'flex';
+}
+
+function closeAssignPresentationModal(event) {
+    if (event && event.target.id !== 'assign-presentation-modal') return;
+    document.getElementById('assign-presentation-modal').style.display = 'none';
+}
+
+async function submitPresentationAssignment() {
+    const empId = document.getElementById('assign-emp-name').value;
+    const title = document.getElementById('assign-title').value.trim();
+    const linkedinUrl = document.getElementById('assign-linkedin-url').value.trim();
+    const description = document.getElementById('assign-description').value.trim();
+    const dueDate = document.getElementById('assign-due-date').value;
+
+    if (!empId) { alert('Please select an employee'); return; }
+    if (!title) { alert('Please enter a post title'); return; }
+
+    const today = new Date().toISOString().split('T')[0];
+    const { data, error } = await _sb.from('presentation_assignments').insert({
+        assigned_to: empId,
+        assigned_by: session.name || session.email,
+        title,
+        linkedin_url: linkedinUrl || null,
+        description: description || null,
+        assigned_date: today,
+        due_date: dueDate || null,
+        status: 'Pending'
+    });
+
+    if (error) {
+        console.error('Error assigning presentation:', error);
+        alert('Failed to create assignment');
+        return;
+    }
+
+    if (data && data[0]) {
+        presentationAssignmentsCache.unshift(data[0]);
+    }
+
+    closeAssignPresentationModal();
+    renderPresentationAssignments();
+    renderEmployeeAssignments();
+}
+
+async function renderPresentationAssignments() {
+    const { data, error } = await _sb.from('presentation_assignments').select('*').order('assigned_date', { ascending: false });
+    if (error) {
+        console.error('Error fetching assignments:', error);
+        return;
+    }
+
+    presentationAssignmentsCache = data || [];
+    const tbody = document.getElementById('assignments-table-body');
+    const empty = document.getElementById('assignments-empty');
+
+    if (presentationAssignmentsCache.length === 0) {
+        tbody.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+    }
+
+    empty.style.display = 'none';
+    tbody.innerHTML = presentationAssignmentsCache.map(a => {
+        const empName = employees.find(e => e.employee_id === a.assigned_to)?.name || a.assigned_to;
+        const dueDate = a.due_date ? new Date(a.due_date + 'T00:00:00').toLocaleDateString() : '—';
+        const assignedDate = new Date(a.assigned_date + 'T00:00:00').toLocaleDateString();
+        const titleWithLink = a.linkedin_url
+            ? `<div style="display:flex;gap:0.5rem;align-items:center;"><span>${a.title}</span><a href="${a.linkedin_url}" target="_blank" rel="noopener" title="View post"><i data-lucide="external-link" style="width:14px;height:14px;color:#0ea5e9;cursor:pointer;"></i></a></div>`
+            : a.title;
+
+        return `
+            <tr style="border-bottom: 1px solid #e2e8f0; transition: background 0.2s;">
+                <td style="padding: 1rem; color: #1e293b;">${empName}</td>
+                <td style="padding: 1rem; color: #1e293b;">${titleWithLink}</td>
+                <td style="padding: 1rem; color: #64748b; font-size: 0.85rem;">${assignedDate}</td>
+                <td style="padding: 1rem; color: #64748b; font-size: 0.85rem;">${dueDate}</td>
+                <td style="padding: 1rem;">
+                    <select onchange="updateAssignmentStatus('${a.id}', this.value)" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.4rem; font-size: 0.85rem; background: white; color: #1e293b;">
+                        <option value="Pending" ${a.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                        <option value="In Progress" ${a.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                        <option value="Completed" ${a.status === 'Completed' ? 'selected' : ''}>Completed</option>
+                    </select>
+                </td>
+                <td style="padding: 1rem;">
+                    <button onclick="deleteAssignment('${a.id}')" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 1rem; padding: 0.4rem;" title="Delete"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+    lucide.createIcons();
+}
+
+async function updateAssignmentStatus(id, status) {
+    const today = status === 'Completed' ? new Date().toISOString().split('T')[0] : null;
+    const { error } = await _sb.from('presentation_assignments')
+        .update({ status, completed_date: today })
+        .eq('id', id);
+
+    if (error) {
+        console.error('Error updating status:', error);
+        alert('Failed to update status');
+        return;
+    }
+
+    renderPresentationAssignments();
+    renderEmployeeAssignments();
+}
+
+async function deleteAssignment(id) {
+    if (!confirm('Delete this assignment?')) return;
+
+    const { error } = await _sb.from('presentation_assignments').delete().eq('id', id);
+    if (error) {
+        console.error('Error deleting assignment:', error);
+        alert('Failed to delete assignment');
+        return;
+    }
+
+    renderPresentationAssignments();
+    renderEmployeeAssignments();
+}
+
+function renderEmployeeAssignments() {
+    if (!session || !session.employeeId) return;
+
+    const myAssignments = presentationAssignmentsCache.filter(a => a.assigned_to === session.employeeId);
+    const container = document.getElementById('emp-assignments-container');
+
+    if (!container) return;
+
+    if (myAssignments.length === 0) {
+        container.innerHTML = '<p style="color:#64748b;font-size:0.95rem;">No presentations assigned to you yet.</p>';
+        return;
+    }
+
+    container.innerHTML = myAssignments.map(a => {
+        const statusColor = a.status === 'Completed' ? '#10b981' : a.status === 'In Progress' ? '#f59e0b' : '#6b7280';
+        const statusBg = a.status === 'Completed' ? '#d1fae5' : a.status === 'In Progress' ? '#fef3c7' : '#e5e7eb';
+        const dueDate = a.due_date ? new Date(a.due_date + 'T00:00:00').toLocaleDateString() : 'No deadline';
+        const linkedinLink = a.linkedin_url ? `<a href="${a.linkedin_url}" target="_blank" rel="noopener" style="color:#0ea5e9;text-decoration:underline;font-weight:600;">View Post →</a>` : '';
+
+        return `
+            <div style="background:white;border:1px solid #e2e8f0;border-radius:10px;padding:1.25rem;display:grid;grid-template-columns:1fr auto;gap:1rem;align-items:start;">
+                <div>
+                    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+                        <h3 style="margin:0;color:#1e293b;font-size:1rem;">${a.title}</h3>
+                    </div>
+                    ${a.description ? `<p style="color:#64748b;font-size:0.9rem;margin:0.5rem 0;line-height:1.5;">${a.description}</p>` : ''}
+                    <div style="display:flex;gap:1.5rem;margin-top:0.75rem;font-size:0.85rem;color:#64748b;">
+                        <span><strong>Assigned:</strong> ${new Date(a.assigned_date + 'T00:00:00').toLocaleDateString()}</span>
+                        <span><strong>Due:</strong> ${dueDate}</span>
+                    </div>
+                    ${linkedinLink ? `<div style="margin-top:0.75rem;">${linkedinLink}</div>` : ''}
+                </div>
+                <div style="display:flex;flex-direction:column;gap:0.5rem;min-width:120px;">
+                    <select onchange="updateAssignmentStatus('${a.id}', this.value)" style="border:1px solid #e2e8f0;border-radius:6px;padding:0.5rem;font-size:0.85rem;background:white;color:#1e293b;cursor:pointer;">
+                        <option value="Pending" ${a.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                        <option value="In Progress" ${a.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                        <option value="Completed" ${a.status === 'Completed' ? 'selected' : ''}>Completed</option>
+                    </select>
+                    <span style="background:${statusBg};color:${statusColor};padding:0.5rem;border-radius:6px;text-align:center;font-size:0.8rem;font-weight:600;">${a.status}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
 
 </script>
     <script>

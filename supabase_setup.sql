@@ -106,6 +106,23 @@ create table if not exists public.work_updates (
 );
 create index if not exists work_updates_date_idx on public.work_updates (update_date);
 
+create table if not exists public.presentation_assignments (
+    id               uuid primary key default gen_random_uuid(),
+    assigned_to      text not null,
+    assigned_by      text,
+    title            text not null,
+    linkedin_url     text,
+    description      text,
+    assigned_date    text not null,
+    due_date         text,
+    status           text default 'Pending',
+    completed_date   text,
+    completion_notes text,
+    created_at       timestamptz not null default now()
+);
+create index if not exists presentation_assignments_assigned_to_idx on public.presentation_assignments (assigned_to);
+create index if not exists presentation_assignments_status_idx on public.presentation_assignments (status);
+
 
 -- ============================================================================
 -- STEP 3 — ROW LEVEL SECURITY
@@ -121,6 +138,7 @@ alter table public.publications      enable row level security;
 alter table public.presentations     enable row level security;
 alter table public.leaves            enable row level security;
 alter table public.work_updates      enable row level security;
+alter table public.presentation_assignments enable row level security;
 
 -- certificates
 drop policy if exists certificates_read  on public.certificates;
@@ -176,6 +194,13 @@ drop policy if exists work_updates_read  on public.work_updates;
 drop policy if exists work_updates_write on public.work_updates;
 create policy work_updates_read  on public.work_updates for select using (true);
 create policy work_updates_write on public.work_updates for all
+    to authenticated using (true) with check (true);
+
+-- presentation_assignments
+drop policy if exists presentation_assignments_read  on public.presentation_assignments;
+drop policy if exists presentation_assignments_write on public.presentation_assignments;
+create policy presentation_assignments_read  on public.presentation_assignments for select using (true);
+create policy presentation_assignments_write on public.presentation_assignments for all
     to authenticated using (true) with check (true);
 
 
