@@ -1208,6 +1208,13 @@ body {
     border: 1.5px solid #fecdd3;
     gap: 0;
     position: relative;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.past-emp-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(225, 29, 72, 0.15);
 }
 
 .past-emp-card img {
@@ -4976,6 +4983,31 @@ body {
                         </table>
                     </div>
                 </div>
+
+                <!-- Important Accounts -->
+                <div class="dir-section">
+                    <div class="dir-section-header">
+                        <div class="dir-section-title">
+                            <div class="dir-icon-chip" style="background:rgba(217,119,6,0.12);">
+                                <i data-lucide="key-round" style="width:16px;height:16px;color:#d97706;"></i>
+                            </div>
+                            Important Accounts
+                        </div>
+                    </div>
+                    <div class="dir-table-wrap">
+                        <table class="dir-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:40px;">#</th>
+                                    <th>Purpose</th>
+                                    <th>Username</th>
+                                    <th>Password</th>
+                                </tr>
+                            </thead>
+                            <tbody id="important-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
             </section>
 
             <!-- Album View -->
@@ -5462,6 +5494,24 @@ body {
                 <div id="past-employees-list" class="past-emp-grid">
                     <!-- Dynamic content -->
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alumni Detail Modal -->
+    <div class="modal-overlay" id="alumni-detail-modal" style="display:none;" onclick="closeAlumniDetails(event)">
+        <div class="modal glass-panel" style="max-width:380px;" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="details-header-info">
+                    <i data-lucide="user-x" style="color:#e11d48;width:24px;height:24px;"></i>
+                    <div>
+                        <h2>Alumni Details</h2>
+                    </div>
+                </div>
+                <button class="icon-btn" onclick="closeAlumniDetails()"><i data-lucide="x"></i></button>
+            </div>
+            <div id="alumni-detail-body" style="text-align:center;padding:0.5rem 0 1rem;">
+                <!-- Dynamic content -->
             </div>
         </div>
     </div>
@@ -6129,7 +6179,8 @@ async function loadPastEmployees() {
             role:       ['role', 'designation'],
             team:       ['team'],
             doj:        ['date of joining', 'joining date', 'doj', 'joined'],
-            dateLeft:   ['date left', 'exit date', 'date of leaving', 'relieving date', 'relieved', 'left']
+            dateLeft:   ['date left', 'exit date', 'date of leaving', 'relieving date', 'relieved', 'left'],
+            fileLink:   ['file link', 'files link', 'drive link', 'file', 'files', 'link']
         }, 1);
     } catch (e) {
         console.error('loadPastEmployees failed:', e);
@@ -6374,7 +6425,7 @@ function renderPastEmployeesModal() {
         return;
     }
 
-    list.innerHTML = pastEmployees.map(p => {
+    list.innerHTML = pastEmployees.map((p, idx) => {
         // Enrich the sheet row with roster details (avatar, role, team) when matchable.
         const match = employees.find(e =>
             (p.employeeId && e.employeeId && e.employeeId.trim().toLowerCase() === p.employeeId.trim().toLowerCase()) ||
@@ -6391,7 +6442,7 @@ function renderPastEmployeesModal() {
                         : teamLower.includes('tertiary')  ? 'tertiary'
                         : teamLower === 'cmc'             ? 'cmc' : '';
         return `
-        <div class="past-emp-card">
+        <div class="past-emp-card" onclick="openAlumniDetails(${idx})">
             <span class="past-emp-alumni-badge">Alumni</span>
             <img src="${avatar}" alt="${name}">
             <h4>${name}</h4>
@@ -6405,6 +6456,47 @@ function renderPastEmployeesModal() {
     }).join('');
 
     lucide.createIcons();
+}
+
+// Detail popup for a single alumnus, opened by clicking their card. Shows a
+// "Open File" button linking to the drive folder posted in the sheet's file
+// link column, when present.
+function openAlumniDetails(idx) {
+    const p = pastEmployees[idx];
+    if (!p) return;
+    const match = employees.find(e =>
+        (p.employeeId && e.employeeId && e.employeeId.trim().toLowerCase() === p.employeeId.trim().toLowerCase()) ||
+        (p.name && e.name && e.name.trim().toLowerCase() === p.name.trim().toLowerCase()));
+    const name   = p.name || (match && match.name) || '—';
+    const role   = p.role || (match && match.role) || '';
+    const team   = p.team || (match && match.team) || '';
+    const doj    = p.doj  || (match && match.doj)  || '';
+    const leader = match && match.teamLeader ? match.teamLeader : '';
+    const empId  = p.employeeId || (match && match.employeeId) || '';
+    const avatar = (match && match.avatar) || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`;
+
+    document.getElementById('alumni-detail-body').innerHTML = `
+        <img src="${avatar}" alt="${name}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid #fecdd3;filter:grayscale(30%);margin-bottom:0.75rem;">
+        <h3 style="margin:0 0 0.2rem;">${name}</h3>
+        <div style="color:#64748b;font-size:0.85rem;margin-bottom:0.6rem;">${role}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:0.4rem;justify-content:center;margin-bottom:0.75rem;">
+            ${empId ? `<span class="past-meta">${empId}</span>` : ''}
+            ${team ? `<span class="stat-team-chip" style="font-size:0.7rem;">${team}</span>` : ''}
+        </div>
+        ${leader ? `<div style="font-size:0.78rem;color:#94a3b8;margin-bottom:0.2rem;">Leader: ${leader}</div>` : ''}
+        ${doj ? `<div style="font-size:0.78rem;color:#94a3b8;margin-bottom:0.2rem;">Joined: ${formatDate(doj)}</div>` : ''}
+        ${p.dateLeft ? `<div style="font-size:0.78rem;color:#94a3b8;margin-bottom:1rem;">Left: ${p.dateLeft}</div>` : ''}
+        ${p.fileLink
+            ? `<button class="btn-primary" style="margin-top:0.5rem;" onclick="window.open('${encodeURI(p.fileLink)}', '_blank', 'noopener')"><i data-lucide="folder-open" style="width:16px;height:16px;"></i> File</button>`
+            : `<div style="font-size:0.78rem;color:#cbd5e1;margin-top:0.5rem;">No file linked yet</div>`}
+    `;
+    document.getElementById('alumni-detail-modal').style.display = 'flex';
+    lucide.createIcons();
+}
+
+function closeAlumniDetails(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('alumni-detail-modal').style.display = 'none';
 }
 
 function removePastEmployee(idx) {
@@ -7731,7 +7823,7 @@ const DIR_SHEET_GIDS = {
 };
 const dirSheetUrl = (gid) => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
 
-let dirEmpMails = [], dirCommonMails = [], dirSystems = [], dirAnydesk = [];
+let dirEmpMails = [], dirCommonMails = [], dirSystems = [], dirAnydesk = [], dirImportant = [];
 
 // Quote-aware CSV -> array of string[] rows (no header mapping).
 function parseCSVRows(csv) {
@@ -7788,11 +7880,14 @@ function extractSheetTable(rows, fields, minMatch) {
 
 async function loadDirData() {
     try {
-        const [aTxt, eTxt, cTxt, sTxt] = await Promise.all([
+        const [aTxt, eTxt, cTxt, sTxt, iTxt] = await Promise.all([
             fetch(dirSheetUrl(DIR_SHEET_GIDS.anydesk)).then(r => r.text()),
             fetch(dirSheetUrl(DIR_SHEET_GIDS.emailPwd)).then(r => r.text()),
             fetch(dirSheetUrl(DIR_SHEET_GIDS.commonMails)).then(r => r.text()),
-            fetch(dirSheetUrl(DIR_SHEET_GIDS.systemDetails)).then(r => r.text())
+            fetch(dirSheetUrl(DIR_SHEET_GIDS.systemDetails)).then(r => r.text()),
+            // Fetched by tab name (like the Past Employees tab) since it's a
+            // newly added sheet tab with no known gid.
+            fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('Important')}`).then(r => r.text())
         ]);
         dirAnydesk = extractSheetTable(parseCSVRows(aTxt), {
             user:     ['employee/system', 'employee / system', 'employee', 'name', 'system'],
@@ -7818,6 +7913,11 @@ async function loadDirData() {
             warranty:     ['warranty period', 'warranty'],
             invoice:      ['invoice no', 'invoice no.', 'invoice']
         });
+        dirImportant = extractSheetTable(parseCSVRows(iTxt), {
+            purpose:  ['purpose'],
+            username: ['username', 'user name', 'user'],
+            password: ['password', 'pwd']
+        });
     } catch (err) {
         console.error('loadDirData (sheet) failed:', err);
     }
@@ -7825,6 +7925,7 @@ async function loadDirData() {
     renderDirCommonMails();
     renderDirSystems();
     renderDirAnydesk();
+    renderDirImportant();
 }
 
 function maskedCell(val, rowId, field) {
@@ -7910,6 +8011,19 @@ function renderDirAnydesk() {
         <td style="color:#94a3b8;font-size:0.76rem;font-weight:500;">${i + 1}</td>
         <td>${userChip(r.user)}</td>
         <td>${copyCell(r.remoteId, true)}</td>
+    </tr>`).join('');
+    lucide.createIcons();
+}
+
+function renderDirImportant() {
+    const tbody = document.getElementById('important-tbody');
+    if (!tbody) return;
+    if (!dirImportant.length) return _dirEmpty(tbody, 4);
+    tbody.innerHTML = dirImportant.map((r, i) => `<tr>
+        <td style="color:#94a3b8;font-size:0.76rem;font-weight:500;">${i + 1}</td>
+        <td><strong>${r.purpose || '—'}</strong></td>
+        <td>${copyCell(r.username)}</td>
+        <td>${maskedCell(r.password, 'imp' + i, 'pw')}</td>
     </tr>`).join('');
     lucide.createIcons();
 }
