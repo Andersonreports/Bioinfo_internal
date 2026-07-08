@@ -8015,13 +8015,21 @@ function renderDirAnydesk() {
     lucide.createIcons();
 }
 
+// Sheet rows mix ad-hoc casing ("MUTHU SIR ZOHO MAIL ID", "muthu sir mail
+// id") and stray double spaces — normalize to Title Case for display.
+function titleCase(str) {
+    if (!str) return str;
+    return str.trim().replace(/\s+/g, ' ').toLowerCase()
+        .replace(/(^|[\s,/-])([a-z])/g, (m, sep, ch) => sep + ch.toUpperCase());
+}
+
 function renderDirImportant() {
     const tbody = document.getElementById('important-tbody');
     if (!tbody) return;
     if (!dirImportant.length) return _dirEmpty(tbody, 4);
     tbody.innerHTML = dirImportant.map((r, i) => `<tr>
         <td style="color:#94a3b8;font-size:0.76rem;font-weight:500;">${i + 1}</td>
-        <td><strong>${r.purpose || '—'}</strong></td>
+        <td><strong>${titleCase(r.purpose) || '—'}</strong></td>
         <td>${copyCell(r.username)}</td>
         <td>${maskedCell(r.password, 'imp' + i, 'pw')}</td>
     </tr>`).join('');
