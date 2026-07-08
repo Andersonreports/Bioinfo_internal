@@ -6128,8 +6128,8 @@ async function loadPastEmployees() {
             employeeId: ['employee id', 'emp id', 'employeeid', 'id'],
             role:       ['role', 'designation'],
             team:       ['team'],
-            doj:        ['date of joining', 'doj', 'joined'],
-            dateLeft:   ['date left', 'exit date', 'date of leaving', 'relieved', 'left']
+            doj:        ['date of joining', 'joining date', 'doj', 'joined'],
+            dateLeft:   ['date left', 'exit date', 'date of leaving', 'relieving date', 'relieved', 'left']
         }, 1);
     } catch (e) {
         console.error('loadPastEmployees failed:', e);
@@ -7761,7 +7761,13 @@ function extractSheetTable(rows, fields, minMatch) {
         const c = {}; let matches = 0;
         for (const f of fieldNames) {
             let idx = -1;
-            for (const n of fields[f]) { const j = lower.indexOf(n); if (j !== -1) { idx = j; break; } }
+            for (const n of fields[f]) {
+                // Exact match, or header cell starts with the alias followed by a
+                // space (tolerates polluted headers like "Employee name Neha" or
+                // "Role Junior Bioinformatician" left over from sample data).
+                const j = lower.findIndex(h => h === n || h.startsWith(n + ' '));
+                if (j !== -1) { idx = j; break; }
+            }
             c[f] = idx; if (idx !== -1) matches++;
         }
         if (matches >= need) { headerIdx = i; cols = c; break; }
