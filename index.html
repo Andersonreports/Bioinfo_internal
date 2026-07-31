@@ -4430,6 +4430,10 @@ body {
                 <i data-lucide="presentation"></i>
                 <span>Lab Presentations</span>
             </button>
+            <button class="nav-tab" id="btn-conference-view" onclick="switchView('conference')">
+                <i data-lucide="calendar-days"></i>
+                <span>Conference</span>
+            </button>
             <button class="nav-tab" id="btn-tools-view" onclick="switchView('tools')">
                 <i data-lucide="wrench"></i>
                 <span>Tools</span>
@@ -4753,6 +4757,14 @@ body {
                             <div class="form-group">
                                 <label>Date</label>
                                 <input type="date" id="pres-date">
+                            </div>
+                            <div class="form-group" id="pres-location-group" style="display:none;">
+                                <label>Location</label>
+                                <input type="text" id="pres-location" placeholder="e.g. Chennai, India">
+                            </div>
+                            <div class="form-group" id="pres-reg-date-group" style="display:none;">
+                                <label>Registration Date</label>
+                                <input type="date" id="pres-reg-date">
                             </div>
                             <div class="form-group">
                                 <label>Slides / Poster Link <span style="color:#94a3b8;font-size:0.78rem;">(Google Drive, optional)</span></label>
@@ -5089,6 +5101,17 @@ body {
                     <p>Internal presentations shared within the team. Upload from the Employee Dashboard.</p>
                 </div>
                 <div id="presentations-wall" class="achievements-full-wall">
+                    <!-- Populated by JS -->
+                </div>
+            </section>
+
+            <!-- Conference View -->
+            <section id="conference-view" class="view-section" style="display: none;">
+                <div class="view-header">
+                    <h1>Conference</h1>
+                    <p>Conferences attended by the team. Add one as a Conference presentation from the Employee Dashboard.</p>
+                </div>
+                <div id="conference-wall" class="achievements-full-wall">
                     <!-- Populated by JS -->
                 </div>
             </section>
@@ -5516,6 +5539,24 @@ body {
         </div>
     </div>
 
+    <!-- Conference Detail Modal -->
+    <div class="modal-overlay" id="conference-detail-modal" style="display:none;" onclick="closeConferenceDetailsModal(event)">
+        <div class="modal glass-panel" style="max-width:420px;" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="details-header-info">
+                    <i data-lucide="calendar-days" style="color:#0d9488;width:24px;height:24px;"></i>
+                    <div>
+                        <h2>Conference Details</h2>
+                    </div>
+                </div>
+                <button class="icon-btn" onclick="closeConferenceDetailsModal()"><i data-lucide="x"></i></button>
+            </div>
+            <div id="conference-detail-body" style="padding:0.5rem 0 1rem;">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+    </div>
+
     <!-- Add Employee Modal -->
     <div class="modal-overlay" id="add-employee-modal" style="display: none;">
         <div class="modal glass-panel">
@@ -5699,6 +5740,14 @@ body {
                     <div class="form-group ea-pres">
                         <label>Date</label>
                         <input type="date" id="edit-ach-pres-date">
+                    </div>
+                    <div class="form-group ea-pres" id="edit-ach-pres-location-group" style="display:none;">
+                        <label>Location</label>
+                        <input type="text" id="edit-ach-pres-location">
+                    </div>
+                    <div class="form-group ea-pres" id="edit-ach-pres-reg-date-group" style="display:none;">
+                        <label>Registration Date</label>
+                        <input type="date" id="edit-ach-pres-reg-date">
                     </div>
                     <div class="form-group col-span-2 ea-pres">
                         <label>File Link (Google Drive)</label>
@@ -5957,6 +6006,7 @@ function switchView(viewName) {
     if (viewName === 'achievements') renderAchievementsWall();
     if (viewName === 'publications')  renderPublications();
     if (viewName === 'presentations') renderPresentations();
+    if (viewName === 'conference')   renderConferences();
     if (viewName === 'manager')      renderPresentationAssignments();
     if (viewName === 'employee')     renderEmployeeAssignments();
 }
@@ -7477,6 +7527,79 @@ function renderPresentations() {
     lucide.createIcons();
 }
 
+// Conference tile (Outer Event presentations) — shown on the Conference tab.
+function _confCard(row) {
+    const canManage = !!getSession();
+    const actions = [`<button class="cert-file-btn view" onclick="openConferenceDetails('${row.id}')"><i data-lucide="eye" style="width:13px;height:13px;"></i> View</button>`];
+    if (canManage) actions.push(`<button class="cert-file-btn" onclick="openEditAchievementModal('pres','${row.id}')"><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button>`);
+    if (canManage) actions.push(`<button class="cert-file-btn" onclick="deletePresentation('${row.id}')" style="color:#dc2626;"><i data-lucide="trash-2" style="width:13px;height:13px;"></i> Delete</button>`);
+
+    return `<div class="ach-card">
+        <div class="ach-card-event">${row.event_name || 'Untitled Conference'}</div>
+        <div class="ach-card-meta">
+            ${row.place ? `<span class="ach-meta-tag"><i data-lucide="map-pin" style="width:11px;height:11px;"></i>${row.place}</span>` : ''}
+            ${row.registration_date ? `<span class="ach-meta-tag"><i data-lucide="clipboard-check" style="width:11px;height:11px;"></i>Reg: ${_fmtLongDate(row.registration_date)}</span>` : ''}
+            ${row.pres_date ? `<span class="ach-meta-tag ach-award-tag"><i data-lucide="calendar" style="width:11px;height:11px;"></i>${_fmtLongDate(row.pres_date)}</span>` : ''}
+        </div>
+        <div class="ach-card-actions">${actions.join('')}</div>
+    </div>`;
+}
+
+function renderConferences() {
+    const wall = document.getElementById('conference-wall');
+    if (!wall) return;
+    const conferences = presentationsCache.filter(r => r.pres_type === 'Outer Event');
+
+    if (!conferences.length) {
+        wall.innerHTML = `<div style="text-align:center;color:#94a3b8;font-size:0.82rem;padding:2rem 1rem;line-height:1.6;">No available conferences</div>`;
+        return;
+    }
+
+    wall.innerHTML = conferences.map(_confCard).join('');
+    lucide.createIcons();
+}
+
+// Full conference details (all source fields) shown when "View" is clicked.
+function openConferenceDetails(id) {
+    const row = presentationsCache.find(r => r.id === id);
+    if (!row) return;
+    const emp = _empByEmployeeId(row.employee_id);
+    const presenterName = emp ? emp.name : (row.author_name || 'Team Member');
+    const avatar = (emp && emp.avatar) || `https://ui-avatars.com/api/?name=${encodeURIComponent(presenterName)}&background=random&color=fff`;
+    const photoMedia = row.photo_url
+        ? `<img src="${row.photo_url}" style="width:100%;max-height:220px;object-fit:cover;border-radius:10px;margin-bottom:0.9rem;">`
+        : '';
+    const fileActions = row.file_url
+        ? `<div style="display:flex;justify-content:center;gap:0.5rem;margin-top:0.9rem;">
+               <a class="cert-file-btn view" href="${_driveView(row.file_url)}" target="_blank" rel="noopener"><i data-lucide="eye" style="width:13px;height:13px;"></i> View File</a>
+               <a class="cert-file-btn download" href="${_driveDownload(row.file_url)}" target="_blank" rel="noopener"><i data-lucide="download" style="width:13px;height:13px;"></i> Download</a>
+           </div>`
+        : '';
+
+    document.getElementById('conference-detail-body').innerHTML = `
+        ${photoMedia}
+        <h3 style="margin:0 0 0.3rem;text-align:center;">${row.event_name || 'Untitled Conference'}</h3>
+        ${row.title ? `<div style="text-align:center;color:#64748b;font-size:0.85rem;margin-bottom:0.75rem;">${row.title}</div>` : ''}
+        <div style="display:flex;align-items:center;gap:0.6rem;justify-content:center;margin-bottom:0.9rem;">
+            <img src="${avatar}" alt="${presenterName}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid #ccfbf1;">
+            <span style="font-weight:600;font-size:0.85rem;color:#0f172a;">${presenterName}</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;">
+            ${row.place ? `<span class="ach-meta-tag"><i data-lucide="map-pin" style="width:11px;height:11px;"></i>${row.place}</span>` : ''}
+            ${row.registration_date ? `<span class="ach-meta-tag"><i data-lucide="clipboard-check" style="width:11px;height:11px;"></i>Registration: ${_fmtLongDate(row.registration_date)}</span>` : ''}
+            ${row.pres_date ? `<span class="ach-meta-tag ach-award-tag"><i data-lucide="calendar" style="width:11px;height:11px;"></i>Conference: ${_fmtLongDate(row.pres_date)}</span>` : ''}
+        </div>
+        ${fileActions}
+    `;
+    document.getElementById('conference-detail-modal').style.display = 'flex';
+    lucide.createIcons();
+}
+
+function closeConferenceDetailsModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('conference-detail-modal').style.display = 'none';
+}
+
 // ---- Submit ----
 async function submitPublication() {
     if (!getSession()) { alert('Please log in to upload.'); return; }
@@ -7532,8 +7655,13 @@ async function submitPublication() {
 // Show the Event Name field only for outer events.
 function togglePresEventField() {
     const type = document.getElementById('pres-type').value;
+    const isOuter = type === 'Outer Event';
     const group = document.getElementById('pres-event-name-group');
-    if (group) group.style.display = type === 'Outer Event' ? '' : 'none';
+    if (group) group.style.display = isOuter ? '' : 'none';
+    const locGroup = document.getElementById('pres-location-group');
+    if (locGroup) locGroup.style.display = isOuter ? '' : 'none';
+    const regGroup = document.getElementById('pres-reg-date-group');
+    if (regGroup) regGroup.style.display = isOuter ? '' : 'none';
 }
 
 async function submitPresentation() {
@@ -7547,12 +7675,16 @@ async function submitPresentation() {
     const type    = document.getElementById('pres-type').value;
     const isOuter = type === 'Outer Event';
     const eventName = document.getElementById('pres-event-name').value.trim();
+    const location = document.getElementById('pres-location').value.trim();
+    const regDate = document.getElementById('pres-reg-date').value;
     const fileLink = document.getElementById('pres-file-link').value.trim();
     const photoInput = document.getElementById('pres-photo');
 
     if (!title)    { alert('Please enter the title.'); return; }
     if (!presDate) { alert('Please select the date.'); return; }
     if (isOuter && !eventName) { alert('Please enter the event name.'); return; }
+    if (isOuter && !location)  { alert('Please enter the location.'); return; }
+    if (isOuter && !regDate)   { alert('Please select the registration date.'); return; }
 
     try {
         const photo = await sbUpload('presentations', photoInput.files[0] || null);
@@ -7562,7 +7694,8 @@ async function submitPresentation() {
             title,
             event_name: isOuter ? eventName : null,
             pres_date: presDate,
-            place: null,
+            place: isOuter ? location : null,
+            registration_date: isOuter ? regDate : null,
             pres_type: type,
             file_url:  fileLink || null,
             file_name: null,
@@ -7580,6 +7713,8 @@ async function submitPresentation() {
     document.getElementById('pres-date').value = '';
     document.getElementById('pres-type').value = 'Internal Presentation';
     document.getElementById('pres-event-name').value = '';
+    document.getElementById('pres-location').value = '';
+    document.getElementById('pres-reg-date').value = '';
     document.getElementById('pres-file-link').value = '';
     photoInput.value = '';
     togglePresEventField();
@@ -7587,6 +7722,7 @@ async function submitPresentation() {
     alert(isOuter ? 'Added to Achievements!' : 'Lab presentation added!');
     renderPresentations();
     renderAchievementsWall();
+    renderConferences();
 }
 
 // ---- Delete ----
@@ -7613,6 +7749,7 @@ async function deletePresentation(id) {
     presentationsCache = presentationsCache.filter(r => r.id !== id);
     renderPresentations();
     renderAchievementsWall();
+    renderConferences();
 }
 
 // ---- Edit (certificates / publications / presentations) ----
@@ -7666,6 +7803,8 @@ function openEditAchievementModal(type, id, empId) {
         document.getElementById('edit-ach-pres-type').value = row.pres_type || 'Internal Presentation';
         document.getElementById('edit-ach-pres-event-name').value = row.event_name || '';
         document.getElementById('edit-ach-pres-date').value = row.pres_date || '';
+        document.getElementById('edit-ach-pres-location').value = row.place || '';
+        document.getElementById('edit-ach-pres-reg-date').value = row.registration_date || '';
         document.getElementById('edit-ach-pres-file-link').value = row.file_url || '';
         document.getElementById('edit-ach-pres-photo').value = '';
         toggleEditPresEventField();
@@ -7683,8 +7822,13 @@ function closeEditAchievementModal() {
 
 function toggleEditPresEventField() {
     const type = document.getElementById('edit-ach-pres-type').value;
+    const isOuter = type === 'Outer Event';
     const group = document.getElementById('edit-ach-pres-event-name-group');
-    if (group) group.style.display = type === 'Outer Event' ? '' : 'none';
+    if (group) group.style.display = isOuter ? '' : 'none';
+    const locGroup = document.getElementById('edit-ach-pres-location-group');
+    if (locGroup) locGroup.style.display = isOuter ? '' : 'none';
+    const regGroup = document.getElementById('edit-ach-pres-reg-date-group');
+    if (regGroup) regGroup.style.display = isOuter ? '' : 'none';
 }
 
 async function saveEditAchievement() {
@@ -7776,14 +7920,26 @@ async function saveEditAchievement() {
         const isOuter = presType === 'Outer Event';
         const eventName = document.getElementById('edit-ach-pres-event-name').value.trim();
         const presDate = document.getElementById('edit-ach-pres-date').value;
+        const location = document.getElementById('edit-ach-pres-location').value.trim();
+        const regDate = document.getElementById('edit-ach-pres-reg-date').value;
         const fileLink = document.getElementById('edit-ach-pres-file-link').value.trim();
         const photoInput = document.getElementById('edit-ach-pres-photo');
 
         if (!titleVal) { alert('Please enter the title.'); return; }
         if (!presDate) { alert('Please select the date.'); return; }
         if (isOuter && !eventName) { alert('Please enter the event name.'); return; }
+        if (isOuter && !location)  { alert('Please enter the location.'); return; }
+        if (isOuter && !regDate)   { alert('Please select the registration date.'); return; }
 
-        const update = { title: titleVal, pres_type: presType, event_name: isOuter ? eventName : null, pres_date: presDate, file_url: fileLink || null };
+        const update = {
+            title: titleVal,
+            pres_type: presType,
+            event_name: isOuter ? eventName : null,
+            pres_date: presDate,
+            place: isOuter ? location : null,
+            registration_date: isOuter ? regDate : null,
+            file_url: fileLink || null
+        };
 
         try {
             if (photoInput.files[0]) {
@@ -7801,6 +7957,7 @@ async function saveEditAchievement() {
             return;
         }
         renderPresentations();
+        renderConferences();
     } else {
         return;
     }
