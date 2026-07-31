@@ -71,22 +71,19 @@ create table if not exists public.publications (
 create index if not exists publications_employee_id_idx on public.publications (employee_id);
 
 create table if not exists public.presentations (
-    id                uuid primary key default gen_random_uuid(),
-    employee_id       text not null,
-    author_name       text,
-    title             text,
-    event_name        text,
-    pres_date         text,
-    place             text,
-    registration_date text,
-    pres_type         text,
-    file_url          text,
-    file_name         text,
-    photo_url         text,
-    created_at        timestamptz not null default now()
+    id           uuid primary key default gen_random_uuid(),
+    employee_id  text not null,
+    author_name  text,
+    title        text,
+    event_name   text,
+    pres_date    text,
+    place        text,
+    pres_type    text,
+    file_url     text,
+    file_name    text,
+    photo_url    text,
+    created_at   timestamptz not null default now()
 );
--- Added for the Conference tab (registration date of outer-event presentations).
-alter table public.presentations add column if not exists registration_date text;
 create index if not exists presentations_employee_id_idx on public.presentations (employee_id);
 
 create table if not exists public.leaves (
