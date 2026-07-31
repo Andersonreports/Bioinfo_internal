@@ -16,7 +16,9 @@
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY") ?? "";
 const APPS_SCRIPT_URL = Deno.env.get("APPS_SCRIPT_URL") ?? "";
 const APPS_SCRIPT_SECRET = Deno.env.get("APPS_SCRIPT_SECRET") ?? "";
-const GEMINI_MODEL = "gemini-2.0-flash";
+// Tried in order — gemini-2.0-flash's free-tier quota is much tighter than
+// gemini-1.5-flash's, so fall back if the first choice is quota-limited.
+const GEMINI_MODELS = ["gemini-1.5-flash", "gemini-2.0-flash"];
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -72,26 +74,36 @@ Page text:
 ${text}
 """`;
 
-  const geminiRes = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          responseMimeType: "application/json",
-          responseSchema: FIELD_SCHEMA,
-        },
-      }),
-    },
-  );
-  if (!geminiRes.ok) {
+  let rawText: string | undefined;
+  let lastError: Error | undefined;
+  for (const model of GEMINI_MODELS) {
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: FIELD_SCHEMA,
+          },
+        }),
+      },
+    );
+    if (geminiRes.ok) {
+      const geminiJson = await geminiRes.json();
+      rawText = geminiJson?.candidates?.[0]?.content?.parts?.[0]?.text;
+      lastError = undefined;
+      break;
+    }
     const errText = await geminiRes.text();
-    throw new Error(`Extraction failed (Gemini HTTP ${geminiRes.status}): ${errText.slice(0, 300)}`);
+    lastError = new Error(`Extraction failed (Gemini HTTP ${geminiRes.status}, model ${model}): ${errText.slice(0, 300)}`);
+    // Only worth trying the next model on a quota error — anything else (bad
+    // key, bad request) will fail identically for every model.
+    if (geminiRes.status !== 429) break;
   }
-  const geminiJson = await geminiRes.json();
-  const rawText = geminiJson?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (lastError) throw lastError;
   if (!rawText) throw new Error("Extraction returned no data");
   const fields = JSON.parse(rawText);
   return {
@@ -147,7 +159,8 @@ Deno.serve(async (req: Request) => {
       headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
   } catch (err) {
-    return new Response(JSON.stringify({ ok: false, error: String(err?.message || err) }), {
+    const message = err instanceof Error ? err.message : String(err);
+    return new Response(JSON.stringify({ ok: false, error: message }), {
       status: 500,
       headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
