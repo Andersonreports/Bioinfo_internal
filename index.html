@@ -8155,7 +8155,7 @@ function renderConferences() {
     tbody.innerHTML = upcomingConferences.map((r, i) => `<tr>
         <td style="color:#94a3b8;font-size:0.76rem;font-weight:500;">${i + 1}</td>
         <td><strong>${r.name || '—'}</strong></td>
-        <td>${r.date || '—'}</td>
+        <td><strong>${r.date || '—'}</strong></td>
         <td>${daysLeftCell(r.deadline)}</td>
         <td>${r.deadline || '—'}</td>
         <td>${r.location || '—'}</td>
