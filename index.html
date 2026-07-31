@@ -8234,6 +8234,19 @@ function closeAddConferenceModal(event) {
     document.getElementById('add-conference-modal').style.display = 'none';
 }
 
+// supabase-js only gives a generic "non-2xx status code" message for Edge
+// Function errors by default — the real error text is in the response body,
+// reachable via error.context (the raw Response object).
+async function _edgeFunctionErrorMessage(error) {
+    try {
+        if (error && error.context && typeof error.context.json === 'function') {
+            const body = await error.context.clone().json();
+            if (body && body.error) return body.error;
+        }
+    } catch (_) { /* fall through to the generic message */ }
+    return (error && error.message) || String(error);
+}
+
 async function extractConferenceDetails() {
     const url = document.getElementById('ac-link').value.trim();
     if (!url) { alert('Please paste a conference link first.'); return; }
@@ -8258,7 +8271,7 @@ async function extractConferenceDetails() {
     } catch (e) {
         console.error('extractConferenceDetails failed:', e);
         status.style.color = '#dc2626';
-        status.textContent = 'Could not extract details (' + (e.message || e) + '). You can fill the fields in by hand.';
+        status.textContent = 'Could not extract details (' + (await _edgeFunctionErrorMessage(e)) + '). You can fill the fields in by hand.';
     } finally {
         btn.disabled = false;
         btn.textContent = 'Extract';
@@ -8292,7 +8305,7 @@ async function saveConferenceDetails() {
         alert('Conference added to the sheet!');
     } catch (e) {
         console.error('saveConferenceDetails failed:', e);
-        alert('Save failed: ' + (e.message || e));
+        alert('Save failed: ' + (await _edgeFunctionErrorMessage(e)));
     } finally {
         btn.disabled = false;
         btn.textContent = 'Save to Sheet';
