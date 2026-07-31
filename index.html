@@ -8123,7 +8123,7 @@ function daysLeftCell(deadlineStr) {
     const days = Math.round((target - today) / 86400000);
 
     if (days < 0) return '<span style="color:#94a3b8;">Closed</span>';
-    const label = days === 0 ? 'Today' : days === 1 ? '1 day left' : `${days} days left`;
+    const label = days === 0 ? 'Today' : days === 1 ? '1 day' : `${days} days`;
     if (days > CONFERENCE_URGENT_DAYS) return `<span>${label}</span>`;
     return `<span style="color:#dc2626;background:#fef2f2;border:1px solid #fecaca;border-radius:20px;padding:0.22rem 0.65rem;font-weight:600;font-size:0.8rem;white-space:nowrap;">${label}</span>`;
 }
