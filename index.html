@@ -5135,8 +5135,8 @@ body {
                                     <th style="width:40px;">#</th>
                                     <th>Conference Name</th>
                                     <th>Conference Date</th>
-                                    <th>Days Left</th>
                                     <th>Registration Deadline</th>
+                                    <th>Days Left</th>
                                     <th>Location</th>
                                     <th>Abstract Submission</th>
                                     <th>Link</th>
@@ -8156,8 +8156,8 @@ function renderConferences() {
         <td style="color:#94a3b8;font-size:0.76rem;font-weight:500;">${i + 1}</td>
         <td><strong>${r.name || '—'}</strong></td>
         <td><strong>${r.date || '—'}</strong></td>
-        <td>${daysLeftCell(r.deadline)}</td>
         <td>${r.deadline || '—'}</td>
+        <td>${daysLeftCell(r.deadline)}</td>
         <td>${r.location || '—'}</td>
         <td>${r.abstract || '—'}</td>
         <td>${linkCell(r.link)}</td>
