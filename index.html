@@ -5123,9 +5123,14 @@ body {
             <section id="conference-view" class="view-section" style="display: none;">
                 <div class="view-header conference-view-header">
                     <h1>Upcoming Conferences</h1>
-                    <button class="dir-add-btn" onclick="loadConferenceData()" title="Reload latest values from the sheet">
-                        <i data-lucide="refresh-cw" style="width:13px;height:13px;"></i> Refresh
-                    </button>
+                    <div style="display:flex;gap:0.6rem;">
+                        <button class="dir-add-btn" style="background:#7c3aed;" onclick="openAddConferenceModal()" title="Extract conference details from a link">
+                            <i data-lucide="sparkles" style="width:13px;height:13px;"></i> Add Details
+                        </button>
+                        <button class="dir-add-btn" onclick="loadConferenceData()" title="Reload latest values from the sheet">
+                            <i data-lucide="refresh-cw" style="width:13px;height:13px;"></i> Refresh
+                        </button>
+                    </div>
                 </div>
                 <div class="dir-section conference-table-card">
                     <div class="dir-table-wrap">
@@ -5567,6 +5572,53 @@ body {
             </div>
             <div id="alumni-detail-body" style="text-align:center;padding:0.5rem 0 1rem;">
                 <!-- Dynamic content -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Conference (link extraction) Modal -->
+    <div class="modal-overlay" id="add-conference-modal" style="display:none;" onclick="closeAddConferenceModal(event)">
+        <div class="modal glass-panel" style="max-width:540px;" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="details-header-info">
+                    <i data-lucide="sparkles" style="color:#7c3aed;width:24px;height:24px;"></i>
+                    <h2>Add Conference from Link</h2>
+                </div>
+                <button class="icon-btn" onclick="closeAddConferenceModal()"><i data-lucide="x"></i></button>
+            </div>
+            <div class="form-grid" style="grid-template-columns:1fr;gap:1rem;">
+                <div class="form-group">
+                    <label>Conference Link</label>
+                    <div style="display:flex;gap:0.5rem;">
+                        <input type="text" id="ac-link" placeholder="https://..." style="flex:1;">
+                        <button class="btn-primary" id="ac-extract-btn" onclick="extractConferenceDetails()" style="white-space:nowrap;">Extract</button>
+                    </div>
+                </div>
+                <div id="ac-extract-status" style="font-size:0.82rem;min-height:1.1em;"></div>
+                <div class="form-group">
+                    <label>Conference Name</label>
+                    <input type="text" id="ac-name">
+                </div>
+                <div class="form-group">
+                    <label>Conference Date</label>
+                    <input type="text" id="ac-date" placeholder="e.g. September 2-3, 2026">
+                </div>
+                <div class="form-group">
+                    <label>Registration Deadline</label>
+                    <input type="text" id="ac-deadline" placeholder="e.g. July 31, 2026">
+                </div>
+                <div class="form-group">
+                    <label>Location</label>
+                    <input type="text" id="ac-location">
+                </div>
+                <div class="form-group">
+                    <label>Abstract Submission</label>
+                    <input type="text" id="ac-abstract">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-outline" onclick="closeAddConferenceModal()">Cancel</button>
+                <button class="btn-primary" id="ac-save-btn" onclick="saveConferenceDetails()">Save to Sheet</button>
             </div>
         </div>
     </div>
@@ -8163,6 +8215,88 @@ function renderConferences() {
         <td>${linkCell(r.link)}</td>
     </tr>`).join('');
     lucide.createIcons();
+}
+
+// ---- Add Conference from Link (extraction via Supabase Edge Function) ----
+function openAddConferenceModal() {
+    if (!getSession()) { alert('Please log in to add a conference.'); return; }
+    ['ac-link', 'ac-name', 'ac-date', 'ac-deadline', 'ac-location', 'ac-abstract'].forEach(id => {
+        document.getElementById(id).value = '';
+    });
+    const status = document.getElementById('ac-extract-status');
+    status.textContent = '';
+    document.getElementById('add-conference-modal').style.display = 'flex';
+    lucide.createIcons();
+}
+
+function closeAddConferenceModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('add-conference-modal').style.display = 'none';
+}
+
+async function extractConferenceDetails() {
+    const url = document.getElementById('ac-link').value.trim();
+    if (!url) { alert('Please paste a conference link first.'); return; }
+    const btn = document.getElementById('ac-extract-btn');
+    const status = document.getElementById('ac-extract-status');
+    btn.disabled = true;
+    btn.textContent = 'Extracting…';
+    status.style.color = '#64748b';
+    status.textContent = 'Fetching the page and reading the details…';
+    try {
+        const { data, error } = await _sb.functions.invoke('conference-tools', { body: { mode: 'extract', url } });
+        if (error) throw error;
+        if (!data || !data.ok) throw new Error((data && data.error) || 'Extraction failed');
+        const f = data.fields;
+        document.getElementById('ac-name').value = f.name || '';
+        document.getElementById('ac-date').value = f.date || '';
+        document.getElementById('ac-deadline').value = f.deadline || '';
+        document.getElementById('ac-location').value = f.location || '';
+        document.getElementById('ac-abstract').value = f.abstract || '';
+        status.style.color = '#059669';
+        status.textContent = 'Extracted — review the fields below, then save.';
+    } catch (e) {
+        console.error('extractConferenceDetails failed:', e);
+        status.style.color = '#dc2626';
+        status.textContent = 'Could not extract details (' + (e.message || e) + '). You can fill the fields in by hand.';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Extract';
+    }
+}
+
+async function saveConferenceDetails() {
+    const link = document.getElementById('ac-link').value.trim();
+    const name = document.getElementById('ac-name').value.trim();
+    if (!link) { alert('Please enter the conference link.'); return; }
+    if (!name) { alert('Please enter the conference name.'); return; }
+
+    const payload = {
+        mode: 'save',
+        link,
+        name,
+        date: document.getElementById('ac-date').value.trim(),
+        deadline: document.getElementById('ac-deadline').value.trim(),
+        location: document.getElementById('ac-location').value.trim(),
+        abstract: document.getElementById('ac-abstract').value.trim()
+    };
+    const btn = document.getElementById('ac-save-btn');
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+    try {
+        const { data, error } = await _sb.functions.invoke('conference-tools', { body: payload });
+        if (error) throw error;
+        if (!data || !data.ok) throw new Error((data && data.error) || 'Save failed');
+        closeAddConferenceModal();
+        await loadConferenceData();
+        alert('Conference added to the sheet!');
+    } catch (e) {
+        console.error('saveConferenceDetails failed:', e);
+        alert('Save failed: ' + (e.message || e));
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Save to Sheet';
+    }
 }
 
 const _dirFieldVisible = {};
