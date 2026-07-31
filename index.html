@@ -4454,7 +4454,7 @@ body {
             </button>
             <button class="nav-tab" id="btn-conference-view" onclick="switchView('conference')">
                 <i data-lucide="calendar-days"></i>
-                <span>Conference</span>
+                <span>Upcoming Conferences</span>
             </button>
             <button class="nav-tab" id="btn-tools-view" onclick="switchView('tools')">
                 <i data-lucide="wrench"></i>
@@ -5134,7 +5134,8 @@ body {
                                 <tr>
                                     <th style="width:40px;">#</th>
                                     <th>Conference Name</th>
-                                    <th>Date</th>
+                                    <th>Conference Date</th>
+                                    <th>Days Left</th>
                                     <th>Registration Deadline</th>
                                     <th>Location</th>
                                     <th>Abstract Submission</th>
@@ -8103,12 +8104,36 @@ function linkCell(url) {
     return `<a class="cert-file-btn view" href="${url}" target="_blank" rel="noopener"><i data-lucide="external-link" style="width:13px;height:13px;"></i> Open</a>`;
 }
 
+// Tolerant free-text date parser for sheet values like "July 31, 2026" or a
+// typo'd "30st Jan 2027" — strips ordinal suffixes before handing off to Date.
+function _parseLooseDate(str) {
+    if (!str) return null;
+    const cleaned = str.replace(/(\d+)(st|nd|rd|th)\b/gi, '$1').trim();
+    const d = new Date(cleaned);
+    return isNaN(d.getTime()) ? null : d;
+}
+
+const CONFERENCE_URGENT_DAYS = 10;
+function daysLeftCell(deadlineStr) {
+    const deadline = _parseLooseDate(deadlineStr);
+    if (!deadline) return '<span style="color:#cbd5e1;">—</span>';
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const target = new Date(deadline.getFullYear(), deadline.getMonth(), deadline.getDate());
+    const days = Math.round((target - today) / 86400000);
+
+    if (days < 0) return '<span style="color:#94a3b8;">Closed</span>';
+    const label = days === 0 ? 'Today' : days === 1 ? '1 day left' : `${days} days left`;
+    if (days > CONFERENCE_URGENT_DAYS) return `<span>${label}</span>`;
+    return `<span style="color:#dc2626;background:#fef2f2;border:1px solid #fecaca;border-radius:20px;padding:0.22rem 0.65rem;font-weight:600;font-size:0.8rem;white-space:nowrap;">${label}</span>`;
+}
+
 async function loadConferenceData() {
     try {
         const csv = await fetch(dirSheetUrl(CONFERENCE_SHEET_GID)).then(r => r.text());
         upcomingConferences = extractSheetTable(parseCSVRows(csv), {
             name:     ['conference name', 'conference'],
-            date:     ['date'],
+            date:     ['date', 'conference date'],
             deadline: ['deadline', 'registration deadline'],
             location: ['location'],
             abstract: ['abstraction submission', 'abstract submission'],
@@ -8124,13 +8149,14 @@ function renderConferences() {
     const tbody = document.getElementById('conference-tbody');
     if (!tbody) return;
     if (!upcomingConferences.length) {
-        tbody.innerHTML = `<tr class="dir-empty-row"><td colspan="7">No available conferences</td></tr>`;
+        tbody.innerHTML = `<tr class="dir-empty-row"><td colspan="8">No available conferences</td></tr>`;
         return;
     }
     tbody.innerHTML = upcomingConferences.map((r, i) => `<tr>
         <td style="color:#94a3b8;font-size:0.76rem;font-weight:500;">${i + 1}</td>
         <td><strong>${r.name || '—'}</strong></td>
         <td>${r.date || '—'}</td>
+        <td>${daysLeftCell(r.deadline)}</td>
         <td>${r.deadline || '—'}</td>
         <td>${r.location || '—'}</td>
         <td>${r.abstract || '—'}</td>
