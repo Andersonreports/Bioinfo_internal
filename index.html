@@ -273,6 +273,9 @@
     margin: 0 auto;
     padding: 1.5rem 2rem;
 }
+.main-content.main-content--wide {
+    max-width: 100%;
+}
 
 .nav-item i {
     width: 20px;
@@ -3151,6 +3154,22 @@ body {
     background: #f0fdfa;
     box-shadow: inset 3px 0 0 0 #0d9488;
 }
+
+/* Conference tab — single hero table, given more breathing room than the
+   compact multi-table Directory layout. */
+.conference-view-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.conference-table-card { margin-bottom: 0; }
+.conference-table-card .dir-table { font-size: 0.92rem; }
+.conference-table-card .dir-table th,
+.conference-table-card .dir-table td {
+    padding: 1.05rem 1.5rem;
+}
 .dir-user-chip {
     display: inline-flex;
     align-items: center;
@@ -5099,22 +5118,13 @@ body {
 
             <!-- Conference View -->
             <section id="conference-view" class="view-section" style="display: none;">
-                <div class="view-header">
+                <div class="view-header conference-view-header">
                     <h1>Conference</h1>
-                    <p>Upcoming conferences, sourced from the team's "upcoming Conference" sheet.</p>
+                    <button class="dir-add-btn" onclick="loadConferenceData()" title="Reload latest values from the sheet">
+                        <i data-lucide="refresh-cw" style="width:13px;height:13px;"></i> Refresh
+                    </button>
                 </div>
-                <div class="dir-section">
-                    <div class="dir-section-header">
-                        <div class="dir-section-title">
-                            <div class="dir-icon-chip" style="background:rgba(13,148,136,0.12);">
-                                <i data-lucide="calendar-days" style="width:16px;height:16px;color:#0d9488;"></i>
-                            </div>
-                            Upcoming Conferences
-                        </div>
-                        <button class="dir-add-btn" onclick="loadConferenceData()" title="Reload latest values from the sheet">
-                            <i data-lucide="refresh-cw" style="width:13px;height:13px;"></i> Refresh
-                        </button>
-                    </div>
+                <div class="dir-section conference-table-card">
                     <div class="dir-table-wrap">
                         <table class="dir-table">
                             <thead>
@@ -5992,6 +6002,9 @@ function switchView(viewName) {
         targetSection.offsetHeight;
         targetSection.style.animation = null;
     }
+    // The Conference tab is a single hero table, so it uses the full content
+    // width instead of the standard centered 1400px column.
+    document.querySelector('.main-content')?.classList.toggle('main-content--wide', viewName === 'conference');
     if (viewName === 'album')        renderAlbum();
     if (viewName === 'home')         renderHomeTab();
     if (viewName === 'profile')      renderProfileTab();
@@ -8093,7 +8106,7 @@ async function loadConferenceData() {
         upcomingConferences = extractSheetTable(parseCSVRows(csv), {
             name:     ['conference name', 'conference'],
             date:     ['date'],
-            deadline: ['deadline'],
+            deadline: ['deadline', 'registration deadline'],
             location: ['location'],
             abstract: ['abstraction submission', 'abstract submission'],
             link:     ['link']
