@@ -8406,8 +8406,12 @@ async function applyPendingChange(id) {
     if (!getSession()) { alert('Please log in to apply this change.'); return; }
     const p = pendingConferenceChanges.find(x => x.id === id);
     if (!p) return;
-    const row = upcomingConferences.find(r => r.name === p.conference_name);
-    if (!row) { alert('Could not find this conference in the current table — try Refresh first.'); return; }
+    // Refresh first — the sheet may have changed since this tab last loaded
+    // it, and matching against a stale cache is exactly what produces a
+    // false "row not found" error from the Apps Script side.
+    await loadConferenceData();
+    const row = upcomingConferences.find(r => _confNorm(r.name) === _confNorm(p.conference_name));
+    if (!row) { alert('Could not find this conference in the current table — it may have been deleted or renamed.'); return; }
     try {
         const match = { name: row.name || '', date: row.date || '', deadline: row.deadline || '', location: row.location || '', abstract: row.abstract || '', link: row.link || '' };
         const fields = { ...match, [p.field]: p.new_value };
