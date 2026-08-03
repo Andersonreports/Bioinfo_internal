@@ -126,9 +126,20 @@ async function saveToSheet(fields: Record<string, string>) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ...fields, secret: APPS_SCRIPT_SECRET }),
+    redirect: "follow",
   });
-  const json = await res.json().catch(() => null);
-  if (!json || !json.ok) throw new Error((json && json.error) || "Sheet write failed");
+  const rawText = await res.text();
+  let json: { ok?: boolean; error?: string } | null = null;
+  try {
+    json = JSON.parse(rawText);
+  } catch (_) {
+    // Not JSON — most likely Apps Script returned an HTML page (e.g. a
+    // Google sign-in/permission wall) instead of running the script.
+  }
+  if (!json || !json.ok) {
+    const detail = (json && json.error) || `Apps Script returned HTTP ${res.status}, non-JSON body: ${rawText.slice(0, 300)}`;
+    throw new Error(`Sheet write failed (${detail})`);
+  }
 }
 
 Deno.serve(async (req: Request) => {
