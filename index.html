@@ -8303,6 +8303,8 @@ async function deleteConferenceRow(idx) {
         if (error) throw error;
         if (!data || !data.ok) throw new Error((data && data.error) || 'Delete failed');
         await loadConferenceData();
+        await reconcilePendingChanges();
+        _updatePendingBadge();
     } catch (e) {
         console.error('deleteConferenceRow failed:', e);
         alert('Delete failed: ' + (await _edgeFunctionErrorMessage(e)));
@@ -8313,6 +8315,39 @@ async function deleteConferenceRow(idx) {
 let pendingConferenceChanges = [];
 const CONFERENCE_FIELD_LABELS = { date: 'Conference Date', deadline: 'Registration Deadline', location: 'Location', abstract: 'Abstract Submission' };
 
+function _confNorm(v) {
+    return String(v || '').trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
+function _updatePendingBadge() {
+    const btn = document.getElementById('conference-pending-btn');
+    const countEl = document.getElementById('conference-pending-count');
+    if (btn && countEl) {
+        countEl.textContent = pendingConferenceChanges.length;
+        btn.style.display = pendingConferenceChanges.length ? '' : 'none';
+    }
+}
+
+// Removes pending-change entries for conferences that no longer exist in
+// the current table (deleted, or renamed since the change was detected) —
+// otherwise a stale suggestion has nothing to apply to and lingers forever.
+// Needs upcomingConferences to already be loaded, so this is a no-op until
+// then (called again once the Conference tab/modal is actually opened).
+async function reconcilePendingChanges() {
+    if (!upcomingConferences.length || !pendingConferenceChanges.length) return;
+    const currentNames = new Set(upcomingConferences.map(r => _confNorm(r.name)));
+    const stale = pendingConferenceChanges.filter(p => !currentNames.has(_confNorm(p.conference_name)));
+    if (!stale.length) return;
+    try {
+        const { error } = await _sb.from('conference_pending_changes').delete().in('id', stale.map(p => p.id));
+        if (error) throw error;
+        const staleIds = new Set(stale.map(p => p.id));
+        pendingConferenceChanges = pendingConferenceChanges.filter(p => !staleIds.has(p.id));
+    } catch (e) {
+        console.error('reconcilePendingChanges failed:', e);
+    }
+}
+
 async function loadPendingChanges() {
     try {
         const { data, error } = await _sb.from('conference_pending_changes').select('*').order('detected_at', { ascending: false });
@@ -8322,12 +8357,8 @@ async function loadPendingChanges() {
         console.error('loadPendingChanges failed:', e);
         pendingConferenceChanges = [];
     }
-    const btn = document.getElementById('conference-pending-btn');
-    const countEl = document.getElementById('conference-pending-count');
-    if (btn && countEl) {
-        countEl.textContent = pendingConferenceChanges.length;
-        btn.style.display = pendingConferenceChanges.length ? '' : 'none';
-    }
+    await reconcilePendingChanges();
+    _updatePendingBadge();
 }
 
 function renderPendingChangesList() {
@@ -8358,7 +8389,9 @@ function renderPendingChangesList() {
     lucide.createIcons();
 }
 
-function openPendingChangesModal() {
+async function openPendingChangesModal() {
+    await reconcilePendingChanges();
+    _updatePendingBadge();
     renderPendingChangesList();
     document.getElementById('pending-changes-modal').style.display = 'flex';
     lucide.createIcons();
@@ -8488,6 +8521,8 @@ async function saveConferenceDetails() {
         if (!data || !data.ok) throw new Error((data && data.error) || 'Save failed');
         closeAddConferenceModal();
         await loadConferenceData();
+        await reconcilePendingChanges();
+        _updatePendingBadge();
         alert(isEdit ? 'Conference updated!' : 'Conference added to the sheet!');
     } catch (e) {
         console.error('saveConferenceDetails failed:', e);
