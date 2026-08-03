@@ -1,5 +1,5 @@
-// Edge Function backing the Conference tab's "Add Details" button and its
-// per-row Edit/Delete actions.
+// Edge Function backing the Conference tab's "Add Details" button, its
+// per-row Edit/Delete actions, and the daily auto-refresh cron job.
 //
 // Request modes (all POST, JSON body):
 //   { mode: "extract", url }
@@ -10,6 +10,12 @@
 //     -> finds the row whose current values equal `match` and overwrites it with `fields`
 //   { mode: "delete", match }
 //     -> finds the row whose current values equal `match` and deletes it
+//   { mode: "refresh_all" }
+//     -> re-extracts every conference row's link; fills in blank fields
+//        directly, and records a conference_pending_changes row (for human
+//        review in the app) for any field that already had a value but now
+//        differs. Triggered by the pg_cron job in supabase_setup.sql, not by
+//        the client.
 // `fields`/`match` shape: { name, date, deadline, location, abstract, link }
 //
 // Deploy:
@@ -20,10 +26,19 @@
 //   APPS_SCRIPT_URL     - the /exec URL from the Google Apps Script Web App deployment
 //                         (see google-apps-script/conference-sheet-writer.gs in this repo)
 //   APPS_SCRIPT_SECRET  - same random string used as SHARED_SECRET in that Apps Script
+// (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are auto-provided by the
+// platform for every Edge Function — no setup needed for those two.)
 
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY") ?? "";
 const APPS_SCRIPT_URL = Deno.env.get("APPS_SCRIPT_URL") ?? "";
 const APPS_SCRIPT_SECRET = Deno.env.get("APPS_SCRIPT_SECRET") ?? "";
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
+const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+// Same Google Sheet the app's Conference tab reads from (index.html's
+// SHEET_ID / CONFERENCE_SHEET_GID) — keep these two in sync if that sheet
+// ever moves.
+const SHEET_ID = "1ZIs0bbHxkwpo1nUvDcLr-oRei1mUOlaOJISOoeNI6Pc";
+const CONFERENCE_SHEET_GID = "1232290898";
 // Tried in order until one responds successfully. Model availability and
 // free-tier quotas vary by project/key and change over time (older names get
 // retired, newer ones have tighter initial quotas), so we don't hardcode a
@@ -40,7 +55,7 @@ const FIELD_SCHEMA = {
   type: "OBJECT",
   properties: {
     name: { type: "STRING", description: "Official conference/event name" },
-    date: { type: "STRING", description: 'Conference date(s), written exactly as they appear on the page, e.g. "September 2-3, 2026"' },
+    date: { type: "STRING", description: 'Full conference date(s) as written on the page, e.g. "September 2-3, 2026". Empty string if the page has no specific date — do NOT use a bare year (e.g. from the event\'s own name/title) as a substitute.' },
     deadline: { type: "STRING", description: "Registration deadline date, written exactly as it appears. Empty string if not mentioned." },
     location: { type: "STRING", description: "Venue, city, or address. Empty string if not mentioned." },
     abstract: { type: "STRING", description: "Abstract submission deadline date, written exactly as it appears. Empty string if not mentioned." },
@@ -75,7 +90,7 @@ async function extractFromUrl(url: string) {
   const prompt = `You are extracting structured conference/event details from the text content of a webpage.
 Read the text below and extract these fields as JSON:
 - name: the official conference/event name
-- date: the conference date(s), written exactly as they appear on the page
+- date: the full conference date(s), written exactly as they appear on the page (empty string if the page doesn't give a specific date — do not use a bare year from the event's own name/title as a substitute)
 - deadline: the registration deadline date, written exactly as it appears (empty string if not mentioned)
 - location: the venue, city, or address (empty string if not mentioned)
 - abstract: the abstract submission deadline date, written exactly as it appears (empty string if not mentioned)
@@ -157,6 +172,195 @@ function jsonResponse(obj: unknown, status = 200) {
   });
 }
 
+// ---- Daily auto-refresh (mode: "refresh_all") ----
+
+type ConferenceRow = { name: string; date: string; deadline: string; location: string; abstract: string; link: string };
+const DIFF_FIELDS: (keyof ConferenceRow)[] = ["date", "deadline", "location", "abstract"];
+const FIELD_ALIASES: Record<keyof ConferenceRow, string[]> = {
+  name: ["conference name", "conference"],
+  date: ["date", "conference date"],
+  deadline: ["deadline", "registration deadline"],
+  location: ["location"],
+  abstract: ["abstraction submission", "abstract submission"],
+  link: ["link"],
+};
+
+// Quote-aware CSV -> array of string[] rows (no header mapping), matching
+// the same parser used client-side in index.html.
+function parseCSVRows(csv: string): string[][] {
+  const rows: string[][] = [];
+  (csv || "").split("\n").forEach((line) => {
+    if (line.replace(/[\s,]/g, "") === "") {
+      rows.push([]);
+      return;
+    }
+    const row: string[] = [];
+    let cur = "";
+    let inQ = false;
+    for (const ch of line) {
+      if (ch === '"') inQ = !inQ;
+      else if (ch === "," && !inQ) {
+        row.push(cur.trim());
+        cur = "";
+      } else cur += ch;
+    }
+    row.push(cur.trim());
+    rows.push(row);
+  });
+  return rows;
+}
+
+function extractConferenceRows(csv: string): ConferenceRow[] {
+  const rows = parseCSVRows(csv);
+  const fieldNames = Object.keys(FIELD_ALIASES) as (keyof ConferenceRow)[];
+  let headerIdx = -1;
+  let cols: Record<string, number> = {};
+  for (let i = 0; i < rows.length; i++) {
+    const lower = rows[i].map((h) => (h || "").trim().toLowerCase());
+    const c: Record<string, number> = {};
+    let matches = 0;
+    for (const f of fieldNames) {
+      let idx = -1;
+      for (const alias of FIELD_ALIASES[f]) {
+        const j = lower.findIndex((h) => h === alias || h.startsWith(alias + " "));
+        if (j !== -1) {
+          idx = j;
+          break;
+        }
+      }
+      c[f] = idx;
+      if (idx !== -1) matches++;
+    }
+    if (matches >= 3) {
+      headerIdx = i;
+      cols = c;
+      break;
+    }
+  }
+  if (headerIdx === -1) return [];
+
+  const out: ConferenceRow[] = [];
+  for (let i = headerIdx + 1; i < rows.length; i++) {
+    const row = rows[i];
+    const obj: Partial<ConferenceRow> = {};
+    let any = false;
+    for (const f of fieldNames) {
+      const idx = cols[f];
+      const v = idx >= 0 ? (row[idx] || "").trim() : "";
+      obj[f] = v;
+      if (v) any = true;
+    }
+    if (any) out.push(obj as ConferenceRow);
+  }
+  return out;
+}
+
+// Same loose-equality rule as the Apps Script's row matching, so a value
+// that only differs by whitespace/case isn't treated as a real change.
+function norm(v: string): string {
+  return String(v || "").trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+async function pendingChangeExists(name: string, field: string, newValue: string): Promise<boolean> {
+  const params = new URLSearchParams({
+    select: "id",
+    conference_name: `eq.${name}`,
+    field: `eq.${field}`,
+    new_value: `eq.${newValue}`,
+  });
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/conference_pending_changes?${params.toString()}`, {
+    headers: { apikey: SERVICE_ROLE_KEY, Authorization: `Bearer ${SERVICE_ROLE_KEY}` },
+  });
+  if (!res.ok) return false; // fail open — worst case is a duplicate pending row
+  const rows = await res.json();
+  return Array.isArray(rows) && rows.length > 0;
+}
+
+async function insertPendingChange(row: {
+  conference_name: string;
+  conference_link: string;
+  field: string;
+  old_value: string;
+  new_value: string;
+}) {
+  await fetch(`${SUPABASE_URL}/rest/v1/conference_pending_changes`, {
+    method: "POST",
+    headers: {
+      apikey: SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+      "Content-Type": "application/json",
+      Prefer: "return=minimal",
+    },
+    body: JSON.stringify(row),
+  });
+}
+
+async function refreshAll() {
+  if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
+    throw new Error("refresh_all is not configured (missing SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY — should be auto-provided)");
+  }
+  const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${CONFERENCE_SHEET_GID}`;
+  const csv = await fetch(csvUrl).then((r) => r.text());
+  const rows = extractConferenceRows(csv);
+
+  let filled = 0;
+  let flagged = 0;
+  let errors = 0;
+
+  for (const row of rows) {
+    if (!row.link) continue;
+
+    let fresh: ConferenceRow;
+    try {
+      fresh = await extractFromUrl(row.link);
+    } catch (_err) {
+      errors++;
+      continue; // one bad/unreachable link shouldn't stop the whole run
+    }
+
+    const toFill: Partial<ConferenceRow> = {};
+    let hasFill = false;
+    for (const f of DIFF_FIELDS) {
+      const oldVal = row[f];
+      const newVal = fresh[f];
+      if (!oldVal && newVal) {
+        toFill[f] = newVal;
+        hasFill = true;
+      } else if (oldVal && newVal && norm(oldVal) !== norm(newVal)) {
+        try {
+          const already = await pendingChangeExists(row.name, f, newVal);
+          if (!already) {
+            await insertPendingChange({
+              conference_name: row.name,
+              conference_link: row.link,
+              field: f,
+              old_value: oldVal,
+              new_value: newVal,
+            });
+            flagged++;
+          }
+        } catch (_err) {
+          errors++;
+        }
+      }
+    }
+
+    if (hasFill) {
+      try {
+        await callAppsScript({ action: "update", match: row, fields: { ...row, ...toFill } });
+        filled++;
+      } catch (_err) {
+        errors++;
+      }
+    }
+
+    // Be gentle on Gemini's free-tier RPM and on the target sites themselves.
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+  }
+
+  return { checked: rows.length, filled, flagged, errors };
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
 
@@ -171,6 +375,11 @@ Deno.serve(async (req: Request) => {
     if (body.mode === "add" || body.mode === "update" || body.mode === "delete") {
       await callAppsScript({ action: body.mode, fields: body.fields, match: body.match });
       return jsonResponse({ ok: true });
+    }
+
+    if (body.mode === "refresh_all") {
+      const summary = await refreshAll();
+      return jsonResponse({ ok: true, summary });
     }
 
     return jsonResponse({ ok: false, error: "Unknown mode" }, 400);

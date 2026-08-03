@@ -123,6 +123,22 @@ create table if not exists public.presentation_assignments (
 create index if not exists presentation_assignments_assigned_to_idx on public.presentation_assignments (assigned_to);
 create index if not exists presentation_assignments_status_idx on public.presentation_assignments (status);
 
+-- Detected changes from the daily conference auto-refresh (see the
+-- conference-tools Edge Function's "refresh_all" mode) awaiting a human's
+-- approval before they're written into the Google Sheet. Blank fields are
+-- filled in automatically without needing a row here; only a CHANGE to an
+-- already-filled field lands here for review.
+create table if not exists public.conference_pending_changes (
+    id              uuid primary key default gen_random_uuid(),
+    conference_name text not null,
+    conference_link text,
+    field           text not null,
+    old_value       text,
+    new_value       text,
+    detected_at     timestamptz not null default now()
+);
+create index if not exists conference_pending_changes_name_idx on public.conference_pending_changes (conference_name);
+
 
 -- ============================================================================
 -- STEP 3 — ROW LEVEL SECURITY
@@ -139,6 +155,7 @@ alter table public.presentations     enable row level security;
 alter table public.leaves            enable row level security;
 alter table public.work_updates      enable row level security;
 alter table public.presentation_assignments enable row level security;
+alter table public.conference_pending_changes enable row level security;
 
 -- certificates
 drop policy if exists certificates_read  on public.certificates;
@@ -203,6 +220,15 @@ create policy presentation_assignments_read  on public.presentation_assignments 
 create policy presentation_assignments_write on public.presentation_assignments for all
     to authenticated using (true) with check (true);
 
+-- conference_pending_changes
+-- (the daily refresh job inserts using the service-role key, which bypasses
+-- RLS entirely, so it doesn't need its own policy here)
+drop policy if exists conference_pending_changes_read  on public.conference_pending_changes;
+drop policy if exists conference_pending_changes_write on public.conference_pending_changes;
+create policy conference_pending_changes_read  on public.conference_pending_changes for select using (true);
+create policy conference_pending_changes_write on public.conference_pending_changes for all
+    to authenticated using (true) with check (true);
+
 
 -- ============================================================================
 -- STEP 4 — STORAGE POLICIES (buckets)
@@ -225,5 +251,41 @@ create policy portal_storage_update on storage.objects for update to authenticat
 
 create policy portal_storage_delete on storage.objects for delete to authenticated
     using (bucket_id in ('certificates','album','avatars','publications','presentations'));
+
+
+-- ============================================================================
+-- STEP 5 — DAILY CONFERENCE REFRESH (Cron Job)
+--   Re-visits each conference's link once a day via the conference-tools
+--   Edge Function: blank fields (Registration Deadline, Location, Abstract
+--   Submission) get filled in automatically; a CHANGE to an already-filled
+--   field is written to conference_pending_changes for review in the app
+--   instead of being applied silently.
+--
+--   The anon key below is the same public key already embedded in index.html
+--   (client-side Supabase keys are meant to be public) — not a secret.
+-- ============================================================================
+
+create extension if not exists pg_cron;
+create extension if not exists pg_net;
+
+select cron.schedule(
+    'conference-daily-refresh',
+    '0 3 * * *',  -- 03:00 UTC daily; edit the schedule string to change this
+    $$
+    select net.http_post(
+        url := 'https://boghqathvnkygdzxnzkh.supabase.co/functions/v1/conference-tools',
+        headers := jsonb_build_object(
+            'Content-Type', 'application/json',
+            'Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJvZ2hxYXRodm5reWdkenhuemtoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NzAzODAsImV4cCI6MjA5NTM0NjM4MH0.c9KemDmU7d4YGhkizU3TZx-hYaXSftazb-5RuHgV0Rs'
+        ),
+        body := jsonb_build_object('mode', 'refresh_all')
+    );
+    $$
+);
+
+-- To change the schedule later:
+--   select cron.alter_job(job_id := (select jobid from cron.job where jobname = 'conference-daily-refresh'), schedule := '0 3 * * *');
+-- To remove it entirely:
+--   select cron.unschedule('conference-daily-refresh');
 
 -- Done.

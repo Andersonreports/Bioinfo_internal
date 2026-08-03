@@ -5124,6 +5124,9 @@ body {
                 <div class="view-header conference-view-header">
                     <h1>Upcoming Conferences</h1>
                     <div style="display:flex;gap:0.6rem;">
+                        <button class="dir-add-btn" id="conference-pending-btn" style="background:#d97706;display:none;" onclick="openPendingChangesModal()" title="Review changes detected on conference sites">
+                            <i data-lucide="bell" style="width:13px;height:13px;"></i> <span id="conference-pending-count">0</span> Pending
+                        </button>
                         <button class="dir-add-btn" style="background:#7c3aed;" onclick="openAddConferenceModal()" title="Extract conference details from a link">
                             <i data-lucide="sparkles" style="width:13px;height:13px;"></i> Add Details
                         </button>
@@ -5620,6 +5623,25 @@ body {
             <div class="modal-actions">
                 <button class="btn-outline" onclick="closeAddConferenceModal()">Cancel</button>
                 <button class="btn-primary" id="ac-save-btn" onclick="saveConferenceDetails()">Save to Sheet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conference Pending Changes Modal -->
+    <div class="modal-overlay" id="pending-changes-modal" style="display:none;" onclick="closePendingChangesModal(event)">
+        <div class="modal glass-panel" style="max-width:620px;" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="details-header-info">
+                    <i data-lucide="bell" style="color:#d97706;width:24px;height:24px;"></i>
+                    <div>
+                        <h2>Pending Conference Changes</h2>
+                        <p style="margin:0.15rem 0 0;font-size:0.8rem;color:#64748b;">Detected by the daily auto-refresh — review before they're written to the sheet.</p>
+                    </div>
+                </div>
+                <button class="icon-btn" onclick="closePendingChangesModal()"><i data-lucide="x"></i></button>
+            </div>
+            <div id="pending-changes-list" style="max-height:60vh;overflow-y:auto;">
+                <!-- Populated by JS -->
             </div>
         </div>
     </div>
@@ -8281,6 +8303,101 @@ async function deleteConferenceRow(idx) {
     }
 }
 
+// ---- Pending Changes (from the daily auto-refresh, awaiting approval) ----
+let pendingConferenceChanges = [];
+const CONFERENCE_FIELD_LABELS = { date: 'Conference Date', deadline: 'Registration Deadline', location: 'Location', abstract: 'Abstract Submission' };
+
+async function loadPendingChanges() {
+    try {
+        const { data, error } = await _sb.from('conference_pending_changes').select('*').order('detected_at', { ascending: false });
+        if (error) throw error;
+        pendingConferenceChanges = data || [];
+    } catch (e) {
+        console.error('loadPendingChanges failed:', e);
+        pendingConferenceChanges = [];
+    }
+    const btn = document.getElementById('conference-pending-btn');
+    const countEl = document.getElementById('conference-pending-count');
+    if (btn && countEl) {
+        countEl.textContent = pendingConferenceChanges.length;
+        btn.style.display = pendingConferenceChanges.length ? '' : 'none';
+    }
+}
+
+function renderPendingChangesList() {
+    const list = document.getElementById('pending-changes-list');
+    if (!list) return;
+    if (!pendingConferenceChanges.length) {
+        list.innerHTML = `<div style="text-align:center;color:#94a3b8;font-size:0.85rem;padding:2rem 1rem;">No pending changes.</div>`;
+        return;
+    }
+    list.innerHTML = pendingConferenceChanges.map(p => `
+        <div class="dir-section" style="margin-bottom:0.85rem;">
+            <div style="padding:1rem 1.25rem;">
+                <div style="font-weight:700;color:#0f172a;margin-bottom:0.4rem;">${p.conference_name || 'Untitled conference'}</div>
+                <div style="font-size:0.72rem;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;margin-bottom:0.4rem;">${CONFERENCE_FIELD_LABELS[p.field] || p.field}</div>
+                <div style="display:flex;align-items:center;gap:0.6rem;font-size:0.88rem;flex-wrap:wrap;margin-bottom:0.9rem;">
+                    <span style="color:#94a3b8;text-decoration:line-through;">${p.old_value || '—'}</span>
+                    <i data-lucide="arrow-right" style="width:14px;height:14px;color:#94a3b8;"></i>
+                    <span style="color:#059669;font-weight:600;">${p.new_value || '—'}</span>
+                </div>
+                <div style="display:flex;gap:0.5rem;">
+                    <button class="btn-primary" style="padding:0.4rem 0.9rem;font-size:0.8rem;" onclick="applyPendingChange('${p.id}')">Apply</button>
+                    <button class="btn-outline" style="padding:0.4rem 0.9rem;font-size:0.8rem;" onclick="dismissPendingChange('${p.id}')">Dismiss</button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+    lucide.createIcons();
+}
+
+function openPendingChangesModal() {
+    renderPendingChangesList();
+    document.getElementById('pending-changes-modal').style.display = 'flex';
+    lucide.createIcons();
+}
+
+function closePendingChangesModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('pending-changes-modal').style.display = 'none';
+}
+
+async function applyPendingChange(id) {
+    if (!getSession()) { alert('Please log in to apply this change.'); return; }
+    const p = pendingConferenceChanges.find(x => x.id === id);
+    if (!p) return;
+    const row = upcomingConferences.find(r => r.name === p.conference_name);
+    if (!row) { alert('Could not find this conference in the current table — try Refresh first.'); return; }
+    try {
+        const match = { name: row.name || '', date: row.date || '', deadline: row.deadline || '', location: row.location || '', abstract: row.abstract || '', link: row.link || '' };
+        const fields = { ...match, [p.field]: p.new_value };
+        const { data, error } = await _sb.functions.invoke('conference-tools', { body: { mode: 'update', match, fields } });
+        if (error) throw error;
+        if (!data || !data.ok) throw new Error((data && data.error) || 'Update failed');
+        const { error: delError } = await _sb.from('conference_pending_changes').delete().eq('id', id);
+        if (delError) throw delError;
+        await loadConferenceData();
+        await loadPendingChanges();
+        renderPendingChangesList();
+    } catch (e) {
+        console.error('applyPendingChange failed:', e);
+        alert('Could not apply this change: ' + (await _edgeFunctionErrorMessage(e)));
+    }
+}
+
+async function dismissPendingChange(id) {
+    if (!getSession()) { alert('Please log in to dismiss this change.'); return; }
+    try {
+        const { error } = await _sb.from('conference_pending_changes').delete().eq('id', id);
+        if (error) throw error;
+        await loadPendingChanges();
+        renderPendingChangesList();
+    } catch (e) {
+        console.error('dismissPendingChange failed:', e);
+        alert('Could not dismiss: ' + (e.message || e));
+    }
+}
+
 // supabase-js only gives a generic "non-2xx status code" message for Edge
 // Function errors by default — the real error text is in the response body,
 // reachable via error.context (the raw Response object).
@@ -9845,6 +9962,7 @@ function closeLeaveDetailModal(event) {
 document.addEventListener('DOMContentLoaded', async () => {
     loadDirData();
     loadConferenceData(); // upcoming conferences from the team Google Sheet
+    loadPendingChanges(); // changes detected by the daily auto-refresh, awaiting approval
     loadAlbum();   // loads shared album photos + hero from Supabase, then renders
     loadPublications().then(renderPublications);   // shared publications from Supabase
     loadPresentations().then(renderPresentations); // shared presentations from Supabase
