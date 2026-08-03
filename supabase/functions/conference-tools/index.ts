@@ -176,6 +176,21 @@ function jsonResponse(obj: unknown, status = 200) {
 
 type ConferenceRow = { name: string; date: string; deadline: string; location: string; abstract: string; link: string };
 const DIFF_FIELDS: (keyof ConferenceRow)[] = ["date", "deadline", "location", "abstract"];
+
+// These 5 rows were typed straight into the sheet by hand, before this
+// feature existed — trust whatever's already in their filled fields and
+// never flag a "change" for them (AI re-extraction noise like an en-dash vs
+// a hyphen, or a shortened address, isn't a real change worth a review
+// prompt). Blank fields on these rows still get auto-filled as normal.
+// Remove a name from this list once you're ready for it to get full
+// change-flagging like everything else.
+const SKIP_CHANGE_FLAGGING = new Set([
+  "genomics india conference 2026",
+  "11th international cell & gene therapy conference (cgtcon 2026)",
+  "12th annual conference of the society for mitochondrial research and medicine (smrm 2026)",
+  "ishg 2027 - international conference on human genomics to precision medicine",
+  "iamg 2026 - society for indian academy of medical genetics",
+]);
 const FIELD_ALIASES: Record<keyof ConferenceRow, string[]> = {
   name: ["conference name", "conference"],
   date: ["date", "conference date"],
@@ -326,7 +341,7 @@ async function refreshAll() {
       if (!oldVal && newVal) {
         toFill[f] = newVal;
         hasFill = true;
-      } else if (oldVal && newVal && norm(oldVal) !== norm(newVal)) {
+      } else if (oldVal && newVal && norm(oldVal) !== norm(newVal) && !SKIP_CHANGE_FLAGGING.has(norm(row.name))) {
         try {
           const already = await pendingChangeExists(row.name, f, newVal);
           if (!already) {

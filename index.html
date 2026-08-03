@@ -8344,6 +8344,7 @@ function renderPendingChangesList() {
                 <div style="display:flex;gap:0.5rem;">
                     <button class="btn-primary" style="padding:0.4rem 0.9rem;font-size:0.8rem;" onclick="applyPendingChange('${p.id}')">Apply</button>
                     <button class="btn-outline" style="padding:0.4rem 0.9rem;font-size:0.8rem;" onclick="dismissPendingChange('${p.id}')">Dismiss</button>
+                    ${p.conference_link ? linkCell(p.conference_link) : ''}
                 </div>
             </div>
         </div>
