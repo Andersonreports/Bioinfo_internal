@@ -54,11 +54,11 @@ const CORS_HEADERS = {
 const FIELD_SCHEMA = {
   type: "OBJECT",
   properties: {
-    name: { type: "STRING", description: "Official conference/event name" },
-    date: { type: "STRING", description: 'Full conference date(s) as written on the page, e.g. "September 2-3, 2026". Empty string if the page has no specific date — do NOT use a bare year (e.g. from the event\'s own name/title) as a substitute.' },
-    deadline: { type: "STRING", description: "Registration deadline date, written exactly as it appears. Empty string if not mentioned." },
-    location: { type: "STRING", description: "Venue, city, or address. Empty string if not mentioned." },
-    abstract: { type: "STRING", description: "Abstract submission deadline date, written exactly as it appears. Empty string if not mentioned." },
+    name: { type: "STRING", description: "Official conference/event name, only if explicitly stated" },
+    date: { type: "STRING", description: 'Full conference date(s) as written on the page, e.g. "September 2-3, 2026". Empty string if not explicitly stated — do NOT use a bare year (e.g. from the event\'s own name/title) as a substitute.' },
+    deadline: { type: "STRING", description: "Registration deadline date, written exactly as it appears. Empty string unless explicitly stated." },
+    location: { type: "STRING", description: "Venue, city, or address. Empty string unless explicitly stated." },
+    abstract: { type: "STRING", description: "Abstract submission deadline date, written exactly as it appears. Empty string unless explicitly stated." },
   },
   required: ["name", "date", "deadline", "location", "abstract"],
 };
@@ -88,9 +88,11 @@ async function extractFromUrl(url: string) {
   if (!text) throw new Error("The page had no readable text content");
 
   const prompt = `You are extracting structured conference/event details from the text content of a webpage.
-Read the text below and extract these fields as JSON:
+Read the ENTIRE text below carefully before answering — do not stop at the first date-like or place-like text you see. Accuracy matters far more than filling every field: only report a value when that specific piece of information is explicitly and unambiguously stated in the text. If you are not certain, or a field simply isn't mentioned, return an empty string for it — never guess, infer, or substitute a plausible-looking but unconfirmed value (e.g. a bare year pulled from the event's own name is not a conference date).
+
+Extract these fields as JSON:
 - name: the official conference/event name
-- date: the full conference date(s), written exactly as they appear on the page (empty string if the page doesn't give a specific date — do not use a bare year from the event's own name/title as a substitute)
+- date: the full conference date(s), written exactly as they appear on the page (empty string if the page doesn't give a specific date)
 - deadline: the registration deadline date, written exactly as it appears (empty string if not mentioned)
 - location: the venue, city, or address (empty string if not mentioned)
 - abstract: the abstract submission deadline date, written exactly as it appears (empty string if not mentioned)
