@@ -201,7 +201,10 @@ const FIELD_ALIASES: Record<keyof ConferenceRow, string[]> = {
 };
 
 // Quote-aware CSV -> array of string[] rows (no header mapping), matching
-// the same parser used client-side in index.html.
+// the same parser used client-side in index.html. Handles the RFC4180
+// escaped-quote rule ("" inside a quoted field -> a literal ") — a
+// toggle-only parser silently drops those quote characters instead, which
+// breaks exact-value matching for any cell that contains one.
 function parseCSVRows(csv: string): string[][] {
   const rows: string[][] = [];
   (csv || "").split("\n").forEach((line) => {
@@ -212,9 +215,14 @@ function parseCSVRows(csv: string): string[][] {
     const row: string[] = [];
     let cur = "";
     let inQ = false;
-    for (const ch of line) {
-      if (ch === '"') inQ = !inQ;
-      else if (ch === "," && !inQ) {
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQ && line[i + 1] === '"') {
+          cur += '"';
+          i++;
+        } else inQ = !inQ;
+      } else if (ch === "," && !inQ) {
         row.push(cur.trim());
         cur = "";
       } else cur += ch;

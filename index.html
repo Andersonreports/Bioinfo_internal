@@ -7961,15 +7961,21 @@ const dirSheetUrl = (gid) => `https://docs.google.com/spreadsheets/d/${SHEET_ID}
 let dirEmpMails = [], dirCommonMails = [], dirSystems = [], dirAnydesk = [], dirImportant = [];
 let upcomingConferences = [];
 
-// Quote-aware CSV -> array of string[] rows (no header mapping).
+// Quote-aware CSV -> array of string[] rows (no header mapping). Handles the
+// RFC4180 escaped-quote rule ("" inside a quoted field -> a literal ") —
+// a bare `"` toggle-only parser silently drops those quote characters
+// instead, which breaks exact-value matching for any cell that contains one.
 function parseCSVRows(csv) {
     const rows = [];
     (csv || '').split('\n').forEach(line => {
         if (line.replace(/[\s,]/g, '') === '') { rows.push([]); return; } // blank line
         const row = []; let cur = '', inQ = false;
-        for (const ch of line) {
-            if (ch === '"') inQ = !inQ;
-            else if (ch === ',' && !inQ) { row.push(cur.trim()); cur = ''; }
+        for (let i = 0; i < line.length; i++) {
+            const ch = line[i];
+            if (ch === '"') {
+                if (inQ && line[i + 1] === '"') { cur += '"'; i++; }
+                else inQ = !inQ;
+            } else if (ch === ',' && !inQ) { row.push(cur.trim()); cur = ''; }
             else cur += ch;
         }
         row.push(cur.trim());
