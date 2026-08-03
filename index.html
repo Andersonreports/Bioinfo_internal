@@ -8442,6 +8442,10 @@ async function extractConferenceDetails() {
         if (error) throw error;
         if (!data || !data.ok) throw new Error((data && data.error) || 'Extraction failed');
         const f = data.fields;
+        // The Link field may get resolved (e.g. a LinkedIn share wrapper or
+        // a shortlink unwrapped to the real page) — reflect that back so
+        // what gets saved is the clean, directly-fetchable URL.
+        if (f.link) linkInput.value = f.link;
         document.getElementById('ac-name').value = f.name || '';
         document.getElementById('ac-date').value = f.date || '';
         document.getElementById('ac-deadline').value = f.deadline || '';

@@ -75,16 +75,85 @@ function stripHtml(html: string): string {
     .trim();
 }
 
-async function extractFromUrl(url: string) {
-  if (!GEMINI_API_KEY) throw new Error("Extraction is not configured (missing GEMINI_API_KEY secret)");
+// LinkedIn rewrites every outbound link shared in a post into a
+// linkedin.com/safety/go/?url=... wrapper, which blocks non-browser
+// requests outright (a plain fetch gets a 404) — pull the real target out
+// of the `url` query param instead of trying to fetch the wrapper itself.
+function unwrapKnownRedirectors(url: string): string {
+  try {
+    const u = new URL(url);
+    if (u.hostname.endsWith("linkedin.com") && u.pathname.startsWith("/safety/go") && u.searchParams.has("url")) {
+      return u.searchParams.get("url") as string;
+    }
+  } catch (_) {
+    // not a valid URL — let the caller's fetch surface the real error
+  }
+  return url;
+}
 
-  const pageRes = await fetch(url, {
+// Shortlinks (lnkd.in, bit.ly, etc.) often serve a near-empty interstitial
+// page with a single outbound link rather than a real HTTP redirect —
+// there's nothing in a page like that for the model to extract from. Find
+// that one link so it can be followed instead.
+// Redirector/tracking domains to skip even when they're a "different host"
+// from the stub page — otherwise the shortener's own nav/logo link (e.g.
+// LinkedIn's header logo pointing at linkedin.com) gets picked up as if it
+// were the real destination, since it technically isn't on the stub's host.
+const REDIRECTOR_CHROME_HOSTS = ["linkedin.com", "licdn.com", "lnkd.in"];
+function isChromeHost(host: string): boolean {
+  return REDIRECTOR_CHROME_HOSTS.some((h) => host === h || host.endsWith("." + h));
+}
+
+function firstOutboundLink(html: string, fromUrl: string): string | null {
+  const fromHost = new URL(fromUrl).hostname;
+  const hrefs = [...html.matchAll(/href=["']([^"']+)["']/gi)].map((m) => m[1]);
+  for (const href of hrefs) {
+    try {
+      const abs = new URL(href, fromUrl).toString();
+      if (!/^https?:\/\//i.test(abs)) continue;
+      const host = new URL(abs).hostname;
+      if (host === fromHost || isChromeHost(host)) continue;
+      return abs;
+    } catch (_) {
+      continue;
+    }
+  }
+  return null;
+}
+
+async function fetchPage(url: string): Promise<{ html: string; text: string }> {
+  const res = await fetch(url, {
     headers: { "User-Agent": "Mozilla/5.0 (compatible; ConferenceDetailsBot/1.0)" },
     signal: AbortSignal.timeout(15000),
   });
-  if (!pageRes.ok) throw new Error(`Could not fetch the page (HTTP ${pageRes.status})`);
-  const html = await pageRes.text();
-  const text = stripHtml(html).slice(0, 30000);
+  if (!res.ok) throw new Error(`Could not fetch the page (HTTP ${res.status})`);
+  const html = await res.text();
+  return { html, text: stripHtml(html).slice(0, 30000) };
+}
+
+async function extractFromUrl(url: string) {
+  if (!GEMINI_API_KEY) throw new Error("Extraction is not configured (missing GEMINI_API_KEY secret)");
+
+  let effectiveUrl = unwrapKnownRedirectors(url);
+  let { html, text } = await fetchPage(effectiveUrl);
+
+  // Thin stub/interstitial page — follow its one outbound link instead of
+  // trying to extract anything from it.
+  if (text.length < 400) {
+    const nextUrl = firstOutboundLink(html, effectiveUrl);
+    if (nextUrl) {
+      try {
+        const next = await fetchPage(nextUrl);
+        if (next.text.length > text.length) {
+          effectiveUrl = nextUrl;
+          html = next.html;
+          text = next.text;
+        }
+      } catch (_) {
+        // couldn't follow it — fall back to whatever the stub page had
+      }
+    }
+  }
   if (!text) throw new Error("The page had no readable text content");
 
   const prompt = `You are extracting structured conference/event details from the text content of a webpage.
@@ -141,7 +210,7 @@ ${text}
     deadline: fields.deadline || "",
     location: fields.location || "",
     abstract: fields.abstract || "",
-    link: url,
+    link: effectiveUrl,
   };
 }
 
