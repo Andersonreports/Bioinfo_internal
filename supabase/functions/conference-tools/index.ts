@@ -16,9 +16,12 @@
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY") ?? "";
 const APPS_SCRIPT_URL = Deno.env.get("APPS_SCRIPT_URL") ?? "";
 const APPS_SCRIPT_SECRET = Deno.env.get("APPS_SCRIPT_SECRET") ?? "";
-// Tried in order — gemini-2.0-flash's free-tier quota is much tighter than
-// gemini-1.5-flash's, so fall back if the first choice is quota-limited.
-const GEMINI_MODELS = ["gemini-1.5-flash", "gemini-2.0-flash"];
+// Tried in order until one responds successfully. Model availability and
+// free-tier quotas vary by project/key and change over time (older names get
+// retired, newer ones have tighter initial quotas), so we don't hardcode a
+// single model — "-latest" aliases are Google's own moving pointer to
+// whatever they currently recommend, which is the most future-proof choice.
+const GEMINI_MODELS = ["gemini-flash-latest", "gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -99,9 +102,10 @@ ${text}
     }
     const errText = await geminiRes.text();
     lastError = new Error(`Extraction failed (Gemini HTTP ${geminiRes.status}, model ${model}): ${errText.slice(0, 300)}`);
-    // Only worth trying the next model on a quota error — anything else (bad
-    // key, bad request) will fail identically for every model.
-    if (geminiRes.status !== 429) break;
+    // Worth trying the next model on a quota error (429) or an unavailable
+    // model (404) — both are model-specific. Anything else (bad key, bad
+    // request) will fail identically for every model, so stop there.
+    if (geminiRes.status !== 429 && geminiRes.status !== 404) break;
   }
   if (lastError) throw lastError;
   if (!rawText) throw new Error("Extraction returned no data");
