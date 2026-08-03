@@ -1,8 +1,16 @@
-// Edge Function backing the Conference tab's "Add Details" button.
+// Edge Function backing the Conference tab's "Add Details" button and its
+// per-row Edit/Delete actions.
 //
-// Two request modes (both POST, JSON body):
-//   { mode: "extract", url }                                -> fetches the page, asks Gemini to pull out fields
-//   { mode: "save", link, name, date, deadline, location, abstract } -> appends a row to the Google Sheet
+// Request modes (all POST, JSON body):
+//   { mode: "extract", url }
+//     -> fetches the page, asks Gemini to pull out fields, returns { fields }
+//   { mode: "add", fields }
+//     -> appends a row to the Google Sheet
+//   { mode: "update", match, fields }
+//     -> finds the row whose current values equal `match` and overwrites it with `fields`
+//   { mode: "delete", match }
+//     -> finds the row whose current values equal `match` and deletes it
+// `fields`/`match` shape: { name, date, deadline, location, abstract, link }
 //
 // Deploy:
 //   supabase functions deploy conference-tools
@@ -120,12 +128,12 @@ ${text}
   };
 }
 
-async function saveToSheet(fields: Record<string, string>) {
+async function callAppsScript(payload: Record<string, unknown>) {
   if (!APPS_SCRIPT_URL) throw new Error("Sheet write-back is not configured (missing APPS_SCRIPT_URL secret)");
   const res = await fetch(APPS_SCRIPT_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ...fields, secret: APPS_SCRIPT_SECRET }),
+    body: JSON.stringify({ ...payload, secret: APPS_SCRIPT_SECRET }),
     redirect: "follow",
   });
   const rawText = await res.text();
@@ -142,6 +150,13 @@ async function saveToSheet(fields: Record<string, string>) {
   }
 }
 
+function jsonResponse(obj: unknown, status = 200) {
+  return new Response(JSON.stringify(obj), {
+    status,
+    headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+  });
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
 
@@ -150,34 +165,17 @@ Deno.serve(async (req: Request) => {
 
     if (body.mode === "extract") {
       const fields = await extractFromUrl(body.url);
-      return new Response(JSON.stringify({ ok: true, fields }), {
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ ok: true, fields });
     }
 
-    if (body.mode === "save") {
-      await saveToSheet({
-        name: body.name || "",
-        date: body.date || "",
-        deadline: body.deadline || "",
-        location: body.location || "",
-        abstract: body.abstract || "",
-        link: body.link || "",
-      });
-      return new Response(JSON.stringify({ ok: true }), {
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-      });
+    if (body.mode === "add" || body.mode === "update" || body.mode === "delete") {
+      await callAppsScript({ action: body.mode, fields: body.fields, match: body.match });
+      return jsonResponse({ ok: true });
     }
 
-    return new Response(JSON.stringify({ ok: false, error: "Unknown mode" }), {
-      status: 400,
-      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-    });
+    return jsonResponse({ ok: false, error: "Unknown mode" }, 400);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    return new Response(JSON.stringify({ ok: false, error: message }), {
-      status: 500,
-      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-    });
+    return jsonResponse({ ok: false, error: message }, 500);
   }
 });

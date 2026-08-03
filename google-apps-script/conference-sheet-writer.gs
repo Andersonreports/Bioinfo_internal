@@ -1,6 +1,7 @@
-// Google Apps Script — appends a row to the "upcoming Conference" tab of the
-// team sheet. This is what the "Add Details" button on the Conference tab
-// writes through to (via the conference-tools Supabase Edge Function).
+// Google Apps Script — adds/updates/deletes rows in the "upcoming Conference"
+// tab of the team sheet. This is what the "Add Details" button (and its
+// per-row Edit/Delete actions) on the Conference tab writes through to, via
+// the conference-tools Supabase Edge Function.
 //
 // SETUP (one time, in the Google account that owns the Sheet):
 //   1. Open the Sheet -> Extensions -> Apps Script.
@@ -36,29 +37,82 @@ function doPost(e) {
       return _json({ ok: false, error: 'Sheet tab not found (check SHEET_GID)' });
     }
 
-    var headerRow = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-    var fieldByHeader = {
-      'conference name': body.name || '',
-      'date': body.date || '',
-      'conference date': body.date || '',
-      'deadline': body.deadline || '',
-      'registration deadline': body.deadline || '',
-      'location': body.location || '',
-      'abstraction submission': body.abstract || '',
-      'abstract submission': body.abstract || '',
-      'link': body.link || ''
-    };
-
-    var row = headerRow.map(function (h) {
-      var key = String(h || '').trim().toLowerCase();
-      return Object.prototype.hasOwnProperty.call(fieldByHeader, key) ? fieldByHeader[key] : '';
-    });
-
-    sheet.appendRow(row);
-    return _json({ ok: true });
+    var action = body.action || 'add';
+    if (action === 'add') return _addRow(sheet, body.fields || {});
+    if (action === 'update') return _updateRow(sheet, body.match || {}, body.fields || {});
+    if (action === 'delete') return _deleteRow(sheet, body.match || {});
+    return _json({ ok: false, error: 'Unknown action: ' + action });
   } catch (err) {
     return _json({ ok: false, error: String(err) });
   }
+}
+
+// Lowercased, trimmed header names for the sheet's first row.
+function _headers(sheet) {
+  var headerRow = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  return headerRow.map(function (h) { return String(h || '').trim().toLowerCase(); });
+}
+
+// Maps our field names (name/date/deadline/location/abstract/link) onto
+// whatever the sheet's actual column headers are, so column reordering or
+// renaming (e.g. "Deadline" -> "Registration Deadline") doesn't break this.
+function _fieldsToRow(headers, fields) {
+  var fieldByHeader = {
+    'conference name': fields.name || '',
+    'date': fields.date || '',
+    'conference date': fields.date || '',
+    'deadline': fields.deadline || '',
+    'registration deadline': fields.deadline || '',
+    'location': fields.location || '',
+    'abstraction submission': fields.abstract || '',
+    'abstract submission': fields.abstract || '',
+    'link': fields.link || ''
+  };
+  return headers.map(function (h) {
+    return Object.prototype.hasOwnProperty.call(fieldByHeader, h) ? fieldByHeader[h] : '';
+  });
+}
+
+function _addRow(sheet, fields) {
+  var headers = _headers(sheet);
+  sheet.appendRow(_fieldsToRow(headers, fields));
+  return _json({ ok: true });
+}
+
+// There's no ID column, so edit/delete identify a row by matching every
+// field's current value exactly (the client sends the row's own last-loaded
+// values as `match`). Returns the 1-based sheet row number, or -1.
+function _findRow(sheet, headers, match) {
+  var wanted = _fieldsToRow(headers, match);
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return -1;
+  var data = sheet.getRange(2, 1, lastRow - 1, headers.length).getValues();
+  for (var i = 0; i < data.length; i++) {
+    var same = true;
+    for (var c = 0; c < headers.length; c++) {
+      if (String(data[i][c] || '').trim() !== String(wanted[c] || '').trim()) { same = false; break; }
+    }
+    if (same) return i + 2; // +2: 1-based, and data starts after the header row
+  }
+  return -1;
+}
+
+var ROW_NOT_FOUND_ERROR = 'Matching conference row not found — it may have already changed. Try Refresh and try again.';
+
+function _updateRow(sheet, match, fields) {
+  var headers = _headers(sheet);
+  var rowNum = _findRow(sheet, headers, match);
+  if (rowNum === -1) return _json({ ok: false, error: ROW_NOT_FOUND_ERROR });
+  sheet.getRange(rowNum, 1, 1, headers.length).setValues([_fieldsToRow(headers, fields)]);
+  return _json({ ok: true });
+}
+
+function _deleteRow(sheet, match) {
+  var headers = _headers(sheet);
+  var rowNum = _findRow(sheet, headers, match);
+  if (rowNum === -1) return _json({ ok: false, error: ROW_NOT_FOUND_ERROR });
+  sheet.deleteRow(rowNum);
+  return _json({ ok: true });
 }
 
 function _json(obj) {

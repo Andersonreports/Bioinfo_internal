@@ -5145,6 +5145,7 @@ body {
                                     <th>Location</th>
                                     <th>Abstract Submission</th>
                                     <th>Link</th>
+                                    <th style="width:70px;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="conference-tbody"></tbody>
@@ -5582,7 +5583,7 @@ body {
             <div class="modal-header">
                 <div class="details-header-info">
                     <i data-lucide="sparkles" style="color:#7c3aed;width:24px;height:24px;"></i>
-                    <h2>Add Conference from Link</h2>
+                    <h2 id="ac-modal-title">Add Conference from Link</h2>
                 </div>
                 <button class="icon-btn" onclick="closeAddConferenceModal()"><i data-lucide="x"></i></button>
             </div>
@@ -8201,9 +8202,10 @@ function renderConferences() {
     const tbody = document.getElementById('conference-tbody');
     if (!tbody) return;
     if (!upcomingConferences.length) {
-        tbody.innerHTML = `<tr class="dir-empty-row"><td colspan="8">No available conferences</td></tr>`;
+        tbody.innerHTML = `<tr class="dir-empty-row"><td colspan="9">No available conferences</td></tr>`;
         return;
     }
+    const canManage = !!getSession();
     tbody.innerHTML = upcomingConferences.map((r, i) => `<tr>
         <td style="color:#94a3b8;font-size:0.76rem;font-weight:500;">${i + 1}</td>
         <td><strong>${r.name || '—'}</strong></td>
@@ -8213,18 +8215,46 @@ function renderConferences() {
         <td>${r.location || '—'}</td>
         <td>${r.abstract || '—'}</td>
         <td>${linkCell(r.link)}</td>
+        <td>${canManage ? `<div class="dir-row-actions">
+            <button class="dir-tb-btn" onclick="openEditConferenceModal(${i})" title="Edit"><i data-lucide="pencil" style="width:14px;height:14px;"></i></button>
+            <button class="dir-tb-btn del" onclick="deleteConferenceRow(${i})" title="Delete"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
+        </div>` : ''}</td>
     </tr>`).join('');
     lucide.createIcons();
 }
 
-// ---- Add Conference from Link (extraction via Supabase Edge Function) ----
+// ---- Add / Edit / Delete Conference (Supabase Edge Function -> Apps Script -> Sheet) ----
+// Non-null while editing an existing row: the row's own last-loaded values,
+// sent back as `match` so the Apps Script can find the same row to overwrite.
+let _acEditingMatch = null;
+
 function openAddConferenceModal() {
     if (!getSession()) { alert('Please log in to add a conference.'); return; }
+    _acEditingMatch = null;
     ['ac-link', 'ac-name', 'ac-date', 'ac-deadline', 'ac-location', 'ac-abstract'].forEach(id => {
         document.getElementById(id).value = '';
     });
-    const status = document.getElementById('ac-extract-status');
-    status.textContent = '';
+    document.getElementById('ac-extract-status').textContent = '';
+    document.getElementById('ac-modal-title').textContent = 'Add Conference from Link';
+    document.getElementById('ac-save-btn').textContent = 'Save to Sheet';
+    document.getElementById('add-conference-modal').style.display = 'flex';
+    lucide.createIcons();
+}
+
+function openEditConferenceModal(idx) {
+    if (!getSession()) { alert('Please log in to edit a conference.'); return; }
+    const row = upcomingConferences[idx];
+    if (!row) return;
+    _acEditingMatch = { name: row.name || '', date: row.date || '', deadline: row.deadline || '', location: row.location || '', abstract: row.abstract || '', link: row.link || '' };
+    document.getElementById('ac-link').value = row.link || '';
+    document.getElementById('ac-name').value = row.name || '';
+    document.getElementById('ac-date').value = row.date || '';
+    document.getElementById('ac-deadline').value = row.deadline || '';
+    document.getElementById('ac-location').value = row.location || '';
+    document.getElementById('ac-abstract').value = row.abstract || '';
+    document.getElementById('ac-extract-status').textContent = '';
+    document.getElementById('ac-modal-title').textContent = 'Edit Conference';
+    document.getElementById('ac-save-btn').textContent = 'Save Changes';
     document.getElementById('add-conference-modal').style.display = 'flex';
     lucide.createIcons();
 }
@@ -8232,6 +8262,23 @@ function openAddConferenceModal() {
 function closeAddConferenceModal(event) {
     if (event && event.target !== event.currentTarget) return;
     document.getElementById('add-conference-modal').style.display = 'none';
+}
+
+async function deleteConferenceRow(idx) {
+    if (!getSession()) { alert('Please log in to delete a conference.'); return; }
+    const row = upcomingConferences[idx];
+    if (!row) return;
+    if (!confirm(`Delete "${row.name || 'this conference'}" from the sheet?`)) return;
+    try {
+        const match = { name: row.name || '', date: row.date || '', deadline: row.deadline || '', location: row.location || '', abstract: row.abstract || '', link: row.link || '' };
+        const { data, error } = await _sb.functions.invoke('conference-tools', { body: { mode: 'delete', match } });
+        if (error) throw error;
+        if (!data || !data.ok) throw new Error((data && data.error) || 'Delete failed');
+        await loadConferenceData();
+    } catch (e) {
+        console.error('deleteConferenceRow failed:', e);
+        alert('Delete failed: ' + (await _edgeFunctionErrorMessage(e)));
+    }
 }
 
 // supabase-js only gives a generic "non-2xx status code" message for Edge
@@ -8247,9 +8294,19 @@ async function _edgeFunctionErrorMessage(error) {
     return (error && error.message) || String(error);
 }
 
+// Some existing sheet rows have extra title/description text jammed in
+// alongside the URL in the Link cell — pull out just the URL so Extract
+// still works instead of trying to fetch the whole blob as one.
+function _extractUrlFromText(text) {
+    const match = text.match(/https?:\/\/\S+/);
+    return match ? match[0].replace(/[)\].,;]+$/, '') : text.trim();
+}
+
 async function extractConferenceDetails() {
-    const url = document.getElementById('ac-link').value.trim();
+    const linkInput = document.getElementById('ac-link');
+    const url = _extractUrlFromText(linkInput.value.trim());
     if (!url) { alert('Please paste a conference link first.'); return; }
+    linkInput.value = url;
     const btn = document.getElementById('ac-extract-btn');
     const status = document.getElementById('ac-extract-status');
     btn.disabled = true;
@@ -8284,8 +8341,7 @@ async function saveConferenceDetails() {
     if (!link) { alert('Please enter the conference link.'); return; }
     if (!name) { alert('Please enter the conference name.'); return; }
 
-    const payload = {
-        mode: 'save',
+    const fields = {
         link,
         name,
         date: document.getElementById('ac-date').value.trim(),
@@ -8293,6 +8349,8 @@ async function saveConferenceDetails() {
         location: document.getElementById('ac-location').value.trim(),
         abstract: document.getElementById('ac-abstract').value.trim()
     };
+    const isEdit = !!_acEditingMatch;
+    const payload = isEdit ? { mode: 'update', match: _acEditingMatch, fields } : { mode: 'add', fields };
     const btn = document.getElementById('ac-save-btn');
     btn.disabled = true;
     btn.textContent = 'Saving…';
@@ -8302,13 +8360,13 @@ async function saveConferenceDetails() {
         if (!data || !data.ok) throw new Error((data && data.error) || 'Save failed');
         closeAddConferenceModal();
         await loadConferenceData();
-        alert('Conference added to the sheet!');
+        alert(isEdit ? 'Conference updated!' : 'Conference added to the sheet!');
     } catch (e) {
         console.error('saveConferenceDetails failed:', e);
         alert('Save failed: ' + (await _edgeFunctionErrorMessage(e)));
     } finally {
         btn.disabled = false;
-        btn.textContent = 'Save to Sheet';
+        btn.textContent = isEdit ? 'Save Changes' : 'Save to Sheet';
     }
 }
 
