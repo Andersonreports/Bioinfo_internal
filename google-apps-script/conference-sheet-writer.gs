@@ -79,9 +79,17 @@ function _addRow(sheet, fields) {
   return _json({ ok: true });
 }
 
+// Loose-equality normalizer: collapses runs of whitespace and lowercases, so
+// rows typed by hand directly into the sheet (extra spaces, different
+// capitalization, etc.) still match what the app has cached, instead of
+// requiring byte-for-byte identical strings.
+function _norm(v) {
+  return String(v || '').trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
 // There's no ID column, so edit/delete identify a row by matching every
-// field's current value exactly (the client sends the row's own last-loaded
-// values as `match`). Returns the 1-based sheet row number, or -1.
+// field's current value (the client sends the row's own last-loaded values
+// as `match`). Returns the 1-based sheet row number, or -1.
 function _findRow(sheet, headers, match) {
   var wanted = _fieldsToRow(headers, match);
   var lastRow = sheet.getLastRow();
@@ -90,7 +98,7 @@ function _findRow(sheet, headers, match) {
   for (var i = 0; i < data.length; i++) {
     var same = true;
     for (var c = 0; c < headers.length; c++) {
-      if (String(data[i][c] || '').trim() !== String(wanted[c] || '').trim()) { same = false; break; }
+      if (_norm(data[i][c]) !== _norm(wanted[c])) { same = false; break; }
     }
     if (same) return i + 2; // +2: 1-based, and data starts after the header row
   }
