@@ -87,25 +87,35 @@ function _norm(v) {
   return String(v || '').trim().replace(/\s+/g, ' ').toLowerCase();
 }
 
-// There's no ID column, so edit/delete identify a row by matching every
-// field's current value (the client sends the row's own last-loaded values
-// as `match`). Returns the 1-based sheet row number, or -1.
+// There's no ID column, so edit/delete identify a row by conference name
+// (the client already treats the name as the row's identity — it's how
+// every edit/delete/pending-change action locates a row before calling
+// this). Matching used to require every field (date, deadline, location,
+// abstract, link) to be byte-identical to the sheet's live cells too, which
+// meant ANY single field drifting out of sync with the client's cache — a
+// date-typed cell read back as a JS Date instead of the plain string the
+// client cached, a stray whitespace/newline difference from the CSV export,
+// etc. — broke the lookup for the whole row, even when only one unrelated
+// field was being edited. Name-only matching removes that whole class of
+// false "row not found" errors.
 function _findRow(sheet, headers, match) {
-  var wanted = _fieldsToRow(headers, match);
+  var nameCol = -1;
+  for (var h = 0; h < headers.length; h++) {
+    if (headers[h] === 'conference name' || headers[h] === 'conference') { nameCol = h; break; }
+  }
+  if (nameCol === -1) return -1;
+  var wantedName = _norm(match.name);
+  if (!wantedName) return -1;
   var lastRow = sheet.getLastRow();
   if (lastRow < 2) return -1;
   var data = sheet.getRange(2, 1, lastRow - 1, headers.length).getValues();
   for (var i = 0; i < data.length; i++) {
-    var same = true;
-    for (var c = 0; c < headers.length; c++) {
-      if (_norm(data[i][c]) !== _norm(wanted[c])) { same = false; break; }
-    }
-    if (same) return i + 2; // +2: 1-based, and data starts after the header row
+    if (_norm(data[i][nameCol]) === wantedName) return i + 2; // +2: 1-based, and data starts after the header row
   }
   return -1;
 }
 
-var ROW_NOT_FOUND_ERROR = 'Matching conference row not found — it may have already changed. Try Refresh and try again.';
+var ROW_NOT_FOUND_ERROR = 'Matching conference row not found by name — it may have been renamed or removed. Try Refresh and try again.';
 
 function _updateRow(sheet, match, fields) {
   var headers = _headers(sheet);
