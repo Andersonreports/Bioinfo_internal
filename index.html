@@ -4972,13 +4972,13 @@ body {
                             <thead>
                                 <tr>
                                     <th style="width:40px;">#</th>
-                                    <th>System No</th>
-                                    <th>System Name / Model</th>
-                                    <th>User</th>
+                                    <th>System</th>
                                     <th>IP Address</th>
-                                    <th>Purchase Date</th>
-                                    <th>Warranty Period</th>
-                                    <th>Invoice No</th>
+                                    <th>System Name</th>
+                                    <th>User</th>
+                                    <th>Product Id</th>
+                                    <th>C Drive</th>
+                                    <th>D Drive</th>
                                 </tr>
                             </thead>
                             <tbody id="sys-tbody"></tbody>
@@ -8047,13 +8047,13 @@ async function loadDirData() {
             password: ['password', 'pwd']
         });
         dirSystems = extractSheetTable(parseCSVRows(sTxt), {
-            sysNo:        ['system no', 'system no.', 's.no', 'sno', 'sl no'],
-            ip:           ['ip address', 'ip'],
-            model:        ['system name', 'system name / model', 'model'],
-            user:         ['user', 'name'],
-            purchaseDate: ['purchase date'],
-            warranty:     ['warranty period', 'warranty'],
-            invoice:      ['invoice no', 'invoice no.', 'invoice']
+            sysNo:     ['system', 'system no', 'system no.', 's.no', 'sno', 'sl no'],
+            ip:        ['ip address', 'ip'],
+            model:     ['system name', 'system name / model', 'model'],
+            user:      ['user', 'name'],
+            productId: ['product id', 'product key', 'productid'],
+            cDrive:    ['c drive', 'c drive space'],
+            dDrive:    ['d drive', 'd drive space']
         });
         dirImportant = extractSheetTable(parseCSVRows(iTxt), {
             purpose:  ['purpose'],
@@ -8135,12 +8135,12 @@ function renderDirSystems() {
     if (!dirSystems.length) return _dirEmpty(tbody, 8);
     tbody.innerHTML = dirSystems.map((r, i) => `<tr>
         <td style="color:#94a3b8;font-size:0.76rem;font-weight:500;">${r.sysNo || (i + 1)}</td>
+        <td>${copyCell(r.ip, true)}</td>
         <td><strong>${r.model || '—'}</strong></td>
         <td>${r.user || '—'}</td>
-        <td>${copyCell(r.ip, true)}</td>
-        <td>${r.purchaseDate || '—'}</td>
-        <td>${r.warranty || '—'}</td>
-        <td>${r.invoice || '—'}</td>
+        <td>${copyCell(r.productId, true)}</td>
+        <td>${r.cDrive || '—'}</td>
+        <td>${r.dDrive || '—'}</td>
     </tr>`).join('');
     lucide.createIcons();
 }
