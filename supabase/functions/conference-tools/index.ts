@@ -345,13 +345,24 @@ const DIFF_FIELDS: (keyof ConferenceRow)[] = ["date", "deadline", "location", "a
 // prompt). Blank fields on these rows still get auto-filled as normal.
 // Remove a name from this list once you're ready for it to get full
 // change-flagging like everything else.
-const SKIP_CHANGE_FLAGGING = new Set([
+// Matched as a substring of the (normalized) conference name, not an exact
+// match — an exact-string list broke silently the moment any of these 5
+// names got corrected/expanded (e.g. "IAMG 2026 - Society for..." becoming
+// "IAMG 2026 - 11th Annual Conference of the Society for..."), since the
+// full string no longer matched even though it was clearly still the same
+// conference. Each of these 5 has a short, stable "CODE YEAR" fragment
+// that survives that kind of rewording.
+const SKIP_CHANGE_FLAGGING_KEYWORDS = [
   "genomics india conference 2026",
-  "11th international cell & gene therapy conference (cgtcon 2026)",
-  "12th annual conference of the society for mitochondrial research and medicine (smrm 2026)",
-  "ishg 2027 - international conference on human genomics to precision medicine",
-  "iamg 2026 - society for indian academy of medical genetics",
-]);
+  "cgtcon 2026",
+  "smrm 2026",
+  "iamg 2026",
+  "ishg 2027",
+];
+function isSkippedFromChangeFlagging(name: string): boolean {
+  const n = norm(name);
+  return SKIP_CHANGE_FLAGGING_KEYWORDS.some((kw) => n.includes(kw));
+}
 const FIELD_ALIASES: Record<keyof ConferenceRow, string[]> = {
   name: ["conference name", "conference"],
   date: ["date", "conference date"],
@@ -510,7 +521,7 @@ async function refreshAll() {
       if (!oldVal && newVal) {
         toFill[f] = newVal;
         hasFill = true;
-      } else if (oldVal && newVal && norm(oldVal) !== norm(newVal) && !SKIP_CHANGE_FLAGGING.has(norm(row.name))) {
+      } else if (oldVal && newVal && norm(oldVal) !== norm(newVal) && !isSkippedFromChangeFlagging(row.name)) {
         try {
           const already = await pendingChangeExists(row.name, f, newVal);
           if (!already) {
