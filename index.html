@@ -4972,7 +4972,6 @@ body {
                             <thead>
                                 <tr>
                                     <th style="width:40px;">#</th>
-                                    <th>System</th>
                                     <th>IP Address</th>
                                     <th>System Name</th>
                                     <th>User</th>
@@ -8132,7 +8131,7 @@ function renderDirCommonMails() {
 function renderDirSystems() {
     const tbody = document.getElementById('sys-tbody');
     if (!tbody) return;
-    if (!dirSystems.length) return _dirEmpty(tbody, 8);
+    if (!dirSystems.length) return _dirEmpty(tbody, 7);
     tbody.innerHTML = dirSystems.map((r, i) => `<tr>
         <td style="color:#94a3b8;font-size:0.76rem;font-weight:500;">${r.sysNo || (i + 1)}</td>
         <td>${copyCell(r.ip, true)}</td>
