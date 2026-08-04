@@ -214,8 +214,9 @@ ${text}
   };
 }
 
-async function callAppsScript(payload: Record<string, unknown>) {
-  if (!APPS_SCRIPT_URL) throw new Error("Sheet write-back is not configured (missing APPS_SCRIPT_URL secret)");
+type AppsScriptResult = { kind: "json"; ok: boolean; error?: string } | { kind: "non-json"; status: number; raw: string };
+
+async function callAppsScriptOnce(payload: Record<string, unknown>): Promise<AppsScriptResult> {
   const res = await fetch(APPS_SCRIPT_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -223,16 +224,38 @@ async function callAppsScript(payload: Record<string, unknown>) {
     redirect: "follow",
   });
   const rawText = await res.text();
-  let json: { ok?: boolean; error?: string } | null = null;
   try {
-    json = JSON.parse(rawText);
+    const parsed = JSON.parse(rawText);
+    return { kind: "json", ok: !!parsed.ok, error: parsed.error };
   } catch (_) {
-    // Not JSON — most likely Apps Script returned an HTML page (e.g. a
-    // Google sign-in/permission wall) instead of running the script.
+    // Not JSON — most likely a transient Google Drive/Docs error page
+    // ("Sorry, unable to open the file at present") rather than anything
+    // Apps Script itself returned.
+    return { kind: "non-json", status: res.status, raw: rawText };
   }
-  if (!json || !json.ok) {
-    const detail = (json && json.error) || `Apps Script returned HTTP ${res.status}, non-JSON body: ${rawText.slice(0, 300)}`;
-    throw new Error(`Sheet write failed (${detail})`);
+}
+
+async function callAppsScript(payload: Record<string, unknown>) {
+  if (!APPS_SCRIPT_URL) throw new Error("Sheet write-back is not configured (missing APPS_SCRIPT_URL secret)");
+
+  let result = await callAppsScriptOnce(payload);
+  // A non-JSON response is usually just a transient delivery failure on
+  // Google's side — one retry after a short pause reliably clears it.
+  // Only safe to retry "update"/"delete" though: they're idempotent via the
+  // name lookup, but retrying "add" could append a duplicate row if the
+  // first attempt actually ran server-side and only failed to deliver its
+  // response (an observed failure mode, not a hypothetical one).
+  const canRetry = payload.action === "update" || payload.action === "delete";
+  if (result.kind === "non-json" && canRetry) {
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    result = await callAppsScriptOnce(payload);
+  }
+
+  if (result.kind === "non-json") {
+    throw new Error(`Sheet write failed (Apps Script returned HTTP ${result.status}, non-JSON body: ${result.raw.slice(0, 300)})`);
+  }
+  if (!result.ok) {
+    throw new Error(`Sheet write failed (${result.error || "unknown error"})`);
   }
 }
 
