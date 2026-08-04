@@ -131,6 +131,70 @@ async function fetchPage(url: string): Promise<{ html: string; text: string }> {
   return { html, text: stripHtml(html).slice(0, 30000) };
 }
 
+// Conference sites routinely split the fields we need across several pages
+// (dates on the homepage, deadlines on a "Registration" page, abstract
+// deadline on an "About Conference" page, etc.) — a single page is often
+// missing something that's genuinely on the site, just not on that page.
+// These path keywords are how such pages are conventionally named/linked.
+const RELEVANT_LINK_KEYWORDS = [
+  "about", "conference", "registration", "register", "abstract",
+  "date", "venue", "schedule", "important", "call-for", "submission", "deadline",
+];
+const MAX_CRAWL_PAGES = 4; // additional pages beyond the one the user pasted
+const MAX_TOTAL_TEXT = 60000;
+
+function extractInternalLinks(html: string, baseUrl: string): string[] {
+  const baseHost = new URL(baseUrl).hostname;
+  const hrefs = [...html.matchAll(/href=["']([^"']+)["']/gi)].map((m) => m[1]);
+  const seen = new Set<string>();
+  const links: string[] = [];
+  for (const href of hrefs) {
+    try {
+      const abs = new URL(href, baseUrl).toString().split("#")[0];
+      if (!/^https?:\/\//i.test(abs)) continue;
+      if (new URL(abs).hostname !== baseHost) continue;
+      if (abs === baseUrl || seen.has(abs)) continue;
+      seen.add(abs);
+      links.push(abs);
+    } catch (_) {
+      continue;
+    }
+  }
+  return links;
+}
+
+function relevantLinkScore(url: string): number {
+  const path = new URL(url).pathname.toLowerCase();
+  let score = 0;
+  for (const kw of RELEVANT_LINK_KEYWORDS) if (path.includes(kw)) score++;
+  return score;
+}
+
+// Fetches a handful of the most relevant same-site pages (by URL keyword
+// match) linked from the start page, and concatenates all their text
+// together so the model sees the whole site's info in one shot, not just
+// whatever happens to be on the one page the link pointed at.
+async function crawlForText(startUrl: string, startHtml: string, startText: string): Promise<string> {
+  let combined = `--- Page: ${startUrl} ---\n${startText}`;
+
+  const links = extractInternalLinks(startHtml, startUrl)
+    .map((link) => ({ link, score: relevantLinkScore(link) }))
+    .filter((l) => l.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, MAX_CRAWL_PAGES);
+
+  for (const { link } of links) {
+    if (combined.length >= MAX_TOTAL_TEXT) break;
+    try {
+      const page = await fetchPage(link);
+      if (page.text) combined += `\n\n--- Page: ${link} ---\n${page.text}`;
+    } catch (_) {
+      // a page that fails to fetch just gets skipped, not fatal
+    }
+  }
+  return combined.slice(0, MAX_TOTAL_TEXT);
+}
+
 async function extractFromUrl(url: string) {
   if (!GEMINI_API_KEY) throw new Error("Extraction is not configured (missing GEMINI_API_KEY secret)");
 
@@ -156,8 +220,11 @@ async function extractFromUrl(url: string) {
   }
   if (!text) throw new Error("The page had no readable text content");
 
-  const prompt = `You are extracting structured conference/event details from the text content of a webpage.
-Read the ENTIRE text below carefully before answering — do not stop at the first date-like or place-like text you see. Accuracy matters far more than filling every field: only report a value when that specific piece of information is explicitly and unambiguously stated in the text. If you are not certain, or a field simply isn't mentioned, return an empty string for it — never guess, infer, or substitute a plausible-looking but unconfirmed value (e.g. a bare year pulled from the event's own name is not a conference date).
+  const siteText = await crawlForText(effectiveUrl, html, text);
+
+  const prompt = `You are extracting structured conference/event details from the text content of a conference website. The text below may span several pages of the same site (each marked with "--- Page: <url> ---") — the fields you need are often split across pages (e.g. dates on the homepage, a deadline on a Registration page, an abstract deadline on an About page), so read ALL of it before answering, not just the first page.
+
+Accuracy matters far more than filling every field: only report a value when that specific piece of information is explicitly and unambiguously stated somewhere in the text. If you are not certain, or a field simply isn't mentioned anywhere, return an empty string for it — never guess, infer, or substitute a plausible-looking but unconfirmed value (e.g. a bare year pulled from the event's own name is not a conference date).
 
 Extract these fields as JSON:
 - name: the official conference/event name
@@ -166,9 +233,9 @@ Extract these fields as JSON:
 - location: the venue, city, or address (empty string if not mentioned)
 - abstract: the abstract submission deadline date, written exactly as it appears (empty string if not mentioned)
 
-Page text:
+Site text:
 """
-${text}
+${siteText}
 """`;
 
   let rawText: string | undefined;
