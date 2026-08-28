@@ -3173,6 +3173,24 @@ body {
 .conference-table-card .dir-table th {
     text-align: center;
 }
+
+/* Lab Presentations tab — same roomy hero-table treatment as Conference,
+   but left-aligned headers so they line up with the left-aligned cell text
+   below them (Conference centers its headers deliberately; here the data
+   is mostly names/links/badges that read better left-aligned). */
+.lab-pres-table-card { margin-bottom: 0; }
+.lab-pres-table-card .dir-table { font-size: 0.92rem; }
+.lab-pres-table-card .dir-table th,
+.lab-pres-table-card .dir-table td {
+    padding: 1.05rem 1.5rem;
+}
+.lab-pres-table-card .dir-table td:first-child,
+.lab-pres-table-card .dir-table th:nth-child(7),
+.lab-pres-table-card .dir-table td:nth-child(7),
+.lab-pres-table-card .dir-table th:last-child,
+.lab-pres-table-card .dir-table td:last-child {
+    text-align: center;
+}
 .dir-user-chip {
     display: inline-flex;
     align-items: center;
@@ -5130,7 +5148,7 @@ body {
                         <i data-lucide="plus" style="width:13px;height:13px;"></i> Add Presentation
                     </button>
                 </div>
-                <div class="dir-section conference-table-card">
+                <div class="dir-section lab-pres-table-card">
                     <div class="dir-table-wrap">
                         <table class="dir-table">
                             <thead>
@@ -7708,7 +7726,7 @@ function _labPresRow(row, i) {
     const status = row.status || 'Completed';
     const statusColor = status === 'Completed' ? '#10b981' : status === 'Scheduled' ? '#f59e0b' : '#6b7280';
     const statusBg = status === 'Completed' ? '#d1fae5' : status === 'Scheduled' ? '#fef3c7' : '#e5e7eb';
-    const actions = canEdit ? `<div class="dir-row-actions">
+    const actions = canEdit ? `<div class="dir-row-actions" style="justify-content:center;">
             <button class="dir-tb-btn" onclick="openEditLabPresentationModal('${row.id}')" title="Edit"><i data-lucide="pencil" style="width:14px;height:14px;"></i></button>
             <button class="dir-tb-btn del" onclick="deletePresentation('${row.id}')" title="Delete"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
         </div>` : '';
