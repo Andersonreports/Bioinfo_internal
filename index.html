@@ -4810,6 +4810,7 @@ body {
                                 <label>Status</label>
                                 <select id="pres-status">
                                     <option value="Completed">Completed</option>
+                                    <option value="Ongoing">Ongoing</option>
                                     <option value="Scheduled">Scheduled</option>
                                 </select>
                             </div>
@@ -5892,6 +5893,7 @@ body {
                         <label>Status</label>
                         <select id="edit-ach-pres-status">
                             <option value="Completed">Completed</option>
+                            <option value="Ongoing">Ongoing</option>
                             <option value="Scheduled">Scheduled</option>
                         </select>
                     </div>
@@ -6018,6 +6020,7 @@ body {
                         <label>Status</label>
                         <select id="lp-status" style="border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; font-size: 0.9rem; font-family: inherit; background: white; color: #1e293b; width: 100%; box-sizing: border-box;">
                             <option value="Completed">Completed</option>
+                            <option value="Ongoing">Ongoing</option>
                             <option value="Scheduled">Scheduled</option>
                         </select>
                     </div>
@@ -7724,8 +7727,8 @@ function _labPresRow(row, i) {
         ? `<a href="${row.ref_link}" target="_blank" rel="noopener" style="color:#0d9488;font-weight:600;text-decoration:none;">Open ↗</a>`
         : '<span style="color:#cbd5e1;">—</span>';
     const status = row.status || 'Completed';
-    const statusColor = status === 'Completed' ? '#10b981' : status === 'Scheduled' ? '#f59e0b' : '#6b7280';
-    const statusBg = status === 'Completed' ? '#d1fae5' : status === 'Scheduled' ? '#fef3c7' : '#e5e7eb';
+    const statusColor = status === 'Completed' ? '#10b981' : status === 'Ongoing' ? '#3b82f6' : status === 'Scheduled' ? '#f59e0b' : '#6b7280';
+    const statusBg = status === 'Completed' ? '#d1fae5' : status === 'Ongoing' ? '#dbeafe' : status === 'Scheduled' ? '#fef3c7' : '#e5e7eb';
     const actions = canEdit ? `<div class="dir-row-actions" style="justify-content:center;">
             <button class="dir-tb-btn" onclick="openEditLabPresentationModal('${row.id}')" title="Edit"><i data-lucide="pencil" style="width:14px;height:14px;"></i></button>
             <button class="dir-tb-btn del" onclick="deletePresentation('${row.id}')" title="Delete"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
