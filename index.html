@@ -6199,9 +6199,10 @@ function switchView(viewName) {
         targetSection.offsetHeight;
         targetSection.style.animation = null;
     }
-    // The Conference tab is a single hero table, so it uses the full content
-    // width instead of the standard centered 1400px column.
-    document.querySelector('.main-content')?.classList.toggle('main-content--wide', viewName === 'conference');
+    // The Conference and Lab Presentations tabs are single hero tables, so
+    // they use the full content width instead of the standard centered
+    // 1400px column.
+    document.querySelector('.main-content')?.classList.toggle('main-content--wide', viewName === 'conference' || viewName === 'presentations');
     if (viewName === 'album')        renderAlbum();
     if (viewName === 'home')         renderHomeTab();
     if (viewName === 'profile')      renderProfileTab();
