@@ -2611,16 +2611,32 @@ body {
     gap: 1rem;
     align-content: start;
 }
+/* Cards with a photo/certificate: media on the left, text on the right */
+.home-ach-wall-scroll .ach-card:has(.ach-card-media) {
+    display: grid;
+    grid-template-columns: minmax(220px, 340px) 1fr;
+    column-gap: 1.25rem;
+    align-items: stretch;
+}
+.home-ach-wall-scroll .ach-card:has(.ach-card-media) > .ach-card-media {
+    grid-column: 1;
+    grid-row: 1 / -1;
+}
+.home-ach-wall-scroll .ach-card:has(.ach-card-media) > *:not(.ach-card-media) {
+    grid-column: 2;
+}
 .home-ach-wall-scroll .ach-card-media-img,
 .home-ach-wall-scroll .ach-card-doc {
-    height: 400px;
+    height: 100%;
+    min-height: 220px;
 }
 .home-ach-wall-scroll .ach-card-media-img {
     object-fit: contain;
     background: #f1f5f9;
 }
 .home-ach-wall-scroll .ach-card-pdf {
-    height: 400px;
+    height: 100%;
+    min-height: 220px;
 }
 .home-ach-wall-scroll > div:only-child { grid-column: 1 / -1; }
 
@@ -10297,7 +10313,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadPendingChanges(); // changes detected by the daily auto-refresh, awaiting approval
     loadAlbum();   // loads shared album photos + hero from Supabase, then renders
     loadPublications().then(renderPublications);   // shared publications from Supabase
-    loadPresentations().then(renderPresentations); // shared presentations from Supabase
+    loadPresentations().then(() => {               // shared presentations from Supabase
+        renderPresentations();
+        renderAchievementsWall(); // re-draw so "Outer Event" talks aren't missing if this resolves after the first wall render
+    });
     lucide.createIcons();
 
     const addForm = document.getElementById('add-emp-form');
