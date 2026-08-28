@@ -4752,6 +4752,62 @@ body {
                     </div>
                 </div>
 
+                <!-- Presentation / Poster Upload -->
+                <div class="emp-cert-section">
+                    <div class="emp-cert-card">
+                        <h3><i data-lucide="presentation" style="width:16px;height:16px;color:#0ea5e9;"></i>Upload Presentation / Poster</h3>
+                        <div class="emp-cert-grid">
+                            <div class="form-group col-span-2">
+                                <label>Employee</label>
+                                <select id="pres-emp-name"><option value="">Select employee…</option></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Type</label>
+                                <select id="pres-type" onchange="togglePresEventField('pres')">
+                                    <option value="Internal Presentation">Internal Presentation</option>
+                                    <option value="Outer Event">Conference</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="pres-event-name-group" style="display:none;">
+                                <label>Event Name</label>
+                                <input type="text" id="pres-event-name" placeholder="e.g. Clinical Genomics Summit 2026">
+                            </div>
+                            <div class="form-group col-span-2">
+                                <label>Title / Topic</label>
+                                <input type="text" id="pres-title" placeholder="e.g. Single-cell approaches to tumor profiling">
+                            </div>
+                            <div class="form-group">
+                                <label>Date</label>
+                                <input type="date" id="pres-date">
+                            </div>
+                            <div class="form-group">
+                                <label>Slides / Poster Link <span style="color:#94a3b8;font-size:0.78rem;">(Google Drive, optional)</span></label>
+                                <input type="text" id="pres-file-link" placeholder="Paste Google Drive share link">
+                            </div>
+                            <div class="form-group">
+                                <label>Reference Link <span style="color:#94a3b8;font-size:0.78rem;">(recording, folder, etc., optional)</span></label>
+                                <input type="text" id="pres-ref-link" placeholder="https://...">
+                            </div>
+                            <div class="form-group">
+                                <label>Status</label>
+                                <select id="pres-status">
+                                    <option value="Completed">Completed</option>
+                                    <option value="Scheduled">Scheduled</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-span-2">
+                                <label>Photo <span style="color:#94a3b8;font-weight:400;">(optional)</span></label>
+                                <input type="file" id="pres-photo" accept="image/*">
+                            </div>
+                        </div>
+                        <div style="display:flex;justify-content:flex-end;">
+                            <button class="btn-primary" onclick="submitPresentation('pres')" style="display:flex;align-items:center;gap:0.4rem;">
+                                <i data-lucide="upload-cloud" style="width:15px;height:15px;"></i> Upload
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
             </section>
 
             <!-- Tools View -->
@@ -5077,49 +5133,49 @@ body {
                         <div class="emp-cert-grid">
                             <div class="form-group col-span-2">
                                 <label>Employee</label>
-                                <select id="pres-emp-name"><option value="">Select employee…</option></select>
+                                <select id="pres2-emp-name"><option value="">Select employee…</option></select>
                             </div>
                             <div class="form-group">
                                 <label>Type</label>
-                                <select id="pres-type" onchange="togglePresEventField()">
+                                <select id="pres2-type" onchange="togglePresEventField('pres2')">
                                     <option value="Internal Presentation">Internal Presentation</option>
                                     <option value="Outer Event">Conference</option>
                                 </select>
                             </div>
-                            <div class="form-group" id="pres-event-name-group" style="display:none;">
+                            <div class="form-group" id="pres2-event-name-group" style="display:none;">
                                 <label>Event Name</label>
-                                <input type="text" id="pres-event-name" placeholder="e.g. Clinical Genomics Summit 2026">
+                                <input type="text" id="pres2-event-name" placeholder="e.g. Clinical Genomics Summit 2026">
                             </div>
                             <div class="form-group col-span-2">
                                 <label>Title / Topic</label>
-                                <input type="text" id="pres-title" placeholder="e.g. Single-cell approaches to tumor profiling">
+                                <input type="text" id="pres2-title" placeholder="e.g. Single-cell approaches to tumor profiling">
                             </div>
                             <div class="form-group">
                                 <label>Date</label>
-                                <input type="date" id="pres-date">
+                                <input type="date" id="pres2-date">
                             </div>
                             <div class="form-group">
                                 <label>Slides / Poster Link <span style="color:#94a3b8;font-size:0.78rem;">(Google Drive, optional)</span></label>
-                                <input type="text" id="pres-file-link" placeholder="Paste Google Drive share link">
+                                <input type="text" id="pres2-file-link" placeholder="Paste Google Drive share link">
                             </div>
                             <div class="form-group">
                                 <label>Reference Link <span style="color:#94a3b8;font-size:0.78rem;">(recording, folder, etc., optional)</span></label>
-                                <input type="text" id="pres-ref-link" placeholder="https://...">
+                                <input type="text" id="pres2-ref-link" placeholder="https://...">
                             </div>
                             <div class="form-group">
                                 <label>Status</label>
-                                <select id="pres-status">
+                                <select id="pres2-status">
                                     <option value="Completed">Completed</option>
                                     <option value="Scheduled">Scheduled</option>
                                 </select>
                             </div>
                             <div class="form-group col-span-2">
                                 <label>Photo <span style="color:#94a3b8;font-weight:400;">(optional)</span></label>
-                                <input type="file" id="pres-photo" accept="image/*">
+                                <input type="file" id="pres2-photo" accept="image/*">
                             </div>
                         </div>
                         <div style="display:flex;justify-content:flex-end;">
-                            <button class="btn-primary" onclick="submitPresentation()" style="display:flex;align-items:center;gap:0.4rem;">
+                            <button class="btn-primary" onclick="submitPresentation('pres2')" style="display:flex;align-items:center;gap:0.4rem;">
                                 <i data-lucide="upload-cloud" style="width:15px;height:15px;"></i> Upload
                             </button>
                         </div>
@@ -7105,7 +7161,7 @@ function populateWuNameDropdowns() {
 //   • Admin   → a dropdown of all employees (can upload on anyone's behalf).
 //   • Others  → locked to their own name (cannot pick a different employee).
 function setupUploaderFields() {
-    const ids = ['cert-emp-name', 'pub-emp-name', 'pres-emp-name'];
+    const ids = ['cert-emp-name', 'pub-emp-name', 'pres-emp-name', 'pres2-emp-name'];
     const session = getSession();
     const isAdmin = !!(session && session.role === 'admin');
     if (isAdmin) {
@@ -7737,27 +7793,31 @@ async function submitPublication() {
 }
 
 // Show the Event Name field only for outer events.
-function togglePresEventField() {
-    const type = document.getElementById('pres-type').value;
-    const group = document.getElementById('pres-event-name-group');
+// `prefix` distinguishes the Employee Dashboard form ('pres', the default)
+// from the Lab Presentations page's own copy ('pres2').
+function togglePresEventField(prefix) {
+    prefix = prefix || 'pres';
+    const type = document.getElementById(`${prefix}-type`).value;
+    const group = document.getElementById(`${prefix}-event-name-group`);
     if (group) group.style.display = type === 'Outer Event' ? '' : 'none';
 }
 
-async function submitPresentation() {
+async function submitPresentation(prefix) {
+    prefix = prefix || 'pres';
     if (!getSession()) { alert('Please log in to upload.'); return; }
-    const empName = document.getElementById('pres-emp-name').value;
+    const empName = document.getElementById(`${prefix}-emp-name`).value;
     if (!empName) { alert('Please select the employee.'); return; }
     const emp = employees.find(e => e.name === empName);
     if (!emp) { alert('Employee not found.'); return; }
-    const title   = document.getElementById('pres-title').value.trim();
-    const presDate = document.getElementById('pres-date').value;
-    const type    = document.getElementById('pres-type').value;
+    const title   = document.getElementById(`${prefix}-title`).value.trim();
+    const presDate = document.getElementById(`${prefix}-date`).value;
+    const type    = document.getElementById(`${prefix}-type`).value;
     const isOuter = type === 'Outer Event';
-    const eventName = document.getElementById('pres-event-name').value.trim();
-    const fileLink = document.getElementById('pres-file-link').value.trim();
-    const refLink = document.getElementById('pres-ref-link').value.trim();
-    const status = document.getElementById('pres-status').value;
-    const photoInput = document.getElementById('pres-photo');
+    const eventName = document.getElementById(`${prefix}-event-name`).value.trim();
+    const fileLink = document.getElementById(`${prefix}-file-link`).value.trim();
+    const refLink = document.getElementById(`${prefix}-ref-link`).value.trim();
+    const status = document.getElementById(`${prefix}-status`).value;
+    const photoInput = document.getElementById(`${prefix}-photo`);
 
     if (!title)    { alert('Please enter the title.'); return; }
     if (!presDate) { alert('Please select the date.'); return; }
@@ -7787,15 +7847,15 @@ async function submitPresentation() {
         return;
     }
 
-    document.getElementById('pres-title').value = '';
-    document.getElementById('pres-date').value = '';
-    document.getElementById('pres-type').value = 'Internal Presentation';
-    document.getElementById('pres-event-name').value = '';
-    document.getElementById('pres-file-link').value = '';
-    document.getElementById('pres-ref-link').value = '';
-    document.getElementById('pres-status').value = 'Completed';
+    document.getElementById(`${prefix}-title`).value = '';
+    document.getElementById(`${prefix}-date`).value = '';
+    document.getElementById(`${prefix}-type`).value = 'Internal Presentation';
+    document.getElementById(`${prefix}-event-name`).value = '';
+    document.getElementById(`${prefix}-file-link`).value = '';
+    document.getElementById(`${prefix}-ref-link`).value = '';
+    document.getElementById(`${prefix}-status`).value = 'Completed';
     photoInput.value = '';
-    togglePresEventField();
+    togglePresEventField(prefix);
     setupUploaderFields();
     alert(isOuter ? 'Added to Achievements!' : 'Lab presentation added!');
     renderPresentations();
