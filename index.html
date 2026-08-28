@@ -6168,7 +6168,7 @@ function switchView(viewName) {
     if (viewName === 'profile')      renderProfileTab();
     if (viewName === 'achievements') renderAchievementsWall();
     if (viewName === 'publications')  renderPublications();
-    if (viewName === 'presentations') renderPresentations();
+    if (viewName === 'presentations') { setupUploaderFields(); renderPresentations(); }
     if (viewName === 'conference')   renderConferences();
     if (viewName === 'manager')      renderPresentationAssignments();
     if (viewName === 'employee')     renderEmployeeAssignments();
@@ -10182,6 +10182,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             initApp(session);
             fetchData().then(() => {
                 renderHomeTab();   // refresh leaves/absent/achievements for ALL roles once data loads
+                setupUploaderFields(); // employees[] just populated; re-fill uploader dropdowns
                 if (session.role === 'employee') renderProfileTab();
             });
         } else {
