@@ -7764,9 +7764,9 @@ let _lpEditingId = null;
 
 function _lpPopulateEmpSelect(selectedEmpId) {
     const select = document.getElementById('lp-emp-name');
-    const sorted = employees.slice().sort((a, b) => a.name.localeCompare(b.name));
+    const sorted = employees.filter(e => !isPastEmployee(e)).sort((a, b) => a.name.localeCompare(b.name));
     select.innerHTML = '<option value="">Select employee…</option>' +
-        sorted.map(e => `<option value="${e.employeeId}">${e.name}${isPastEmployee(e) ? ' (Past)' : ''}</option>`).join('');
+        sorted.map(e => `<option value="${e.employeeId}">${e.name}</option>`).join('');
     select.value = selectedEmpId || '';
 }
 
