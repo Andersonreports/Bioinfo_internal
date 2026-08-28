@@ -5992,8 +5992,9 @@ body {
                         <input type="date" id="lp-date" style="border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; font-size: 0.9rem; font-family: inherit; background: white; color: #1e293b; width: 100%; box-sizing: border-box;">
                     </div>
                     <div class="form-group">
-                        <label>Upload PPT <span style="color:#94a3b8;font-weight:400;">(Google Drive link, optional)</span></label>
-                        <input type="text" id="lp-file-link" placeholder="Paste Google Drive share link" style="border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; font-size: 0.9rem; font-family: inherit; background: white; color: #1e293b; width: 100%; box-sizing: border-box;">
+                        <label>Upload PPT <span style="color:#94a3b8;font-weight:400;">(PDF or PPT/PPTX, optional)</span></label>
+                        <input type="file" id="lp-file-input" accept=".ppt,.pptx,.pdf" style="border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.6rem 0.75rem; font-size: 0.9rem; font-family: inherit; background: white; color: #1e293b; width: 100%; box-sizing: border-box;">
+                        <div id="lp-file-current" style="margin-top:0.4rem;font-size:0.8rem;color:#64748b;"></div>
                     </div>
                     <div class="form-group">
                         <label>Link <span style="color:#94a3b8;font-weight:400;">(recording, folder, etc., optional)</span></label>
@@ -7783,7 +7784,8 @@ function openAddLabPresentationModal() {
     _lpPopulateEmpList([]);
     document.getElementById('lp-title').value = '';
     document.getElementById('lp-date').value = '';
-    document.getElementById('lp-file-link').value = '';
+    document.getElementById('lp-file-input').value = '';
+    document.getElementById('lp-file-current').textContent = '';
     document.getElementById('lp-ref-link').value = '';
     document.getElementById('lp-status').value = 'Completed';
     document.getElementById('lab-pres-modal-title').textContent = 'Add Presentation';
@@ -7800,7 +7802,10 @@ function openEditLabPresentationModal(id) {
     _lpPopulateEmpList((row.employee_id || '').split(',').map(s => s.trim()).filter(Boolean));
     document.getElementById('lp-title').value = row.title || '';
     document.getElementById('lp-date').value = row.pres_date || '';
-    document.getElementById('lp-file-link').value = row.file_url || '';
+    document.getElementById('lp-file-input').value = '';
+    document.getElementById('lp-file-current').innerHTML = row.file_url
+        ? `Current: <a href="${_previewUrl(row.file_url)}" target="_blank" rel="noopener" style="color:#0d9488;font-weight:600;">${row.file_name || 'View file'}</a> — choosing a new file replaces it.`
+        : '';
     document.getElementById('lp-ref-link').value = row.ref_link || '';
     document.getElementById('lp-status').value = row.status || 'Completed';
     document.getElementById('lab-pres-modal-title').textContent = 'Edit Presentation';
@@ -7823,17 +7828,28 @@ async function saveLabPresentation() {
     const empNames = presenters.map(e => e.name).join(', ');
     const title = document.getElementById('lp-title').value.trim();
     const presDate = document.getElementById('lp-date').value;
-    const fileLink = document.getElementById('lp-file-link').value.trim();
+    const fileInput = document.getElementById('lp-file-input');
     const refLink = document.getElementById('lp-ref-link').value.trim();
     const status = document.getElementById('lp-status').value;
 
     if (!presDate) { alert('Please select the date.'); return; }
 
     try {
+        let fileUrl = null, fileName = null;
+        if (fileInput.files[0]) {
+            const uploaded = await sbUpload('presentations', fileInput.files[0]);
+            fileUrl = uploaded.url;
+            fileName = uploaded.name;
+        } else if (_lpEditingId) {
+            const existing = presentationsCache.find(r => r.id === _lpEditingId);
+            fileUrl = existing ? existing.file_url : null;
+            fileName = existing ? existing.file_name : null;
+        }
+
         if (_lpEditingId) {
             const update = {
                 employee_id: empIds, author_name: empNames, title: title || null,
-                pres_date: presDate, file_url: fileLink || null, ref_link: refLink || null, status
+                pres_date: presDate, file_url: fileUrl, file_name: fileName, ref_link: refLink || null, status
             };
             const { data, error } = await _sb.from('presentations').update(update).eq('id', _lpEditingId).select().single();
             if (error) throw error;
@@ -7848,8 +7864,8 @@ async function saveLabPresentation() {
                 pres_date: presDate,
                 place: null,
                 pres_type: 'Internal Presentation',
-                file_url: fileLink || null,
-                file_name: null,
+                file_url: fileUrl,
+                file_name: fileName,
                 photo_url: null,
                 ref_link: refLink || null,
                 status
