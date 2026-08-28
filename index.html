@@ -2474,6 +2474,14 @@ body {
     box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
     transform: translateY(-2px);
 }
+/* Wraps everything but the media block, so media-left/content-right
+   layouts (see home-ach-wall-scroll) can lay it out as one column. */
+.ach-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    min-width: 0;
+}
 .ach-card-author {
     display: flex;
     align-items: center;
@@ -2613,17 +2621,17 @@ body {
 }
 /* Cards with a photo/certificate: media on the left, text on the right */
 .home-ach-wall-scroll .ach-card:has(.ach-card-media) {
-    display: grid;
-    grid-template-columns: minmax(220px, 340px) 1fr;
-    column-gap: 1.25rem;
+    display: flex;
+    flex-direction: row;
     align-items: stretch;
+    gap: 1.25rem;
 }
 .home-ach-wall-scroll .ach-card:has(.ach-card-media) > .ach-card-media {
-    grid-column: 1;
-    grid-row: 1 / -1;
+    flex: 0 0 320px;
 }
-.home-ach-wall-scroll .ach-card:has(.ach-card-media) > *:not(.ach-card-media) {
-    grid-column: 2;
+.home-ach-wall-scroll .ach-card:has(.ach-card-media) .ach-card-body {
+    flex: 1;
+    justify-content: center;
 }
 .home-ach-wall-scroll .ach-card-media-img,
 .home-ach-wall-scroll .ach-card-doc {
@@ -7431,22 +7439,24 @@ function _achCertCard(emp, cert, showActions) {
 
     return `
         <div class="ach-card">
-            <div class="ach-card-author">
-                <img src="${emp.avatar}" alt="${emp.name}" class="ach-card-avatar">
-                <div>
-                    <div class="ach-card-name">${emp.name}</div>
-                    <div class="ach-card-role">${emp.role}</div>
-                </div>
-            </div>
-            <div class="ach-card-event">${buildCaption(emp.name, cert)}</div>
-            ${cert.eventName ? `<div class="ach-card-caption">${cert.eventName}</div>` : ''}
-            <div class="ach-card-meta">
-                ${cert.place ? `<span class="ach-meta-tag"><i data-lucide="map-pin" style="width:11px;height:11px;"></i>${cert.place}</span>` : ''}
-                ${dateDisplay ? `<span class="ach-meta-tag"><i data-lucide="calendar" style="width:11px;height:11px;"></i>${dateDisplay}</span>` : ''}
-                ${cert.award ? `<span class="ach-meta-tag ach-award-tag"><i data-lucide="trophy" style="width:11px;height:11px;"></i>${cert.award}</span>` : ''}
-            </div>
             ${mediaBlock}
-            ${actionsHtml ? `<div class="ach-card-actions">${actionsHtml}</div>` : ''}
+            <div class="ach-card-body">
+                <div class="ach-card-author">
+                    <img src="${emp.avatar}" alt="${emp.name}" class="ach-card-avatar">
+                    <div>
+                        <div class="ach-card-name">${emp.name}</div>
+                        <div class="ach-card-role">${emp.role}</div>
+                    </div>
+                </div>
+                <div class="ach-card-event">${buildCaption(emp.name, cert)}</div>
+                ${cert.eventName ? `<div class="ach-card-caption">${cert.eventName}</div>` : ''}
+                <div class="ach-card-meta">
+                    ${cert.place ? `<span class="ach-meta-tag"><i data-lucide="map-pin" style="width:11px;height:11px;"></i>${cert.place}</span>` : ''}
+                    ${dateDisplay ? `<span class="ach-meta-tag"><i data-lucide="calendar" style="width:11px;height:11px;"></i>${dateDisplay}</span>` : ''}
+                    ${cert.award ? `<span class="ach-meta-tag ach-award-tag"><i data-lucide="trophy" style="width:11px;height:11px;"></i>${cert.award}</span>` : ''}
+                </div>
+                ${actionsHtml ? `<div class="ach-card-actions">${actionsHtml}</div>` : ''}
+            </div>
         </div>`;
 }
 
@@ -7690,15 +7700,17 @@ function _achPresCard(row, showActions) {
         : (presEvent ? `${presName} presented at the ${presEvent}.` : '');
 
     return `<div class="ach-card">
-        ${_authorBlock(row)}
-        <div class="ach-card-event">${presCaption || presEvent || presTitle}</div>
-        ${(presEvent || presTitle) ? `<div class="ach-card-caption">${presEvent || presTitle}</div>` : ''}
-        <div class="ach-card-meta">
-            ${dateDisplay ? `<span class="ach-meta-tag"><i data-lucide="calendar" style="width:11px;height:11px;"></i>${dateDisplay}</span>` : ''}
-            ${row.pres_type ? `<span class="ach-meta-tag ach-award-tag"><i data-lucide="presentation" style="width:11px;height:11px;"></i>${row.pres_type === 'Outer Event' ? 'Conference' : row.pres_type}</span>` : ''}
-        </div>
         ${mediaBlock}
-        ${actions.length ? `<div class="ach-card-actions">${actions.join('')}</div>` : ''}
+        <div class="ach-card-body">
+            ${_authorBlock(row)}
+            <div class="ach-card-event">${presCaption || presEvent || presTitle}</div>
+            ${(presEvent || presTitle) ? `<div class="ach-card-caption">${presEvent || presTitle}</div>` : ''}
+            <div class="ach-card-meta">
+                ${dateDisplay ? `<span class="ach-meta-tag"><i data-lucide="calendar" style="width:11px;height:11px;"></i>${dateDisplay}</span>` : ''}
+                ${row.pres_type ? `<span class="ach-meta-tag ach-award-tag"><i data-lucide="presentation" style="width:11px;height:11px;"></i>${row.pres_type === 'Outer Event' ? 'Conference' : row.pres_type}</span>` : ''}
+            </div>
+            ${actions.length ? `<div class="ach-card-actions">${actions.join('')}</div>` : ''}
+        </div>
     </div>`;
 }
 
