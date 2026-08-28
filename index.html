@@ -2613,14 +2613,14 @@ body {
 }
 .home-ach-wall-scroll .ach-card-media-img,
 .home-ach-wall-scroll .ach-card-doc {
-    height: 240px;
+    height: 400px;
 }
 .home-ach-wall-scroll .ach-card-media-img {
     object-fit: contain;
     background: #f1f5f9;
 }
 .home-ach-wall-scroll .ach-card-pdf {
-    height: 240px;
+    height: 400px;
 }
 .home-ach-wall-scroll > div:only-child { grid-column: 1 / -1; }
 
@@ -4796,7 +4796,7 @@ body {
                             </div>
                             <div class="tool-card-footer">
                                 <span class="tool-card-tag">Live</span>
-                                <button class="tool-card-btn" onclick="window.open('https://andersonreports.github.io/report-tracker/', '_blank')">
+                                <button class="tool-card-btn" onclick="window.open('https://tracker.andrsn.in', '_blank')">
                                     Open Tracker <i data-lucide="arrow-right"></i>
                                 </button>
                             </div>
@@ -6166,36 +6166,55 @@ function toggleSidebar() {
 }
 
 // CSV Parser
+// Parses char-by-char (rather than pre-splitting on '\n') so that quoted
+// fields containing embedded newlines (e.g. a multi-line Address) don't get
+// torn into bogus extra rows.
 function parseCSV(csv) {
-    const lines = csv.split('\n');
-    const result = [];
-    const headers = lines[0].split(',').map(h => h.trim());
+    const rows = [];
+    let row = [];
+    let field = '';
+    let inQuotes = false;
 
-    for (let i = 1; i < lines.length; i++) {
-        if (!lines[i].trim()) continue;
-        
-        // Handle quoted values (comma inside quotes)
-        const row = [];
-        let current = '';
-        let inQuotes = false;
-        
-        for (let char of lines[i]) {
-            if (char === '"') {
-                inQuotes = !inQuotes;
-            } else if (char === ',' && !inQuotes) {
-                row.push(current.trim());
-                current = '';
-            } else {
-                current += char;
-            }
+    for (let i = 0; i < csv.length; i++) {
+        const char = csv[i];
+        if (inQuotes) {
+            if (char === '"' && csv[i + 1] === '"') { field += '"'; i++; }
+            else if (char === '"') { inQuotes = false; }
+            else { field += char; }
+        } else if (char === '"') {
+            inQuotes = true;
+        } else if (char === ',') {
+            row.push(field.trim());
+            field = '';
+        } else if (char === '\r') {
+            // ignore; line breaks are handled on '\n'
+        } else if (char === '\n') {
+            row.push(field.trim());
+            rows.push(row);
+            row = [];
+            field = '';
+        } else {
+            field += char;
         }
-        row.push(current.trim());
+    }
+    if (field.length || row.length) {
+        row.push(field.trim());
+        rows.push(row);
+    }
+
+    if (rows.length === 0) return [];
+    const headers = rows[0].map(h => h.trim());
+    const result = [];
+
+    for (let i = 1; i < rows.length; i++) {
+        const cells = rows[i];
+        if (cells.length === 1 && !cells[0]) continue;
 
         const obj = {};
         headers.forEach((header, index) => {
-            obj[header] = row[index] || '';
+            obj[header] = cells[index] || '';
         });
-        
+
         // Map CSV fields to our internal employee object
         if (obj['Name']) {
             result.push({
