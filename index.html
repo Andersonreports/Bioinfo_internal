@@ -7578,6 +7578,19 @@ function _driveDownload(url) {
     const id = _driveId(url);
     return id ? `https://drive.google.com/uc?export=download&id=${id}` : url;
 }
+// A link that opens for *viewing* in-browser rather than downloading, for
+// files uploaded straight to Supabase storage (Drive links already have
+// their own viewer via _driveView). Whether a raw file URL renders inline
+// or downloads depends on the storage server's response headers, which we
+// don't control from here — routing it through Google's viewer sidesteps
+// that entirely since Google fetches and renders the file itself.
+function _previewUrl(url) {
+    const driveId = _driveId(url);
+    if (driveId) return `https://drive.google.com/file/d/${driveId}/view`;
+    if (!url) return url;
+    if (_isImageName(url)) return url;
+    return `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
+}
 
 // Author header block shared by both walls.
 function _authorBlock(row) {
@@ -7705,7 +7718,7 @@ function _labPresRow(row, i) {
     const presEmp = _empByEmployeeId(row.employee_id);
     const presName = presEmp ? presEmp.name : (row.author_name || 'Team Member');
     const pptCell = row.file_url
-        ? `<a href="${_driveView(row.file_url)}" target="_blank" rel="noopener" style="color:#0d9488;font-weight:600;text-decoration:none;">View</a>`
+        ? `<a href="${_previewUrl(row.file_url)}" target="_blank" rel="noopener" style="color:#0d9488;font-weight:600;text-decoration:none;">View</a>`
         : (canEdit
             ? `<label class="dir-tb-btn" style="cursor:pointer;display:inline-flex;" title="Upload PPT">
                     <i data-lucide="upload" style="width:14px;height:14px;"></i>
