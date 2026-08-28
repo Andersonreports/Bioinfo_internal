@@ -7822,13 +7822,12 @@ async function saveLabPresentation() {
     const refLink = document.getElementById('lp-ref-link').value.trim();
     const status = document.getElementById('lp-status').value;
 
-    if (!title)    { alert('Please enter the topic.'); return; }
     if (!presDate) { alert('Please select the date.'); return; }
 
     try {
         if (_lpEditingId) {
             const update = {
-                employee_id: emp.employeeId, author_name: emp.name, title,
+                employee_id: emp.employeeId, author_name: emp.name, title: title || null,
                 pres_date: presDate, file_url: fileLink || null, ref_link: refLink || null, status
             };
             const { data, error } = await _sb.from('presentations').update(update).eq('id', _lpEditingId).select().single();
@@ -7839,7 +7838,7 @@ async function saveLabPresentation() {
             const { data, error } = await _sb.from('presentations').insert({
                 employee_id: emp.employeeId,
                 author_name: emp.name,
-                title,
+                title: title || null,
                 event_name: null,
                 pres_date: presDate,
                 place: null,
