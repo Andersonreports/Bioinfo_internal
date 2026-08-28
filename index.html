@@ -4752,61 +4752,6 @@ body {
                     </div>
                 </div>
 
-                <!-- Presentation / Poster Upload -->
-                <div class="emp-cert-section">
-                    <div class="emp-cert-card">
-                        <h3><i data-lucide="presentation" style="width:16px;height:16px;color:#0ea5e9;"></i>Upload Presentation / Poster</h3>
-                        <div class="emp-cert-grid">
-                            <div class="form-group col-span-2">
-                                <label>Employee</label>
-                                <select id="pres-emp-name"><option value="">Select employee…</option></select>
-                            </div>
-                            <div class="form-group">
-                                <label>Type</label>
-                                <select id="pres-type" onchange="togglePresEventField()">
-                                    <option value="Internal Presentation">Internal Presentation</option>
-                                    <option value="Outer Event">Conference</option>
-                                </select>
-                            </div>
-                            <div class="form-group" id="pres-event-name-group" style="display:none;">
-                                <label>Event Name</label>
-                                <input type="text" id="pres-event-name" placeholder="e.g. Clinical Genomics Summit 2026">
-                            </div>
-                            <div class="form-group col-span-2">
-                                <label>Title / Topic</label>
-                                <input type="text" id="pres-title" placeholder="e.g. Single-cell approaches to tumor profiling">
-                            </div>
-                            <div class="form-group">
-                                <label>Date</label>
-                                <input type="date" id="pres-date">
-                            </div>
-                            <div class="form-group">
-                                <label>Slides / Poster Link <span style="color:#94a3b8;font-size:0.78rem;">(Google Drive, optional)</span></label>
-                                <input type="text" id="pres-file-link" placeholder="Paste Google Drive share link">
-                            </div>
-                            <div class="form-group">
-                                <label>Reference Link <span style="color:#94a3b8;font-size:0.78rem;">(recording, folder, etc., optional)</span></label>
-                                <input type="text" id="pres-ref-link" placeholder="https://...">
-                            </div>
-                            <div class="form-group">
-                                <label>Status</label>
-                                <select id="pres-status">
-                                    <option value="Completed">Completed</option>
-                                    <option value="Scheduled">Scheduled</option>
-                                </select>
-                            </div>
-                            <div class="form-group col-span-2">
-                                <label>Photo <span style="color:#94a3b8;font-weight:400;">(optional)</span></label>
-                                <input type="file" id="pres-photo" accept="image/*">
-                            </div>
-                        </div>
-                        <div style="display:flex;justify-content:flex-end;">
-                            <button class="btn-primary" onclick="submitPresentation()" style="display:flex;align-items:center;gap:0.4rem;">
-                                <i data-lucide="upload-cloud" style="width:15px;height:15px;"></i> Upload
-                            </button>
-                        </div>
-                    </div>
-                </div>
             </section>
 
             <!-- Tools View -->
@@ -5122,8 +5067,65 @@ body {
             <section id="presentations-view" class="view-section" style="display: none;">
                 <div class="view-header">
                     <h1>Lab Presentations</h1>
-                    <p>Internal presentations shared within the team. Upload from the Employee Dashboard.</p>
+                    <p>Internal presentations shared within the team.</p>
                 </div>
+
+                <!-- Presentation / Poster Upload -->
+                <div class="emp-cert-section">
+                    <div class="emp-cert-card">
+                        <h3><i data-lucide="presentation" style="width:16px;height:16px;color:#0ea5e9;"></i>Upload Presentation / Poster</h3>
+                        <div class="emp-cert-grid">
+                            <div class="form-group col-span-2">
+                                <label>Employee</label>
+                                <select id="pres-emp-name"><option value="">Select employee…</option></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Type</label>
+                                <select id="pres-type" onchange="togglePresEventField()">
+                                    <option value="Internal Presentation">Internal Presentation</option>
+                                    <option value="Outer Event">Conference</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="pres-event-name-group" style="display:none;">
+                                <label>Event Name</label>
+                                <input type="text" id="pres-event-name" placeholder="e.g. Clinical Genomics Summit 2026">
+                            </div>
+                            <div class="form-group col-span-2">
+                                <label>Title / Topic</label>
+                                <input type="text" id="pres-title" placeholder="e.g. Single-cell approaches to tumor profiling">
+                            </div>
+                            <div class="form-group">
+                                <label>Date</label>
+                                <input type="date" id="pres-date">
+                            </div>
+                            <div class="form-group">
+                                <label>Slides / Poster Link <span style="color:#94a3b8;font-size:0.78rem;">(Google Drive, optional)</span></label>
+                                <input type="text" id="pres-file-link" placeholder="Paste Google Drive share link">
+                            </div>
+                            <div class="form-group">
+                                <label>Reference Link <span style="color:#94a3b8;font-size:0.78rem;">(recording, folder, etc., optional)</span></label>
+                                <input type="text" id="pres-ref-link" placeholder="https://...">
+                            </div>
+                            <div class="form-group">
+                                <label>Status</label>
+                                <select id="pres-status">
+                                    <option value="Completed">Completed</option>
+                                    <option value="Scheduled">Scheduled</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-span-2">
+                                <label>Photo <span style="color:#94a3b8;font-weight:400;">(optional)</span></label>
+                                <input type="file" id="pres-photo" accept="image/*">
+                            </div>
+                        </div>
+                        <div style="display:flex;justify-content:flex-end;">
+                            <button class="btn-primary" onclick="submitPresentation()" style="display:flex;align-items:center;gap:0.4rem;">
+                                <i data-lucide="upload-cloud" style="width:15px;height:15px;"></i> Upload
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <div id="presentations-wall" class="achievements-full-wall">
                     <!-- Populated by JS -->
                 </div>
