@@ -4763,7 +4763,7 @@ body {
                             </div>
                             <div class="form-group">
                                 <label>Type</label>
-                                <select id="pres-type" onchange="togglePresEventField('pres')">
+                                <select id="pres-type" onchange="togglePresEventField()">
                                     <option value="Internal Presentation">Internal Presentation</option>
                                     <option value="Outer Event">Conference</option>
                                 </select>
@@ -4801,7 +4801,7 @@ body {
                             </div>
                         </div>
                         <div style="display:flex;justify-content:flex-end;">
-                            <button class="btn-primary" onclick="submitPresentation('pres')" style="display:flex;align-items:center;gap:0.4rem;">
+                            <button class="btn-primary" onclick="submitPresentation()" style="display:flex;align-items:center;gap:0.4rem;">
                                 <i data-lucide="upload-cloud" style="width:15px;height:15px;"></i> Upload
                             </button>
                         </div>
@@ -5121,69 +5121,33 @@ body {
 
             <!-- Presentations View -->
             <section id="presentations-view" class="view-section" style="display: none;">
-                <div class="view-header">
-                    <h1>Lab Presentations</h1>
-                    <p>Internal presentations shared within the team.</p>
-                </div>
-
-                <!-- Presentation / Poster Upload -->
-                <div class="emp-cert-section">
-                    <div class="emp-cert-card">
-                        <h3><i data-lucide="presentation" style="width:16px;height:16px;color:#0ea5e9;"></i>Upload Presentation / Poster</h3>
-                        <div class="emp-cert-grid">
-                            <div class="form-group col-span-2">
-                                <label>Employee</label>
-                                <select id="pres2-emp-name"><option value="">Select employee…</option></select>
-                            </div>
-                            <div class="form-group">
-                                <label>Type</label>
-                                <select id="pres2-type" onchange="togglePresEventField('pres2')">
-                                    <option value="Internal Presentation">Internal Presentation</option>
-                                    <option value="Outer Event">Conference</option>
-                                </select>
-                            </div>
-                            <div class="form-group" id="pres2-event-name-group" style="display:none;">
-                                <label>Event Name</label>
-                                <input type="text" id="pres2-event-name" placeholder="e.g. Clinical Genomics Summit 2026">
-                            </div>
-                            <div class="form-group col-span-2">
-                                <label>Title / Topic</label>
-                                <input type="text" id="pres2-title" placeholder="e.g. Single-cell approaches to tumor profiling">
-                            </div>
-                            <div class="form-group">
-                                <label>Date</label>
-                                <input type="date" id="pres2-date">
-                            </div>
-                            <div class="form-group">
-                                <label>Slides / Poster Link <span style="color:#94a3b8;font-size:0.78rem;">(Google Drive, optional)</span></label>
-                                <input type="text" id="pres2-file-link" placeholder="Paste Google Drive share link">
-                            </div>
-                            <div class="form-group">
-                                <label>Reference Link <span style="color:#94a3b8;font-size:0.78rem;">(recording, folder, etc., optional)</span></label>
-                                <input type="text" id="pres2-ref-link" placeholder="https://...">
-                            </div>
-                            <div class="form-group">
-                                <label>Status</label>
-                                <select id="pres2-status">
-                                    <option value="Completed">Completed</option>
-                                    <option value="Scheduled">Scheduled</option>
-                                </select>
-                            </div>
-                            <div class="form-group col-span-2">
-                                <label>Photo <span style="color:#94a3b8;font-weight:400;">(optional)</span></label>
-                                <input type="file" id="pres2-photo" accept="image/*">
-                            </div>
-                        </div>
-                        <div style="display:flex;justify-content:flex-end;">
-                            <button class="btn-primary" onclick="submitPresentation('pres2')" style="display:flex;align-items:center;gap:0.4rem;">
-                                <i data-lucide="upload-cloud" style="width:15px;height:15px;"></i> Upload
-                            </button>
-                        </div>
+                <div class="view-header conference-view-header">
+                    <div>
+                        <h1>Lab Presentations</h1>
+                        <p>Internal presentations shared within the team.</p>
                     </div>
+                    <button class="dir-add-btn" onclick="openAddLabPresentationModal()">
+                        <i data-lucide="plus" style="width:13px;height:13px;"></i> Add Presentation
+                    </button>
                 </div>
-
-                <div id="presentations-wall" class="achievements-full-wall">
-                    <!-- Populated by JS -->
+                <div class="dir-section conference-table-card">
+                    <div class="dir-table-wrap">
+                        <table class="dir-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:40px;">#</th>
+                                    <th>Topic</th>
+                                    <th>Date</th>
+                                    <th>Presenter</th>
+                                    <th>Upload PPT</th>
+                                    <th>Link</th>
+                                    <th>Status</th>
+                                    <th style="width:70px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="presentations-tbody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
 
@@ -5995,6 +5959,61 @@ body {
         </div>
     </div>
 
+    <!-- Add / Edit Lab Presentation Modal -->
+    <div class="modal-overlay" id="add-lab-presentation-modal" style="display: none;" onclick="closeAddLabPresentationModal(event)">
+        <div class="modal glass-panel" onclick="event.stopPropagation()" style="max-width: 550px;">
+            <div class="modal-header">
+                <div class="details-header-info">
+                    <i data-lucide="presentation" style="color: #0ea5e9; width: 32px; height: 32px;"></i>
+                    <div>
+                        <h2 id="lab-pres-modal-title">Add Presentation</h2>
+                        <p>Add a row to the Lab Presentations table</p>
+                    </div>
+                </div>
+                <button class="icon-btn" onclick="closeAddLabPresentationModal()"><i data-lucide="x"></i></button>
+            </div>
+            <div class="details-content">
+                <div style="display: grid; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Presenter</label>
+                        <select id="lp-emp-name" style="border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; font-size: 0.9rem; font-family: inherit; background: white; color: #1e293b; width: 100%; box-sizing: border-box;">
+                            <option value="">Select employee…</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Topic</label>
+                        <input type="text" id="lp-title" placeholder="e.g. Single-cell approaches to tumor profiling" style="border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; font-size: 0.9rem; font-family: inherit; background: white; color: #1e293b; width: 100%; box-sizing: border-box;">
+                    </div>
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="lp-date" style="border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; font-size: 0.9rem; font-family: inherit; background: white; color: #1e293b; width: 100%; box-sizing: border-box;">
+                    </div>
+                    <div class="form-group">
+                        <label>Upload PPT <span style="color:#94a3b8;font-weight:400;">(Google Drive link, optional)</span></label>
+                        <input type="text" id="lp-file-link" placeholder="Paste Google Drive share link" style="border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; font-size: 0.9rem; font-family: inherit; background: white; color: #1e293b; width: 100%; box-sizing: border-box;">
+                    </div>
+                    <div class="form-group">
+                        <label>Link <span style="color:#94a3b8;font-weight:400;">(recording, folder, etc., optional)</span></label>
+                        <input type="text" id="lp-ref-link" placeholder="https://..." style="border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; font-size: 0.9rem; font-family: inherit; background: white; color: #1e293b; width: 100%; box-sizing: border-box;">
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="lp-status" style="border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; font-size: 0.9rem; font-family: inherit; background: white; color: #1e293b; width: 100%; box-sizing: border-box;">
+                            <option value="Completed">Completed</option>
+                            <option value="Scheduled">Scheduled</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem; justify-content: flex-end;">
+                    <button class="btn-secondary" onclick="closeAddLabPresentationModal()" style="padding: 0.5rem 1.5rem;">Cancel</button>
+                    <button class="btn-primary" id="lp-save-btn" onclick="saveLabPresentation()" style="padding: 0.5rem 1.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                        <i data-lucide="check" style="width:16px;height:16px;"></i> Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
 // Configuration
 const SHEET_ID = '1ZIs0bbHxkwpo1nUvDcLr-oRei1mUOlaOJISOoeNI6Pc';
@@ -6168,7 +6187,7 @@ function switchView(viewName) {
     if (viewName === 'profile')      renderProfileTab();
     if (viewName === 'achievements') renderAchievementsWall();
     if (viewName === 'publications')  renderPublications();
-    if (viewName === 'presentations') { setupUploaderFields(); renderPresentations(); }
+    if (viewName === 'presentations') renderPresentations();
     if (viewName === 'conference')   renderConferences();
     if (viewName === 'manager')      renderPresentationAssignments();
     if (viewName === 'employee')     renderEmployeeAssignments();
@@ -7161,7 +7180,7 @@ function populateWuNameDropdowns() {
 //   • Admin   → a dropdown of all employees (can upload on anyone's behalf).
 //   • Others  → locked to their own name (cannot pick a different employee).
 function setupUploaderFields() {
-    const ids = ['cert-emp-name', 'pub-emp-name', 'pres-emp-name', 'pres2-emp-name'];
+    const ids = ['cert-emp-name', 'pub-emp-name', 'pres-emp-name'];
     const session = getSession();
     const isAdmin = !!(session && session.role === 'admin');
     if (isAdmin) {
@@ -7675,69 +7694,152 @@ function _achPresCard(row, showActions) {
 }
 
 // Single row for the Lab Presentations table.
-function _labPresRow(row) {
+function _labPresRow(row, i) {
     const canEdit = !!getSession();
     const dateDisplay = _fmtLongDate(row.pres_date) || '—';
     const presEmp = _empByEmployeeId(row.employee_id);
     const presName = presEmp ? presEmp.name : (row.author_name || 'Team Member');
     const pptCell = row.file_url
-        ? `<a class="cert-file-btn view" href="${_driveView(row.file_url)}" target="_blank" rel="noopener"><i data-lucide="eye" style="width:13px;height:13px;"></i> View</a>`
+        ? `<a href="${_driveView(row.file_url)}" target="_blank" rel="noopener" style="color:#0d9488;font-weight:600;text-decoration:none;">View</a>`
         : '<span style="color:#cbd5e1;">—</span>';
     const linkCell = row.ref_link
-        ? `<a href="${row.ref_link}" target="_blank" rel="noopener" style="color:#0ea5e9;text-decoration:none;font-weight:600;">Open ↗</a>`
+        ? `<a href="${row.ref_link}" target="_blank" rel="noopener" style="color:#0d9488;font-weight:600;text-decoration:none;">Open ↗</a>`
         : '<span style="color:#cbd5e1;">—</span>';
     const status = row.status || 'Completed';
     const statusColor = status === 'Completed' ? '#10b981' : status === 'Scheduled' ? '#f59e0b' : '#6b7280';
     const statusBg = status === 'Completed' ? '#d1fae5' : status === 'Scheduled' ? '#fef3c7' : '#e5e7eb';
-    const actions = canEdit ? `
-        <div style="display:flex;gap:0.4rem;">
-            <button class="cert-file-btn" onclick="openEditAchievementModal('pres','${row.id}')" title="Edit"><i data-lucide="pencil" style="width:13px;height:13px;"></i></button>
-            <button class="cert-file-btn" onclick="deletePresentation('${row.id}')" style="color:#dc2626;" title="Delete"><i data-lucide="trash-2" style="width:13px;height:13px;"></i></button>
+    const actions = canEdit ? `<div class="dir-row-actions">
+            <button class="dir-tb-btn" onclick="openEditLabPresentationModal('${row.id}')" title="Edit"><i data-lucide="pencil" style="width:14px;height:14px;"></i></button>
+            <button class="dir-tb-btn del" onclick="deletePresentation('${row.id}')" title="Delete"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
         </div>` : '';
 
-    return `<tr style="border-bottom: 1px solid #e2e8f0;">
-        <td style="padding: 1rem; color: #1e293b; font-weight: 600;">${row.title || ''}</td>
-        <td style="padding: 1rem; color: #64748b; font-size: 0.85rem;">${dateDisplay}</td>
-        <td style="padding: 1rem; color: #1e293b;">${presName}</td>
-        <td style="padding: 1rem;">${pptCell}</td>
-        <td style="padding: 1rem;">${linkCell}</td>
-        <td style="padding: 1rem;"><span style="background:${statusBg};color:${statusColor};padding:0.3rem 0.7rem;border-radius:6px;font-size:0.78rem;font-weight:600;">${status}</span></td>
-        <td style="padding: 1rem;">${actions}</td>
+    return `<tr>
+        <td style="color:#94a3b8;font-size:0.76rem;font-weight:500;">${i + 1}</td>
+        <td><strong>${row.title || '—'}</strong></td>
+        <td>${dateDisplay}</td>
+        <td>${presName}</td>
+        <td>${pptCell}</td>
+        <td>${linkCell}</td>
+        <td><span style="background:${statusBg};color:${statusColor};padding:0.3rem 0.7rem;border-radius:6px;font-size:0.78rem;font-weight:600;">${status}</span></td>
+        <td>${actions}</td>
     </tr>`;
 }
 
 function renderPresentations() {
-    const wall = document.getElementById('presentations-wall');
-    if (!wall) return;
+    const tbody = document.getElementById('presentations-tbody');
+    if (!tbody) return;
     // Lab Presentations tab shows internal presentations only; outer events
     // appear on the Achievements wall instead.
     const internal = presentationsCache.filter(r => r.pres_type !== 'Outer Event');
 
     if (!internal.length) {
-        wall.innerHTML = `<div style="text-align:center;color:#94a3b8;font-size:0.82rem;padding:2rem 1rem;line-height:1.6;">No lab presentations added yet.<br>Add one from the Employee Dashboard.</div>`;
+        tbody.innerHTML = `<tr class="dir-empty-row"><td colspan="8">No lab presentations added yet.</td></tr>`;
         return;
     }
 
-    wall.innerHTML = `
-        <div style="grid-column: 1 / -1; background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden;">
-            <div style="overflow-x: auto;">
-                <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
-                    <thead>
-                        <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
-                            <th style="padding: 1rem; text-align: left; font-weight: 600; color: #475569;">Topic</th>
-                            <th style="padding: 1rem; text-align: left; font-weight: 600; color: #475569;">Date</th>
-                            <th style="padding: 1rem; text-align: left; font-weight: 600; color: #475569;">Presenter</th>
-                            <th style="padding: 1rem; text-align: left; font-weight: 600; color: #475569;">Upload PPT</th>
-                            <th style="padding: 1rem; text-align: left; font-weight: 600; color: #475569;">Link</th>
-                            <th style="padding: 1rem; text-align: left; font-weight: 600; color: #475569;">Status</th>
-                            <th style="padding: 1rem; text-align: left; font-weight: 600; color: #475569;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>${internal.map(_labPresRow).join('')}</tbody>
-                </table>
-            </div>
-        </div>`;
+    tbody.innerHTML = internal.map((row, i) => _labPresRow(row, i)).join('');
     lucide.createIcons();
+}
+
+// ---- Add / Edit Lab Presentation modal ----
+let _lpEditingId = null;
+
+function _lpPopulateEmpSelect(selectedEmpId) {
+    const select = document.getElementById('lp-emp-name');
+    const sorted = employees.slice().sort((a, b) => a.name.localeCompare(b.name));
+    select.innerHTML = '<option value="">Select employee…</option>' +
+        sorted.map(e => `<option value="${e.employeeId}">${e.name}${isPastEmployee(e) ? ' (Past)' : ''}</option>`).join('');
+    select.value = selectedEmpId || '';
+}
+
+function openAddLabPresentationModal() {
+    if (!getSession()) { alert('Please log in to add a presentation.'); return; }
+    _lpEditingId = null;
+    _lpPopulateEmpSelect(null);
+    document.getElementById('lp-title').value = '';
+    document.getElementById('lp-date').value = '';
+    document.getElementById('lp-file-link').value = '';
+    document.getElementById('lp-ref-link').value = '';
+    document.getElementById('lp-status').value = 'Completed';
+    document.getElementById('lab-pres-modal-title').textContent = 'Add Presentation';
+    document.getElementById('lp-save-btn').innerHTML = '<i data-lucide="check" style="width:16px;height:16px;"></i> Save';
+    document.getElementById('add-lab-presentation-modal').style.display = 'flex';
+    lucide.createIcons();
+}
+
+function openEditLabPresentationModal(id) {
+    if (!getSession()) { alert('Please log in to edit.'); return; }
+    const row = presentationsCache.find(r => r.id === id);
+    if (!row) return;
+    _lpEditingId = id;
+    _lpPopulateEmpSelect(row.employee_id);
+    document.getElementById('lp-title').value = row.title || '';
+    document.getElementById('lp-date').value = row.pres_date || '';
+    document.getElementById('lp-file-link').value = row.file_url || '';
+    document.getElementById('lp-ref-link').value = row.ref_link || '';
+    document.getElementById('lp-status').value = row.status || 'Completed';
+    document.getElementById('lab-pres-modal-title').textContent = 'Edit Presentation';
+    document.getElementById('lp-save-btn').innerHTML = '<i data-lucide="check" style="width:16px;height:16px;"></i> Save Changes';
+    document.getElementById('add-lab-presentation-modal').style.display = 'flex';
+    lucide.createIcons();
+}
+
+function closeAddLabPresentationModal(event) {
+    if (event && event.target.id !== 'add-lab-presentation-modal') return;
+    document.getElementById('add-lab-presentation-modal').style.display = 'none';
+}
+
+async function saveLabPresentation() {
+    if (!getSession()) { alert('Please log in.'); return; }
+    const empId = document.getElementById('lp-emp-name').value;
+    if (!empId) { alert('Please select the presenter.'); return; }
+    const emp = employees.find(e => e.employeeId === empId);
+    if (!emp) { alert('Employee not found.'); return; }
+    const title = document.getElementById('lp-title').value.trim();
+    const presDate = document.getElementById('lp-date').value;
+    const fileLink = document.getElementById('lp-file-link').value.trim();
+    const refLink = document.getElementById('lp-ref-link').value.trim();
+    const status = document.getElementById('lp-status').value;
+
+    if (!title)    { alert('Please enter the topic.'); return; }
+    if (!presDate) { alert('Please select the date.'); return; }
+
+    try {
+        if (_lpEditingId) {
+            const update = {
+                employee_id: emp.employeeId, author_name: emp.name, title,
+                pres_date: presDate, file_url: fileLink || null, ref_link: refLink || null, status
+            };
+            const { data, error } = await _sb.from('presentations').update(update).eq('id', _lpEditingId).select().single();
+            if (error) throw error;
+            const idx = presentationsCache.findIndex(r => r.id === _lpEditingId);
+            if (idx !== -1) presentationsCache[idx] = data;
+        } else {
+            const { data, error } = await _sb.from('presentations').insert({
+                employee_id: emp.employeeId,
+                author_name: emp.name,
+                title,
+                event_name: null,
+                pres_date: presDate,
+                place: null,
+                pres_type: 'Internal Presentation',
+                file_url: fileLink || null,
+                file_name: null,
+                photo_url: null,
+                ref_link: refLink || null,
+                status
+            }).select().single();
+            if (error) throw error;
+            presentationsCache.unshift(data);
+        }
+    } catch (e) {
+        console.error('Save presentation failed:', e);
+        alert('Save failed: ' + (e.message || e));
+        return;
+    }
+
+    closeAddLabPresentationModal();
+    renderPresentations();
 }
 
 // ---- Submit ----
@@ -7793,31 +7895,27 @@ async function submitPublication() {
 }
 
 // Show the Event Name field only for outer events.
-// `prefix` distinguishes the Employee Dashboard form ('pres', the default)
-// from the Lab Presentations page's own copy ('pres2').
-function togglePresEventField(prefix) {
-    prefix = prefix || 'pres';
-    const type = document.getElementById(`${prefix}-type`).value;
-    const group = document.getElementById(`${prefix}-event-name-group`);
+function togglePresEventField() {
+    const type = document.getElementById('pres-type').value;
+    const group = document.getElementById('pres-event-name-group');
     if (group) group.style.display = type === 'Outer Event' ? '' : 'none';
 }
 
-async function submitPresentation(prefix) {
-    prefix = prefix || 'pres';
+async function submitPresentation() {
     if (!getSession()) { alert('Please log in to upload.'); return; }
-    const empName = document.getElementById(`${prefix}-emp-name`).value;
+    const empName = document.getElementById('pres-emp-name').value;
     if (!empName) { alert('Please select the employee.'); return; }
     const emp = employees.find(e => e.name === empName);
     if (!emp) { alert('Employee not found.'); return; }
-    const title   = document.getElementById(`${prefix}-title`).value.trim();
-    const presDate = document.getElementById(`${prefix}-date`).value;
-    const type    = document.getElementById(`${prefix}-type`).value;
+    const title   = document.getElementById('pres-title').value.trim();
+    const presDate = document.getElementById('pres-date').value;
+    const type    = document.getElementById('pres-type').value;
     const isOuter = type === 'Outer Event';
-    const eventName = document.getElementById(`${prefix}-event-name`).value.trim();
-    const fileLink = document.getElementById(`${prefix}-file-link`).value.trim();
-    const refLink = document.getElementById(`${prefix}-ref-link`).value.trim();
-    const status = document.getElementById(`${prefix}-status`).value;
-    const photoInput = document.getElementById(`${prefix}-photo`);
+    const eventName = document.getElementById('pres-event-name').value.trim();
+    const fileLink = document.getElementById('pres-file-link').value.trim();
+    const refLink = document.getElementById('pres-ref-link').value.trim();
+    const status = document.getElementById('pres-status').value;
+    const photoInput = document.getElementById('pres-photo');
 
     if (!title)    { alert('Please enter the title.'); return; }
     if (!presDate) { alert('Please select the date.'); return; }
@@ -7847,15 +7945,15 @@ async function submitPresentation(prefix) {
         return;
     }
 
-    document.getElementById(`${prefix}-title`).value = '';
-    document.getElementById(`${prefix}-date`).value = '';
-    document.getElementById(`${prefix}-type`).value = 'Internal Presentation';
-    document.getElementById(`${prefix}-event-name`).value = '';
-    document.getElementById(`${prefix}-file-link`).value = '';
-    document.getElementById(`${prefix}-ref-link`).value = '';
-    document.getElementById(`${prefix}-status`).value = 'Completed';
+    document.getElementById('pres-title').value = '';
+    document.getElementById('pres-date').value = '';
+    document.getElementById('pres-type').value = 'Internal Presentation';
+    document.getElementById('pres-event-name').value = '';
+    document.getElementById('pres-file-link').value = '';
+    document.getElementById('pres-ref-link').value = '';
+    document.getElementById('pres-status').value = 'Completed';
     photoInput.value = '';
-    togglePresEventField(prefix);
+    togglePresEventField();
     setupUploaderFields();
     alert(isOuter ? 'Added to Achievements!' : 'Lab presentation added!');
     renderPresentations();
