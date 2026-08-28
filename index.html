@@ -5995,10 +5995,9 @@ body {
             <div class="details-content">
                 <div style="display: grid; gap: 1rem;">
                     <div class="form-group">
-                        <label>Presenter</label>
-                        <select id="lp-emp-name" style="border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; font-size: 0.9rem; font-family: inherit; background: white; color: #1e293b; width: 100%; box-sizing: border-box;">
-                            <option value="">Select employee…</option>
-                        </select>
+                        <label>Presenter(s) <span style="color:#94a3b8;font-weight:400;">(select one or more)</span></label>
+                        <div id="lp-emp-list" style="border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.5rem 0.85rem; max-height: 170px; overflow-y: auto; background: white;">
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Topic</label>
@@ -7722,7 +7721,12 @@ function _labPresRow(row, i) {
     const presName = presEmp ? presEmp.name : (row.author_name || 'Team Member');
     const pptCell = row.file_url
         ? `<a href="${_driveView(row.file_url)}" target="_blank" rel="noopener" style="color:#0d9488;font-weight:600;text-decoration:none;">View</a>`
-        : '<span style="color:#cbd5e1;">—</span>';
+        : (canEdit
+            ? `<label class="dir-tb-btn" style="cursor:pointer;display:inline-flex;" title="Upload PPT">
+                    <i data-lucide="upload" style="width:14px;height:14px;"></i>
+                    <input type="file" accept=".ppt,.pptx,.pdf" style="display:none;" onchange="uploadLabPresentationPpt('${row.id}', this)">
+                </label>`
+            : '<span style="color:#cbd5e1;">—</span>');
     const linkCell = row.ref_link
         ? `<a href="${row.ref_link}" target="_blank" rel="noopener" style="color:#0d9488;font-weight:600;text-decoration:none;">Open ↗</a>`
         : '<span style="color:#cbd5e1;">—</span>';
@@ -7765,18 +7769,24 @@ function renderPresentations() {
 // ---- Add / Edit Lab Presentation modal ----
 let _lpEditingId = null;
 
-function _lpPopulateEmpSelect(selectedEmpId) {
-    const select = document.getElementById('lp-emp-name');
+// Presentations can have more than one presenter, so this is a checkbox
+// list (employee_id/author_name are stored comma-separated) rather than a
+// single-value <select>.
+function _lpPopulateEmpList(selectedEmpIds) {
+    const container = document.getElementById('lp-emp-list');
     const sorted = employees.filter(e => !isPastEmployee(e)).sort((a, b) => a.name.localeCompare(b.name));
-    select.innerHTML = '<option value="">Select employee…</option>' +
-        sorted.map(e => `<option value="${e.employeeId}">${e.name}</option>`).join('');
-    select.value = selectedEmpId || '';
+    const selSet = new Set(selectedEmpIds || []);
+    container.innerHTML = sorted.map(e => `
+        <label style="display:flex;align-items:center;gap:0.5rem;padding:0.3rem 0;font-size:0.88rem;color:#1e293b;cursor:pointer;">
+            <input type="checkbox" value="${e.employeeId}" ${selSet.has(e.employeeId) ? 'checked' : ''} style="width:auto;accent-color:#0d9488;">
+            ${e.name}
+        </label>`).join('');
 }
 
 function openAddLabPresentationModal() {
     if (!getSession()) { alert('Please log in to add a presentation.'); return; }
     _lpEditingId = null;
-    _lpPopulateEmpSelect(null);
+    _lpPopulateEmpList([]);
     document.getElementById('lp-title').value = '';
     document.getElementById('lp-date').value = '';
     document.getElementById('lp-file-link').value = '';
@@ -7793,7 +7803,7 @@ function openEditLabPresentationModal(id) {
     const row = presentationsCache.find(r => r.id === id);
     if (!row) return;
     _lpEditingId = id;
-    _lpPopulateEmpSelect(row.employee_id);
+    _lpPopulateEmpList((row.employee_id || '').split(',').map(s => s.trim()).filter(Boolean));
     document.getElementById('lp-title').value = row.title || '';
     document.getElementById('lp-date').value = row.pres_date || '';
     document.getElementById('lp-file-link').value = row.file_url || '';
@@ -7812,10 +7822,11 @@ function closeAddLabPresentationModal(event) {
 
 async function saveLabPresentation() {
     if (!getSession()) { alert('Please log in.'); return; }
-    const empId = document.getElementById('lp-emp-name').value;
-    if (!empId) { alert('Please select the presenter.'); return; }
-    const emp = employees.find(e => e.employeeId === empId);
-    if (!emp) { alert('Employee not found.'); return; }
+    const checkedIds = Array.from(document.querySelectorAll('#lp-emp-list input[type=checkbox]:checked')).map(cb => cb.value);
+    if (!checkedIds.length) { alert('Please select at least one presenter.'); return; }
+    const presenters = checkedIds.map(id => employees.find(e => e.employeeId === id)).filter(Boolean);
+    const empIds = presenters.map(e => e.employeeId).join(', ');
+    const empNames = presenters.map(e => e.name).join(', ');
     const title = document.getElementById('lp-title').value.trim();
     const presDate = document.getElementById('lp-date').value;
     const fileLink = document.getElementById('lp-file-link').value.trim();
@@ -7827,7 +7838,7 @@ async function saveLabPresentation() {
     try {
         if (_lpEditingId) {
             const update = {
-                employee_id: emp.employeeId, author_name: emp.name, title: title || null,
+                employee_id: empIds, author_name: empNames, title: title || null,
                 pres_date: presDate, file_url: fileLink || null, ref_link: refLink || null, status
             };
             const { data, error } = await _sb.from('presentations').update(update).eq('id', _lpEditingId).select().single();
@@ -7836,8 +7847,8 @@ async function saveLabPresentation() {
             if (idx !== -1) presentationsCache[idx] = data;
         } else {
             const { data, error } = await _sb.from('presentations').insert({
-                employee_id: emp.employeeId,
-                author_name: emp.name,
+                employee_id: empIds,
+                author_name: empNames,
                 title: title || null,
                 event_name: null,
                 pres_date: presDate,
@@ -7859,6 +7870,28 @@ async function saveLabPresentation() {
     }
 
     closeAddLabPresentationModal();
+    renderPresentations();
+}
+
+// Direct file upload from the table's "Upload PPT" cell (shown only while
+// the row has no file_url yet).
+async function uploadLabPresentationPpt(id, input) {
+    const file = input.files[0];
+    if (!file) return;
+    if (!getSession()) { alert('Please log in to upload.'); return; }
+    try {
+        const uploaded = await sbUpload('presentations', file);
+        const { data, error } = await _sb.from('presentations')
+            .update({ file_url: uploaded.url, file_name: uploaded.name })
+            .eq('id', id).select().single();
+        if (error) throw error;
+        const idx = presentationsCache.findIndex(r => r.id === id);
+        if (idx !== -1) presentationsCache[idx] = data;
+    } catch (e) {
+        console.error('Upload PPT failed:', e);
+        alert('Upload failed: ' + (e.message || e));
+        return;
+    }
     renderPresentations();
 }
 
