@@ -3220,6 +3220,37 @@ body {
 .dir-tb-btn:hover { color: #0d9488; background: rgba(13,148,136,0.08); }
 .dir-tb-btn.del:hover { color: #ef4444; background: rgba(239,68,68,0.08); }
 .dir-row-actions { display: flex; gap: 0.2rem; }
+.lab-pres-actions { gap: 0.65rem; }
+.lab-pres-actions .dir-tb-btn { padding: 6px; }
+.lab-pres-actions .dir-tb-btn:hover { background: rgba(13,148,136,0.12); }
+.lab-pres-actions .dir-tb-btn.del:hover { background: rgba(239,68,68,0.12); }
+.lab-pres-date-rel {
+    display: inline-block;
+    margin-left: 0.45rem;
+    padding: 0.1rem 0.45rem;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+.lab-pres-date-rel.soon { background: rgba(13,148,136,0.12); color: #0d9488; }
+.lab-pres-date-rel.later { background: #f1f5f9; color: #64748b; }
+.lab-pres-upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+    background: rgba(13,148,136,0.1);
+    color: #0d9488;
+    font-size: 0.76rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+.lab-pres-upload-btn:hover { background: #0d9488; color: #fff; }
+.lab-pres-topic-pending { color: #94a3b8; font-style: italic; font-weight: 500; }
 .dir-empty-row td {
     text-align: center;
     color: #94a3b8;
@@ -7548,6 +7579,26 @@ function _fmtLongDate(d) {
     return `${dd}${sf(dd)} ${mons[m-1]} ${y}`;
 }
 
+// Compact "27 Aug" date plus a relative tag ("Today"/"Tomorrow"/"in 3 days")
+// for near-term rows, used by the Lab Presentations table.
+function _fmtCompactDateRel(d) {
+    if (!d) return { compact: '', rel: '', relClass: '' };
+    const [y, m, dd] = d.split('-').map(Number);
+    const mons = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const now = new Date();
+    const compact = `${dd} ${mons[m-1]}${y !== now.getFullYear() ? ' ' + y : ''}`;
+    const target = new Date(y, m - 1, dd);
+    target.setHours(0, 0, 0, 0);
+    now.setHours(0, 0, 0, 0);
+    const diffDays = Math.round((target - now) / 86400000);
+    let rel = '', relClass = '';
+    if (diffDays === 0) { rel = 'Today'; relClass = 'soon'; }
+    else if (diffDays === 1) { rel = 'Tomorrow'; relClass = 'soon'; }
+    else if (diffDays === -1) { rel = 'Yesterday'; relClass = 'later'; }
+    else if (diffDays > 1 && diffDays <= 7) { rel = `in ${diffDays} days`; relClass = 'later'; }
+    return { compact, rel, relClass };
+}
+
 function _isImageName(name) {
     return ['png','jpg','jpeg','gif','webp','bmp','svg'].includes((name || '').split('.').pop().toLowerCase());
 }
@@ -7704,14 +7755,17 @@ function _achPresCard(row, showActions) {
 // Single row for the Lab Presentations table.
 function _labPresRow(row, i) {
     const canEdit = !!getSession();
-    const dateDisplay = _fmtLongDate(row.pres_date) || '—';
+    const _dt = _fmtCompactDateRel(row.pres_date);
+    const dateDisplay = _dt.compact
+        ? `${_dt.compact}${_dt.rel ? `<span class="lab-pres-date-rel ${_dt.relClass}">${_dt.rel}</span>` : ''}`
+        : '—';
     const presEmp = _empByEmployeeId(row.employee_id);
     const presName = presEmp ? presEmp.name : (row.author_name || 'Team Member');
     const pptCell = row.file_url
         ? `<a href="${_previewUrl(row.file_url)}" target="_blank" rel="noopener" style="color:#0d9488;font-weight:600;text-decoration:none;">View</a>`
         : (canEdit
-            ? `<label class="dir-tb-btn" style="cursor:pointer;display:inline-flex;" title="Upload PPT">
-                    <i data-lucide="upload" style="width:14px;height:14px;"></i>
+            ? `<label class="lab-pres-upload-btn" title="Upload PPT">
+                    <i data-lucide="upload" style="width:13px;height:13px;"></i> Upload
                     <input type="file" accept=".ppt,.pptx,.pdf" style="display:none;" onchange="uploadLabPresentationPpt('${row.id}', this)">
                 </label>`
             : '<span style="color:#cbd5e1;">—</span>');
@@ -7721,14 +7775,14 @@ function _labPresRow(row, i) {
     const status = row.status || 'Completed';
     const statusColor = status === 'Completed' ? '#10b981' : status === 'Ongoing' ? '#3b82f6' : status === 'Scheduled' ? '#f59e0b' : '#6b7280';
     const statusBg = status === 'Completed' ? '#d1fae5' : status === 'Ongoing' ? '#dbeafe' : status === 'Scheduled' ? '#fef3c7' : '#e5e7eb';
-    const actions = canEdit ? `<div class="dir-row-actions" style="justify-content:center;">
+    const actions = canEdit ? `<div class="dir-row-actions lab-pres-actions" style="justify-content:center;">
             <button class="dir-tb-btn" onclick="openEditLabPresentationModal('${row.id}')" title="Edit"><i data-lucide="pencil" style="width:14px;height:14px;"></i></button>
             <button class="dir-tb-btn del" onclick="deletePresentation('${row.id}')" title="Delete"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
         </div>` : '';
 
     return `<tr>
         <td style="color:#94a3b8;font-size:0.76rem;font-weight:500;">${i + 1}</td>
-        <td><strong>${row.title || '—'}</strong></td>
+        <td>${row.title ? `<strong>${row.title}</strong>` : '<span class="lab-pres-topic-pending">Topic to be added</span>'}</td>
         <td>${dateDisplay}</td>
         <td>${presName}</td>
         <td>${pptCell}</td>
