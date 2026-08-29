@@ -2474,6 +2474,14 @@ body {
     box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
     transform: translateY(-2px);
 }
+/* Wraps everything but the media block, so media-left/content-right
+   layouts (see home-ach-wall-scroll) can lay it out as one column. */
+.ach-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    min-width: 0;
+}
 .ach-card-author {
     display: flex;
     align-items: center;
@@ -2611,16 +2619,32 @@ body {
     gap: 1rem;
     align-content: start;
 }
+/* Cards with a photo/certificate: media on the left, text on the right */
+.home-ach-wall-scroll .ach-card:has(.ach-card-media) {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 1.25rem;
+}
+.home-ach-wall-scroll .ach-card:has(.ach-card-media) > .ach-card-media {
+    flex: 0 0 320px;
+}
+.home-ach-wall-scroll .ach-card:has(.ach-card-media) .ach-card-body {
+    flex: 1;
+    justify-content: center;
+}
 .home-ach-wall-scroll .ach-card-media-img,
 .home-ach-wall-scroll .ach-card-doc {
-    height: 240px;
+    height: 100%;
+    min-height: 220px;
 }
 .home-ach-wall-scroll .ach-card-media-img {
     object-fit: contain;
     background: #f1f5f9;
 }
 .home-ach-wall-scroll .ach-card-pdf {
-    height: 240px;
+    height: 100%;
+    min-height: 220px;
 }
 .home-ach-wall-scroll > div:only-child { grid-column: 1 / -1; }
 
@@ -3514,7 +3538,7 @@ body {
 
 /* Left column holds the (reduced) calendar with work updates stacked below */
 .home-left-col {
-    flex: 0 0 320px;
+    flex: 0 0 480px;
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
@@ -4586,40 +4610,6 @@ body {
                     <!-- Populated by JS -->
                 </div>
 
-                <!-- Presentation Assignments -->
-                <div class="view-header-row" style="margin-top: 2rem;">
-                    <div class="header-title-group">
-                        <h2 style="font-size: 1.2rem; color: #1e293b; margin-bottom: 0.5rem;"><i data-lucide="presentation" style="width:20px;height:20px;color:#0ea5e9;vertical-align:middle;margin-right:8px;"></i>Presentation Assignments</h2>
-                        <p style="color: #64748b; font-size: 0.9rem;">Assign LinkedIn posts to employees</p>
-                    </div>
-                    <button class="btn-primary" onclick="openAssignPresentationModal()" style="display:flex;align-items:center;gap:0.4rem;white-space:nowrap;">
-                        <i data-lucide="plus" style="width:16px;height:16px;"></i> Assign Work
-                    </button>
-                </div>
-
-                <!-- Assignments Table -->
-                <div style="background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; margin-top: 1rem;">
-                    <div style="overflow-x: auto;">
-                        <table id="assignments-table" style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
-                            <thead>
-                                <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
-                                    <th style="padding: 1rem; text-align: left; font-weight: 600; color: #475569;">Assigned To</th>
-                                    <th style="padding: 1rem; text-align: left; font-weight: 600; color: #475569;">Title</th>
-                                    <th style="padding: 1rem; text-align: left; font-weight: 600; color: #475569;">Assigned Date</th>
-                                    <th style="padding: 1rem; text-align: left; font-weight: 600; color: #475569;">Due Date</th>
-                                    <th style="padding: 1rem; text-align: left; font-weight: 600; color: #475569;">Status</th>
-                                    <th style="padding: 1rem; text-align: left; font-weight: 600; color: #475569;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="assignments-table-body">
-                                <!-- Populated by JS -->
-                            </tbody>
-                        </table>
-                    </div>
-                    <div id="assignments-empty" style="text-align: center; padding: 2rem; color: #94a3b8;">
-                        No presentations assigned yet. <a href="#" onclick="openAssignPresentationModal(); return false;" style="color: #0ea5e9; text-decoration: none; font-weight: 600;">Create one</a>
-                    </div>
-                </div>
             </section>
 
             <!-- Employee View (Employee Space) -->
@@ -4861,7 +4851,7 @@ body {
                             </div>
                             <div class="tool-card-footer">
                                 <span class="tool-card-tag">Live</span>
-                                <button class="tool-card-btn" onclick="window.open('https://andersonreports.github.io/report-tracker/', '_blank')">
+                                <button class="tool-card-btn" onclick="window.open('https://tracker.andrsn.in', '_blank')">
                                     Open Tracker <i data-lucide="arrow-right"></i>
                                 </button>
                             </div>
@@ -6231,36 +6221,55 @@ function toggleSidebar() {
 }
 
 // CSV Parser
+// Parses char-by-char (rather than pre-splitting on '\n') so that quoted
+// fields containing embedded newlines (e.g. a multi-line Address) don't get
+// torn into bogus extra rows.
 function parseCSV(csv) {
-    const lines = csv.split('\n');
-    const result = [];
-    const headers = lines[0].split(',').map(h => h.trim());
+    const rows = [];
+    let row = [];
+    let field = '';
+    let inQuotes = false;
 
-    for (let i = 1; i < lines.length; i++) {
-        if (!lines[i].trim()) continue;
-        
-        // Handle quoted values (comma inside quotes)
-        const row = [];
-        let current = '';
-        let inQuotes = false;
-        
-        for (let char of lines[i]) {
-            if (char === '"') {
-                inQuotes = !inQuotes;
-            } else if (char === ',' && !inQuotes) {
-                row.push(current.trim());
-                current = '';
-            } else {
-                current += char;
-            }
+    for (let i = 0; i < csv.length; i++) {
+        const char = csv[i];
+        if (inQuotes) {
+            if (char === '"' && csv[i + 1] === '"') { field += '"'; i++; }
+            else if (char === '"') { inQuotes = false; }
+            else { field += char; }
+        } else if (char === '"') {
+            inQuotes = true;
+        } else if (char === ',') {
+            row.push(field.trim());
+            field = '';
+        } else if (char === '\r') {
+            // ignore; line breaks are handled on '\n'
+        } else if (char === '\n') {
+            row.push(field.trim());
+            rows.push(row);
+            row = [];
+            field = '';
+        } else {
+            field += char;
         }
-        row.push(current.trim());
+    }
+    if (field.length || row.length) {
+        row.push(field.trim());
+        rows.push(row);
+    }
+
+    if (rows.length === 0) return [];
+    const headers = rows[0].map(h => h.trim());
+    const result = [];
+
+    for (let i = 1; i < rows.length; i++) {
+        const cells = rows[i];
+        if (cells.length === 1 && !cells[0]) continue;
 
         const obj = {};
         headers.forEach((header, index) => {
-            obj[header] = row[index] || '';
+            obj[header] = cells[index] || '';
         });
-        
+
         // Map CSV fields to our internal employee object
         if (obj['Name']) {
             result.push({
@@ -7461,22 +7470,24 @@ function _achCertCard(emp, cert, showActions) {
 
     return `
         <div class="ach-card">
-            <div class="ach-card-author">
-                <img src="${emp.avatar}" alt="${emp.name}" class="ach-card-avatar">
-                <div>
-                    <div class="ach-card-name">${emp.name}</div>
-                    <div class="ach-card-role">${emp.role}</div>
-                </div>
-            </div>
-            <div class="ach-card-event">${buildCaption(emp.name, cert)}</div>
-            ${cert.eventName ? `<div class="ach-card-caption">${cert.eventName}</div>` : ''}
-            <div class="ach-card-meta">
-                ${cert.place ? `<span class="ach-meta-tag"><i data-lucide="map-pin" style="width:11px;height:11px;"></i>${cert.place}</span>` : ''}
-                ${dateDisplay ? `<span class="ach-meta-tag"><i data-lucide="calendar" style="width:11px;height:11px;"></i>${dateDisplay}</span>` : ''}
-                ${cert.award ? `<span class="ach-meta-tag ach-award-tag"><i data-lucide="trophy" style="width:11px;height:11px;"></i>${cert.award}</span>` : ''}
-            </div>
             ${mediaBlock}
-            ${actionsHtml ? `<div class="ach-card-actions">${actionsHtml}</div>` : ''}
+            <div class="ach-card-body">
+                <div class="ach-card-author">
+                    <img src="${emp.avatar}" alt="${emp.name}" class="ach-card-avatar">
+                    <div>
+                        <div class="ach-card-name">${emp.name}</div>
+                        <div class="ach-card-role">${emp.role}</div>
+                    </div>
+                </div>
+                <div class="ach-card-event">${buildCaption(emp.name, cert)}</div>
+                ${cert.eventName ? `<div class="ach-card-caption">${cert.eventName}</div>` : ''}
+                <div class="ach-card-meta">
+                    ${cert.place ? `<span class="ach-meta-tag"><i data-lucide="map-pin" style="width:11px;height:11px;"></i>${cert.place}</span>` : ''}
+                    ${dateDisplay ? `<span class="ach-meta-tag"><i data-lucide="calendar" style="width:11px;height:11px;"></i>${dateDisplay}</span>` : ''}
+                    ${cert.award ? `<span class="ach-meta-tag ach-award-tag"><i data-lucide="trophy" style="width:11px;height:11px;"></i>${cert.award}</span>` : ''}
+                </div>
+                ${actionsHtml ? `<div class="ach-card-actions">${actionsHtml}</div>` : ''}
+            </div>
         </div>`;
 }
 
@@ -7740,15 +7751,17 @@ function _achPresCard(row, showActions) {
         : (presEvent ? `${presName} presented at the ${presEvent}.` : '');
 
     return `<div class="ach-card">
-        ${_authorBlock(row)}
-        <div class="ach-card-event">${presCaption || presEvent || presTitle}</div>
-        ${(presEvent || presTitle) ? `<div class="ach-card-caption">${presEvent || presTitle}</div>` : ''}
-        <div class="ach-card-meta">
-            ${dateDisplay ? `<span class="ach-meta-tag"><i data-lucide="calendar" style="width:11px;height:11px;"></i>${dateDisplay}</span>` : ''}
-            ${row.pres_type ? `<span class="ach-meta-tag ach-award-tag"><i data-lucide="presentation" style="width:11px;height:11px;"></i>${row.pres_type === 'Outer Event' ? 'Conference' : row.pres_type}</span>` : ''}
-        </div>
         ${mediaBlock}
-        ${actions.length ? `<div class="ach-card-actions">${actions.join('')}</div>` : ''}
+        <div class="ach-card-body">
+            ${_authorBlock(row)}
+            <div class="ach-card-event">${presCaption || presEvent || presTitle}</div>
+            ${(presEvent || presTitle) ? `<div class="ach-card-caption">${presEvent || presTitle}</div>` : ''}
+            <div class="ach-card-meta">
+                ${dateDisplay ? `<span class="ach-meta-tag"><i data-lucide="calendar" style="width:11px;height:11px;"></i>${dateDisplay}</span>` : ''}
+                ${row.pres_type ? `<span class="ach-meta-tag ach-award-tag"><i data-lucide="presentation" style="width:11px;height:11px;"></i>${row.pres_type === 'Outer Event' ? 'Conference' : row.pres_type}</span>` : ''}
+            </div>
+            ${actions.length ? `<div class="ach-card-actions">${actions.join('')}</div>` : ''}
+        </div>
     </div>`;
 }
 
@@ -10366,7 +10379,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadPendingChanges(); // changes detected by the daily auto-refresh, awaiting approval
     loadAlbum();   // loads shared album photos + hero from Supabase, then renders
     loadPublications().then(renderPublications);   // shared publications from Supabase
-    loadPresentations().then(renderPresentations); // shared presentations from Supabase
+    loadPresentations().then(() => {               // shared presentations from Supabase
+        renderPresentations();
+        renderAchievementsWall(); // re-draw so "Outer Event" talks aren't missing if this resolves after the first wall render
+    });
     lucide.createIcons();
 
     const addForm = document.getElementById('add-emp-form');
@@ -10479,6 +10495,7 @@ async function renderPresentationAssignments() {
     presentationAssignmentsCache = data || [];
     const tbody = document.getElementById('assignments-table-body');
     const empty = document.getElementById('assignments-empty');
+    if (!tbody || !empty) return;
 
     if (presentationAssignmentsCache.length === 0) {
         tbody.innerHTML = '';
