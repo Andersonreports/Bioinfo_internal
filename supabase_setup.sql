@@ -84,12 +84,14 @@ create table if not exists public.presentations (
     photo_url    text,
     ref_link     text,
     status       text default 'Completed',
+    remarks      text,
     created_at   timestamptz not null default now()
 );
 create index if not exists presentations_employee_id_idx on public.presentations (employee_id);
--- Migration for existing tables created before ref_link/status existed:
+-- Migration for existing tables created before ref_link/status/remarks existed:
 alter table public.presentations add column if not exists ref_link text;
 alter table public.presentations add column if not exists status text default 'Completed';
+alter table public.presentations add column if not exists remarks text;
 
 create table if not exists public.leaves (
     id           uuid primary key default gen_random_uuid(),

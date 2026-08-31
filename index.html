@@ -5147,6 +5147,7 @@ body {
                                     <th>Upload PPT</th>
                                     <th>Link</th>
                                     <th>Status</th>
+                                    <th>Remarks</th>
                                     <th style="width:70px;">Actions</th>
                                 </tr>
                             </thead>
@@ -6009,6 +6010,10 @@ body {
                             <option value="Ongoing">Ongoing</option>
                             <option value="Scheduled">Scheduled</option>
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Remarks <span style="color:#94a3b8;font-weight:400;">(optional)</span></label>
+                        <textarea id="lp-remarks" placeholder="Any notes about this presentation..." rows="2" style="border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; font-size: 0.9rem; font-family: inherit; background: white; color: #1e293b; width: 100%; box-sizing: border-box; resize: vertical;"></textarea>
                     </div>
                 </div>
                 <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem; justify-content: flex-end;">
@@ -7781,6 +7786,10 @@ function _labPresRow(row, i) {
             <button class="dir-tb-btn del" onclick="deletePresentation('${row.id}')" title="Delete"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
         </div>` : '';
 
+    const remarksCell = row.remarks
+        ? `<span title="${row.remarks.replace(/"/g, '&quot;')}" style="display:inline-block;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom;color:#475569;">${row.remarks}</span>`
+        : '<span style="color:#cbd5e1;">—</span>';
+
     return `<tr>
         <td style="color:#94a3b8;font-size:0.76rem;font-weight:500;">${i + 1}</td>
         <td>${row.title ? `<strong>${row.title}</strong>` : '<span class="lab-pres-topic-pending">Topic to be added</span>'}</td>
@@ -7789,6 +7798,7 @@ function _labPresRow(row, i) {
         <td>${pptCell}</td>
         <td>${linkCell}</td>
         <td><span style="background:${statusBg};color:${statusColor};padding:0.3rem 0.7rem;border-radius:6px;font-size:0.78rem;font-weight:600;">${status}</span></td>
+        <td>${remarksCell}</td>
         <td>${actions}</td>
     </tr>`;
 }
@@ -7801,7 +7811,7 @@ function renderPresentations() {
     const internal = presentationsCache.filter(r => r.pres_type !== 'Outer Event');
 
     if (!internal.length) {
-        tbody.innerHTML = `<tr class="dir-empty-row"><td colspan="8">No lab presentations added yet.</td></tr>`;
+        tbody.innerHTML = `<tr class="dir-empty-row"><td colspan="9">No lab presentations added yet.</td></tr>`;
         return;
     }
 
@@ -7836,6 +7846,7 @@ function openAddLabPresentationModal() {
     document.getElementById('lp-file-current').textContent = '';
     document.getElementById('lp-ref-link').value = '';
     document.getElementById('lp-status').value = 'Completed';
+    document.getElementById('lp-remarks').value = '';
     document.getElementById('lab-pres-modal-title').textContent = 'Add Presentation';
     document.getElementById('lp-save-btn').innerHTML = '<i data-lucide="check" style="width:16px;height:16px;"></i> Save';
     document.getElementById('add-lab-presentation-modal').style.display = 'flex';
@@ -7856,6 +7867,7 @@ function openEditLabPresentationModal(id) {
         : '';
     document.getElementById('lp-ref-link').value = row.ref_link || '';
     document.getElementById('lp-status').value = row.status || 'Completed';
+    document.getElementById('lp-remarks').value = row.remarks || '';
     document.getElementById('lab-pres-modal-title').textContent = 'Edit Presentation';
     document.getElementById('lp-save-btn').innerHTML = '<i data-lucide="check" style="width:16px;height:16px;"></i> Save Changes';
     document.getElementById('add-lab-presentation-modal').style.display = 'flex';
@@ -7879,6 +7891,7 @@ async function saveLabPresentation() {
     const fileInput = document.getElementById('lp-file-input');
     const refLink = document.getElementById('lp-ref-link').value.trim();
     const status = document.getElementById('lp-status').value;
+    const remarks = document.getElementById('lp-remarks').value.trim();
 
     if (!presDate) { alert('Please select the date.'); return; }
 
@@ -7897,7 +7910,8 @@ async function saveLabPresentation() {
         if (_lpEditingId) {
             const update = {
                 employee_id: empIds, author_name: empNames, title: title || null,
-                pres_date: presDate, file_url: fileUrl, file_name: fileName, ref_link: refLink || null, status
+                pres_date: presDate, file_url: fileUrl, file_name: fileName, ref_link: refLink || null, status,
+                remarks: remarks || null
             };
             const { data, error } = await _sb.from('presentations').update(update).eq('id', _lpEditingId).select().single();
             if (error) throw error;
@@ -7916,7 +7930,8 @@ async function saveLabPresentation() {
                 file_name: fileName,
                 photo_url: null,
                 ref_link: refLink || null,
-                status
+                status,
+                remarks: remarks || null
             }).select().single();
             if (error) throw error;
             presentationsCache.unshift(data);
