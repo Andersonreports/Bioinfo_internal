@@ -5071,6 +5071,8 @@ body {
                                     <th style="width:40px;">#</th>
                                     <th>Employee / System</th>
                                     <th>Remote ID</th>
+                                    <th>Anydesk Password</th>
+                                    <th>System Password</th>
                                 </tr>
                             </thead>
                             <tbody id="anydesk-tbody"></tbody>
@@ -8589,8 +8591,10 @@ async function loadDirData() {
             fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('Important')}`).then(r => r.text())
         ]);
         dirAnydesk = extractSheetTable(parseCSVRows(aTxt), {
-            user:     ['employee/system', 'employee / system', 'employee', 'name', 'system'],
-            remoteId: ['remote id', 'remoteid', 'anydesk id', 'id']
+            user:             ['employee/system', 'employee / system', 'employee', 'name', 'system'],
+            remoteId:         ['remote id', 'remoteid', 'anydesk id', 'id'],
+            anydeskPassword:  ['anydesk password', 'anydesk pwd'],
+            systemPassword:   ['system password', 'system pwd']
         });
         dirEmpMails = extractSheetTable(parseCSVRows(eTxt), {
             user:      ['user', 'name'],
@@ -8705,11 +8709,13 @@ function renderDirSystems() {
 function renderDirAnydesk() {
     const tbody = document.getElementById('anydesk-tbody');
     if (!tbody) return;
-    if (!dirAnydesk.length) return _dirEmpty(tbody, 3);
+    if (!dirAnydesk.length) return _dirEmpty(tbody, 5);
     tbody.innerHTML = dirAnydesk.map((r, i) => `<tr>
         <td style="color:#94a3b8;font-size:0.76rem;font-weight:500;">${i + 1}</td>
         <td>${userChip(r.user)}</td>
         <td>${copyCell(r.remoteId, true)}</td>
+        <td>${maskedCell(r.anydeskPassword, 'ad' + i, 'adpw')}</td>
+        <td>${maskedCell(r.systemPassword, 'ad' + i, 'syspw')}</td>
     </tr>`).join('');
     lucide.createIcons();
 }
