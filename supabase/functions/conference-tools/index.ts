@@ -376,32 +376,42 @@ const FIELD_ALIASES: Record<keyof ConferenceRow, string[]> = {
 // the same parser used client-side in index.html. Handles the RFC4180
 // escaped-quote rule ("" inside a quoted field -> a literal ") — a
 // toggle-only parser silently drops those quote characters instead, which
-// breaks exact-value matching for any cell that contains one.
+// breaks exact-value matching for any cell that contains one. Parses the
+// whole text in one pass rather than splitting on "\n" first, so a quoted
+// cell containing an embedded newline (a wrapped multi-line cell in the
+// sheet) stays inside its own field instead of being cut into a bogus extra
+// row.
 function parseCSVRows(csv: string): string[][] {
   const rows: string[][] = [];
-  (csv || "").split("\n").forEach((line) => {
-    if (line.replace(/[\s,]/g, "") === "") {
-      rows.push([]);
-      return;
-    }
-    const row: string[] = [];
-    let cur = "";
-    let inQ = false;
-    for (let i = 0; i < line.length; i++) {
-      const ch = line[i];
+  const text = csv || "";
+  let row: string[] = [];
+  let cur = "";
+  let inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQ) {
       if (ch === '"') {
-        if (inQ && line[i + 1] === '"') {
+        if (text[i + 1] === '"') {
           cur += '"';
           i++;
-        } else inQ = !inQ;
-      } else if (ch === "," && !inQ) {
-        row.push(cur.trim());
-        cur = "";
+        } else inQ = false;
       } else cur += ch;
-    }
-    row.push(cur.trim());
-    rows.push(row);
-  });
+    } else if (ch === '"') {
+      inQ = true;
+    } else if (ch === ",") {
+      row.push(cur.trim());
+      cur = "";
+    } else if (ch === "\r") {
+      // ignore — paired \n (if any) ends the row below
+    } else if (ch === "\n") {
+      row.push(cur.trim());
+      rows.push(row);
+      row = [];
+      cur = "";
+    } else cur += ch;
+  }
+  row.push(cur.trim());
+  rows.push(row);
   return rows;
 }
 

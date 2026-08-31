@@ -7832,6 +7832,39 @@ function _achPresCard(row, showActions) {
     </div>`;
 }
 
+// ---- Lab Presentation sheet sync ----
+// Mirrors every add/edit/delete (including undos) on the `presentations`
+// table out to the "Lab Presentation" tab of the team Google Sheet, via the
+// lab-presentation-tools Edge Function -> Apps Script, the same way the
+// Conference tab stays in sync with its own sheet tab. Best-effort: a sync
+// failure (e.g. the sheet isn't configured yet) is logged, not surfaced —
+// the Supabase save this rides on has already succeeded either way.
+function _lpFieldsFromRow(row) {
+    return {
+        id: row.id,
+        topic: row.title || '',
+        date: row.pres_date || '',
+        presenter: row.author_name || '',
+        status: row.status || '',
+        remarks: row.remarks || '',
+        link: row.ref_link || '',
+        file: row.file_name || ''
+    };
+}
+
+async function _lpSyncSheet(mode, opts) {
+    try {
+        const body = { mode };
+        if (opts.fields) body.fields = opts.fields;
+        if (opts.matchId) body.match = { id: opts.matchId };
+        const { data, error } = await _sb.functions.invoke('lab-presentation-tools', { body });
+        if (error) throw error;
+        if (!data || !data.ok) throw new Error((data && data.error) || 'Sheet sync failed');
+    } catch (e) {
+        console.error('Lab Presentation sheet sync failed:', e);
+    }
+}
+
 // ---- Undo (last add/edit/delete/upload on the presentations table) ----
 let _lpUndoAction = null;
 
@@ -8465,22 +8498,35 @@ let upcomingConferences = [];
 // RFC4180 escaped-quote rule ("" inside a quoted field -> a literal ") —
 // a bare `"` toggle-only parser silently drops those quote characters
 // instead, which breaks exact-value matching for any cell that contains one.
+// Quote-aware CSV -> array of string[] rows. Parses the whole text in one
+// pass rather than splitting on '\n' first, so a quoted cell containing an
+// embedded newline (a wrapped multi-line cell in the sheet) stays inside its
+// own field instead of being cut into a bogus extra row.
 function parseCSVRows(csv) {
     const rows = [];
-    (csv || '').split('\n').forEach(line => {
-        if (line.replace(/[\s,]/g, '') === '') { rows.push([]); return; } // blank line
-        const row = []; let cur = '', inQ = false;
-        for (let i = 0; i < line.length; i++) {
-            const ch = line[i];
+    const text = csv || '';
+    let row = [], cur = '', inQ = false;
+    for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (inQ) {
             if (ch === '"') {
-                if (inQ && line[i + 1] === '"') { cur += '"'; i++; }
-                else inQ = !inQ;
-            } else if (ch === ',' && !inQ) { row.push(cur.trim()); cur = ''; }
-            else cur += ch;
+                if (text[i + 1] === '"') { cur += '"'; i++; }
+                else inQ = false;
+            } else cur += ch;
+        } else if (ch === '"') {
+            inQ = true;
+        } else if (ch === ',') {
+            row.push(cur.trim()); cur = '';
+        } else if (ch === '\r') {
+            // ignore — paired \n (if any) ends the row below
+        } else if (ch === '\n') {
+            row.push(cur.trim()); rows.push(row); row = []; cur = '';
+        } else {
+            cur += ch;
         }
-        row.push(cur.trim());
-        rows.push(row);
-    });
+    }
+    row.push(cur.trim());
+    rows.push(row);
     return rows;
 }
 
