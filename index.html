@@ -1961,6 +1961,21 @@ body {
     display: grid;
     gap: 0.5rem;
 }
+.deadline-toast-close {
+    margin-left: auto;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    background: #f1f5f9;
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.deadline-toast-close:hover { background: #e2e8f0; color: #0f172a; }
 
 /* Modal Styles */
 .modal-overlay {
@@ -5735,7 +5750,7 @@ body {
         <div class="deadline-toast-header">
             <i data-lucide="alarm-clock" style="color:#dc2626;width:18px;height:18px;flex-shrink:0;"></i>
             <span>Deadline Alert</span>
-            <button class="icon-btn" onclick="closeConferenceDeadlineToast()" style="margin-left:auto;width:26px;height:26px;"><i data-lucide="x" style="width:14px;height:14px;"></i></button>
+            <button class="deadline-toast-close" onclick="closeConferenceDeadlineToast()" title="Dismiss"><i data-lucide="x" style="width:14px;height:14px;"></i></button>
         </div>
         <div id="conference-deadline-list" class="deadline-toast-body">
             <!-- Populated by JS -->
