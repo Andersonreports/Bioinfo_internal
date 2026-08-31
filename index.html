@@ -5171,6 +5171,9 @@ body {
                         <button class="dir-add-btn" id="conference-pending-btn" style="background:#d97706;display:none;" onclick="openPendingChangesModal()" title="Review changes detected on conference sites">
                             <i data-lucide="bell" style="width:13px;height:13px;"></i> <span id="conference-pending-count">0</span> Pending
                         </button>
+                        <button class="dir-add-btn" id="conf-undo-btn" onclick="undoConference()" disabled title="Nothing to undo" style="background:#fff;color:#475569;border:1.5px solid #e2e8f0;">
+                            <i data-lucide="undo-2" style="width:13px;height:13px;"></i> Undo
+                        </button>
                         <button class="dir-add-btn" style="background:#7c3aed;" onclick="openAddConferenceModal()" title="Extract conference details from a link">
                             <i data-lucide="sparkles" style="width:13px;height:13px;"></i> Add Details
                         </button>
@@ -8688,6 +8691,53 @@ function renderConferences() {
 // sent back as `match` so the Apps Script can find the same row to overwrite.
 let _acEditingMatch = null;
 
+// ---- Undo (last add/edit/delete on the Upcoming Conferences sheet) ----
+// Rows here have no id (they live in a Google Sheet), so "match" — the row's
+// full field set — doubles as its identity for both editing and undoing.
+let _acUndoAction = null;
+
+function _acSetUndoAction(action) {
+    _acUndoAction = action;
+    _acRefreshUndoBtn();
+}
+
+function _acRefreshUndoBtn() {
+    const btn = document.getElementById('conf-undo-btn');
+    if (!btn) return;
+    if (!_acUndoAction) {
+        btn.disabled = true;
+        btn.title = 'Nothing to undo';
+        return;
+    }
+    const labels = { add: 'Undo add', update: 'Undo edit', delete: 'Undo delete' };
+    btn.disabled = false;
+    btn.title = `${labels[_acUndoAction.type]}${_acUndoAction.label ? `: ${_acUndoAction.label}` : ''}`;
+}
+
+async function undoConference() {
+    if (!_acUndoAction) return;
+    const action = _acUndoAction;
+    _acSetUndoAction(null);
+    try {
+        let data, error;
+        if (action.type === 'add') {
+            ({ data, error } = await _sb.functions.invoke('conference-tools', { body: { mode: 'delete', match: action.match } }));
+        } else if (action.type === 'update') {
+            ({ data, error } = await _sb.functions.invoke('conference-tools', { body: { mode: 'update', match: action.afterMatch, fields: action.beforeMatch } }));
+        } else if (action.type === 'delete') {
+            ({ data, error } = await _sb.functions.invoke('conference-tools', { body: { mode: 'add', fields: action.match } }));
+        }
+        if (error) throw error;
+        if (!data || !data.ok) throw new Error((data && data.error) || 'Undo failed');
+        await loadConferenceData();
+        await reconcilePendingChanges();
+        _updatePendingBadge();
+    } catch (e) {
+        console.error('undoConference failed:', e);
+        alert('Undo failed: ' + (await _edgeFunctionErrorMessage(e)));
+    }
+}
+
 function openAddConferenceModal() {
     if (!getSession()) { alert('Please log in to add a conference.'); return; }
     _acEditingMatch = null;
@@ -8734,6 +8784,7 @@ async function deleteConferenceRow(idx) {
         const { data, error } = await _sb.functions.invoke('conference-tools', { body: { mode: 'delete', match } });
         if (error) throw error;
         if (!data || !data.ok) throw new Error((data && data.error) || 'Delete failed');
+        _acSetUndoAction({ type: 'delete', match, label: row.name || 'conference' });
         await loadConferenceData();
         await reconcilePendingChanges();
         _updatePendingBadge();
@@ -8947,6 +8998,7 @@ async function saveConferenceDetails() {
         abstract: document.getElementById('ac-abstract').value.trim()
     };
     const isEdit = !!_acEditingMatch;
+    const prevMatch = _acEditingMatch;
     const payload = isEdit ? { mode: 'update', match: _acEditingMatch, fields } : { mode: 'add', fields };
     const btn = document.getElementById('ac-save-btn');
     btn.disabled = true;
@@ -8955,6 +9007,11 @@ async function saveConferenceDetails() {
         const { data, error } = await _sb.functions.invoke('conference-tools', { body: payload });
         if (error) throw error;
         if (!data || !data.ok) throw new Error((data && data.error) || 'Save failed');
+        if (isEdit) {
+            _acSetUndoAction({ type: 'update', afterMatch: fields, beforeMatch: prevMatch, label: name });
+        } else {
+            _acSetUndoAction({ type: 'add', match: fields, label: name });
+        }
         closeAddConferenceModal();
         await loadConferenceData();
         await reconcilePendingChanges();
