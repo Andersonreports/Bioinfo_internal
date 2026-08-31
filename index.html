@@ -7895,15 +7895,20 @@ async function undoLabPresentation() {
             const { error } = await _sb.from('presentations').delete().eq('id', action.id);
             if (error) throw error;
             presentationsCache = presentationsCache.filter(r => r.id !== action.id);
+            _lpSyncSheet('delete', { matchId: action.id });
         } else if (action.type === 'update') {
             const { data, error } = await _sb.from('presentations').update(action.snapshot).eq('id', action.id).select().single();
             if (error) throw error;
             const idx = presentationsCache.findIndex(r => r.id === action.id);
             if (idx !== -1) presentationsCache[idx] = data;
+            _lpSyncSheet('update', { fields: _lpFieldsFromRow(data), matchId: data.id });
         } else if (action.type === 'delete') {
             const { data, error } = await _sb.from('presentations').insert(action.snapshot).select().single();
             if (error) throw error;
             presentationsCache.unshift(data);
+            // deletePresentation() also handles Outer Event (achievements) rows,
+            // which never lived in the Lab Presentation sheet tab to begin with.
+            if (data.pres_type !== 'Outer Event') _lpSyncSheet('add', { fields: _lpFieldsFromRow(data) });
         }
     } catch (e) {
         console.error('Undo failed:', e);
@@ -8077,6 +8082,7 @@ async function saveLabPresentation() {
             const idx = presentationsCache.findIndex(r => r.id === _lpEditingId);
             if (idx !== -1) presentationsCache[idx] = data;
             if (prevSnapshot) _lpSetUndoAction({ type: 'update', id: _lpEditingId, snapshot: prevSnapshot, label: data.title || 'presentation' });
+            _lpSyncSheet('update', { fields: _lpFieldsFromRow(data), matchId: data.id });
         } else {
             const { data, error } = await _sb.from('presentations').insert({
                 employee_id: empIds,
@@ -8096,6 +8102,7 @@ async function saveLabPresentation() {
             if (error) throw error;
             presentationsCache.unshift(data);
             _lpSetUndoAction({ type: 'insert', id: data.id, label: data.title || 'presentation' });
+            _lpSyncSheet('add', { fields: _lpFieldsFromRow(data) });
         }
     } catch (e) {
         console.error('Save presentation failed:', e);
@@ -8125,6 +8132,7 @@ async function uploadLabPresentationPpt(id, input) {
         const idx = presentationsCache.findIndex(r => r.id === id);
         if (idx !== -1) presentationsCache[idx] = data;
         if (prevSnapshot) _lpSetUndoAction({ type: 'update', id, snapshot: prevSnapshot, label: data.title || 'presentation' });
+        _lpSyncSheet('update', { fields: _lpFieldsFromRow(data), matchId: data.id });
     } catch (e) {
         console.error('Upload PPT failed:', e);
         alert('Upload failed: ' + (e.message || e));
@@ -8273,7 +8281,10 @@ async function deletePresentation(id) {
         if (row) { await sbDeleteByUrl('presentations', row.file_url); await sbDeleteByUrl('presentations', row.photo_url); }
     } catch (e) { console.error('deletePresentation failed:', e); alert('Delete failed: ' + (e.message || e)); return; }
     presentationsCache = presentationsCache.filter(r => r.id !== id);
-    if (row) _lpSetUndoAction({ type: 'delete', snapshot: { ...row }, label: row.title || 'presentation' });
+    if (row) {
+        _lpSetUndoAction({ type: 'delete', snapshot: { ...row }, label: row.title || 'presentation' });
+        if (row.pres_type !== 'Outer Event') _lpSyncSheet('delete', { matchId: id });
+    }
     renderPresentations();
     renderAchievementsWall();
 }
