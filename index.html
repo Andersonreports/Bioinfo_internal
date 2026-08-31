@@ -1926,6 +1926,42 @@ body {
     border-top: 1px dashed var(--panel-border);
 }
 
+/* Conference deadline alert toast — small card fixed to the bottom-right,
+   unlike the full-screen dimmed .modal-overlay dialogs. */
+.deadline-toast {
+    position: fixed;
+    bottom: 1.25rem;
+    right: 1.25rem;
+    width: 320px;
+    max-width: calc(100vw - 2.5rem);
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(15,23,42,0.18);
+    padding: 0.9rem 1rem 1rem;
+    z-index: 2500;
+    animation: deadlineToastIn 0.25s ease-out;
+}
+@keyframes deadlineToastIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.deadline-toast-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    font-size: 0.88rem;
+    color: #0f172a;
+    margin-bottom: 0.65rem;
+}
+.deadline-toast-body {
+    max-height: 40vh;
+    overflow-y: auto;
+    display: grid;
+    gap: 0.5rem;
+}
+
 /* Modal Styles */
 .modal-overlay {
     position: fixed;
@@ -5693,27 +5729,18 @@ body {
         </div>
     </div>
 
-    <!-- Conference Deadline Alert Modal (shown once per session on Home when a
+    <!-- Conference Deadline Alert Toast (shown once per session on Home when a
          registration deadline is 7 days or less away) -->
-    <div class="modal-overlay" id="conference-deadline-modal" style="display:none;" onclick="closeConferenceDeadlineModal(event)">
-        <div class="modal glass-panel" style="max-width:560px;" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <div class="details-header-info">
-                    <i data-lucide="alarm-clock" style="color:#dc2626;width:24px;height:24px;"></i>
-                    <div>
-                        <h2>Deadline Alert</h2>
-                        <p style="margin:0.15rem 0 0;font-size:0.8rem;color:#64748b;">Registration deadline closing soon for these conferences.</p>
-                    </div>
-                </div>
-                <button class="icon-btn" onclick="closeConferenceDeadlineModal()"><i data-lucide="x"></i></button>
-            </div>
-            <div id="conference-deadline-list" style="max-height:55vh;overflow-y:auto;display:grid;gap:0.75rem;">
-                <!-- Populated by JS -->
-            </div>
-            <div style="display:flex;justify-content:flex-end;margin-top:1.25rem;">
-                <button class="btn-primary" onclick="closeConferenceDeadlineModal(); switchView('conference');">View Conferences</button>
-            </div>
+    <div id="conference-deadline-toast" class="deadline-toast" style="display:none;">
+        <div class="deadline-toast-header">
+            <i data-lucide="alarm-clock" style="color:#dc2626;width:18px;height:18px;flex-shrink:0;"></i>
+            <span>Deadline Alert</span>
+            <button class="icon-btn" onclick="closeConferenceDeadlineToast()" style="margin-left:auto;width:26px;height:26px;"><i data-lucide="x" style="width:14px;height:14px;"></i></button>
         </div>
+        <div id="conference-deadline-list" class="deadline-toast-body">
+            <!-- Populated by JS -->
+        </div>
+        <button class="btn-primary" style="width:100%;margin-top:0.6rem;padding:0.5rem;font-size:0.82rem;" onclick="closeConferenceDeadlineToast(); switchView('conference');">View Conferences</button>
     </div>
 
     <!-- Add Employee Modal -->
@@ -8717,20 +8744,19 @@ function checkConferenceDeadlineAlert() {
     _confDeadlineAlertShown = true;
     const list = document.getElementById('conference-deadline-list');
     list.innerHTML = urgent.map(r => `
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:0.85rem 1rem;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;">
-            <div>
-                <div style="font-weight:700;color:#0f172a;font-size:0.9rem;">${r.name || 'Untitled conference'}</div>
-                <div style="font-size:0.78rem;color:#64748b;margin-top:0.2rem;">Deadline: ${r.deadline || '—'}${r.location ? ` · ${r.location}` : ''}</div>
+        <div style="padding:0.6rem 0.7rem;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem;">
+                <div style="font-weight:700;color:#0f172a;font-size:0.82rem;line-height:1.3;">${r.name || 'Untitled conference'}</div>
+                <span style="color:#dc2626;background:#fff;border:1px solid #fecaca;border-radius:20px;padding:0.15rem 0.5rem;font-weight:700;font-size:0.72rem;white-space:nowrap;flex-shrink:0;">${r.daysLeft === 0 ? 'Today' : r.daysLeft === 1 ? '1 day' : `${r.daysLeft} days`}</span>
             </div>
-            <span style="color:#dc2626;background:#fff;border:1px solid #fecaca;border-radius:20px;padding:0.22rem 0.65rem;font-weight:700;font-size:0.78rem;white-space:nowrap;">${r.daysLeft === 0 ? 'Today' : r.daysLeft === 1 ? '1 day' : `${r.daysLeft} days`}</span>
+            <div style="font-size:0.72rem;color:#64748b;margin-top:0.25rem;">Deadline: ${r.deadline || '—'}</div>
         </div>`).join('');
-    document.getElementById('conference-deadline-modal').style.display = 'flex';
+    document.getElementById('conference-deadline-toast').style.display = 'block';
     lucide.createIcons();
 }
 
-function closeConferenceDeadlineModal(event) {
-    if (event && event.target !== event.currentTarget) return;
-    document.getElementById('conference-deadline-modal').style.display = 'none';
+function closeConferenceDeadlineToast() {
+    document.getElementById('conference-deadline-toast').style.display = 'none';
 }
 
 function renderConferences() {
