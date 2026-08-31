@@ -2927,6 +2927,16 @@ body {
     line-height: 1.4;
 }
 
+/* Emails are the one value long enough to wrap the 260px panel at the
+   default size — shrink just this field so it stays on one line instead
+   of breaking mid-word ("gmail.c" / "om"). */
+#details-email {
+    font-size: 0.72rem;
+    letter-spacing: -0.1px;
+    word-break: normal;
+    overflow-wrap: break-word;
+}
+
 /* --- Right column --- */
 .profile-right {
     display: flex;
