@@ -3128,6 +3128,7 @@ body {
     transition: filter 0.2s;
 }
 .dir-add-btn:hover { filter: brightness(0.88); }
+.dir-add-btn:disabled { opacity: 0.5; cursor: not-allowed; filter: none; }
 .dir-table-wrap {
     overflow-x: auto;
 }
@@ -5131,9 +5132,14 @@ body {
                         <h1>Lab Presentations</h1>
                         <p>Internal presentations shared within the team.</p>
                     </div>
-                    <button class="dir-add-btn" onclick="openAddLabPresentationModal()">
-                        <i data-lucide="plus" style="width:13px;height:13px;"></i> Add Presentation
-                    </button>
+                    <div style="display:flex;gap:0.6rem;align-items:center;">
+                        <button class="dir-add-btn" id="lp-undo-btn" onclick="undoLabPresentation()" disabled title="Nothing to undo" style="background:#fff;color:#475569;border:1.5px solid #e2e8f0;">
+                            <i data-lucide="undo-2" style="width:13px;height:13px;"></i> Undo
+                        </button>
+                        <button class="dir-add-btn" onclick="openAddLabPresentationModal()">
+                            <i data-lucide="plus" style="width:13px;height:13px;"></i> Add Presentation
+                        </button>
+                    </div>
                 </div>
                 <div class="dir-section lab-pres-table-card">
                     <div class="dir-table-wrap">
@@ -7758,6 +7764,55 @@ function _achPresCard(row, showActions) {
     </div>`;
 }
 
+// ---- Undo (last add/edit/delete/upload on the presentations table) ----
+let _lpUndoAction = null;
+
+function _lpSetUndoAction(action) {
+    _lpUndoAction = action;
+    _lpRefreshUndoBtn();
+}
+
+function _lpRefreshUndoBtn() {
+    const btn = document.getElementById('lp-undo-btn');
+    if (!btn) return;
+    if (!_lpUndoAction) {
+        btn.disabled = true;
+        btn.title = 'Nothing to undo';
+        return;
+    }
+    const labels = { insert: 'Undo add', update: 'Undo edit', delete: 'Undo delete' };
+    btn.disabled = false;
+    btn.title = `${labels[_lpUndoAction.type]}${_lpUndoAction.label ? `: ${_lpUndoAction.label}` : ''}`;
+}
+
+async function undoLabPresentation() {
+    if (!_lpUndoAction) return;
+    const action = _lpUndoAction;
+    _lpSetUndoAction(null);
+    try {
+        if (action.type === 'insert') {
+            const { error } = await _sb.from('presentations').delete().eq('id', action.id);
+            if (error) throw error;
+            presentationsCache = presentationsCache.filter(r => r.id !== action.id);
+        } else if (action.type === 'update') {
+            const { data, error } = await _sb.from('presentations').update(action.snapshot).eq('id', action.id).select().single();
+            if (error) throw error;
+            const idx = presentationsCache.findIndex(r => r.id === action.id);
+            if (idx !== -1) presentationsCache[idx] = data;
+        } else if (action.type === 'delete') {
+            const { data, error } = await _sb.from('presentations').insert(action.snapshot).select().single();
+            if (error) throw error;
+            presentationsCache.unshift(data);
+        }
+    } catch (e) {
+        console.error('Undo failed:', e);
+        alert('Undo failed: ' + (e.message || e));
+        return;
+    }
+    renderPresentations();
+    renderAchievementsWall();
+}
+
 // Single row for the Lab Presentations table.
 function _labPresRow(row, i) {
     const canEdit = !!getSession();
@@ -7908,6 +7963,9 @@ async function saveLabPresentation() {
         }
 
         if (_lpEditingId) {
+            const prevRow = presentationsCache.find(r => r.id === _lpEditingId);
+            const prevSnapshot = prevRow ? { ...prevRow } : null;
+            if (prevSnapshot) { delete prevSnapshot.id; delete prevSnapshot.created_at; }
             const update = {
                 employee_id: empIds, author_name: empNames, title: title || null,
                 pres_date: presDate, file_url: fileUrl, file_name: fileName, ref_link: refLink || null, status,
@@ -7917,6 +7975,7 @@ async function saveLabPresentation() {
             if (error) throw error;
             const idx = presentationsCache.findIndex(r => r.id === _lpEditingId);
             if (idx !== -1) presentationsCache[idx] = data;
+            if (prevSnapshot) _lpSetUndoAction({ type: 'update', id: _lpEditingId, snapshot: prevSnapshot, label: data.title || 'presentation' });
         } else {
             const { data, error } = await _sb.from('presentations').insert({
                 employee_id: empIds,
@@ -7935,6 +7994,7 @@ async function saveLabPresentation() {
             }).select().single();
             if (error) throw error;
             presentationsCache.unshift(data);
+            _lpSetUndoAction({ type: 'insert', id: data.id, label: data.title || 'presentation' });
         }
     } catch (e) {
         console.error('Save presentation failed:', e);
@@ -7953,6 +8013,9 @@ async function uploadLabPresentationPpt(id, input) {
     if (!file) return;
     if (!getSession()) { alert('Please log in to upload.'); return; }
     try {
+        const prevRow = presentationsCache.find(r => r.id === id);
+        const prevSnapshot = prevRow ? { ...prevRow } : null;
+        if (prevSnapshot) { delete prevSnapshot.id; delete prevSnapshot.created_at; }
         const uploaded = await sbUpload('presentations', file);
         const { data, error } = await _sb.from('presentations')
             .update({ file_url: uploaded.url, file_name: uploaded.name })
@@ -7960,6 +8023,7 @@ async function uploadLabPresentationPpt(id, input) {
         if (error) throw error;
         const idx = presentationsCache.findIndex(r => r.id === id);
         if (idx !== -1) presentationsCache[idx] = data;
+        if (prevSnapshot) _lpSetUndoAction({ type: 'update', id, snapshot: prevSnapshot, label: data.title || 'presentation' });
     } catch (e) {
         console.error('Upload PPT failed:', e);
         alert('Upload failed: ' + (e.message || e));
@@ -8108,6 +8172,7 @@ async function deletePresentation(id) {
         if (row) { await sbDeleteByUrl('presentations', row.file_url); await sbDeleteByUrl('presentations', row.photo_url); }
     } catch (e) { console.error('deletePresentation failed:', e); alert('Delete failed: ' + (e.message || e)); return; }
     presentationsCache = presentationsCache.filter(r => r.id !== id);
+    if (row) _lpSetUndoAction({ type: 'delete', snapshot: { ...row }, label: row.title || 'presentation' });
     renderPresentations();
     renderAchievementsWall();
 }
