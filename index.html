@@ -2074,12 +2074,6 @@ body {
     font-weight: 900;
     color: #0f172a;
 }
-.birthday-fs-msg {
-    margin: 0;
-    color: #475569;
-    font-size: clamp(0.95rem, 2vw, 1.15rem);
-    font-weight: 600;
-}
 
 /* Modal Styles */
 .modal-overlay {
@@ -5648,7 +5642,6 @@ body {
             <div class="birthday-fs-crown">👑</div>
             <img id="birthday-fs-avatar" class="birthday-fs-avatar" src="" alt="">
             <h1 id="birthday-fs-name" class="birthday-fs-name"></h1>
-            <p id="birthday-fs-msg" class="birthday-fs-msg"></p>
         </div>
     </div>
 
@@ -10420,7 +10413,7 @@ function checkBirthdayPopup() {
     if (celebrants.length === 0) return;
 
     _birthdayPopupShown = true;
-    showBirthdayFullscreen(celebrants);
+    setTimeout(() => showBirthdayFullscreen(celebrants), 3000);
 }
 
 const BIRTHDAY_FS_EMOJIS = ['🎉','🎊','🎈','✨','🥳','🎁'];
@@ -10439,14 +10432,10 @@ function showBirthdayFullscreen(celebrants) {
     document.getElementById('birthday-fs-welcome-name').textContent = `Welcome back, ${viewerFirstName}!`;
 
     const names = celebrants.map(e => e.name).join(' & ');
-    const isSelf = celebrants.length === 1 && celebrants[0].employeeId === (viewerEmp || {}).employeeId;
 
     document.getElementById('birthday-fs-avatar').src = celebrants[0].avatar;
     document.getElementById('birthday-fs-avatar').alt = names;
     document.getElementById('birthday-fs-name').textContent = names;
-    document.getElementById('birthday-fs-msg').textContent = isSelf
-        ? '🎂 Happy Birthday to you! Have a fantastic day! 🎂'
-        : `🎂 It's ${names}'s birthday today — join us in wishing them well! 🎂`;
 
     const confettiWrap = document.getElementById('birthday-fs-confetti');
     confettiWrap.innerHTML = Array.from({ length: 28 }, () => {
