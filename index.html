@@ -5612,7 +5612,7 @@ body {
             <div class="birthday-crown">👑</div>
             <img id="birthday-modal-avatar" class="birthday-modal-avatar" src="" alt="">
             <h2 id="birthday-modal-name" class="birthday-modal-name"></h2>
-            <p class="birthday-modal-msg">🎂 Wishing you a fantastic birthday! 🎂</p>
+            <p id="birthday-modal-msg" class="birthday-modal-msg"></p>
             <div class="birthday-modal-emoji-row">
                 <span>🎊</span><span>🎈</span><span>🎉</span><span>🎈</span><span>🎊</span>
             </div>
@@ -10388,9 +10388,13 @@ function checkBirthdayPopup() {
 
     _birthdayPopupShown = true;
     const names = celebrants.map(e => e.name).join(' & ');
+    const isSelf = celebrants.length === 1 && celebrants[0].employeeId === (resolveSessionEmployee(getSession()) || {}).employeeId;
     document.getElementById('birthday-modal-avatar').src = celebrants[0].avatar;
     document.getElementById('birthday-modal-avatar').alt = names;
     document.getElementById('birthday-modal-name').textContent = names;
+    document.getElementById('birthday-modal-msg').textContent = isSelf
+        ? '🎂 Happy Birthday to you! Have a fantastic day! 🎂'
+        : `🎂 It's ${names}'s birthday today — join us in wishing them well! 🎂`;
     document.getElementById('birthday-modal').style.display = 'flex';
     lucide.createIcons();
 }
