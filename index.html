@@ -2054,6 +2054,11 @@ body {
     font-size: 4.5rem;
     animation: birthday-bounce 1.4s ease-in-out infinite;
 }
+.birthday-fs-wave {
+    font-size: 4rem;
+    animation: birthday-bounce 1.4s ease-in-out infinite;
+    margin-bottom: 0.5rem;
+}
 .birthday-fs-avatar {
     width: 130px;
     height: 130px;
@@ -5632,10 +5637,14 @@ body {
         </div>
     </div>
 
-    <!-- Birthday Full-Page Celebration (auto-dismisses) -->
+    <!-- Birthday Full-Page Celebration (auto-dismisses): welcome message first, then the birthday reveal -->
     <div id="birthday-fullscreen" class="birthday-fullscreen" style="display:none;" onclick="dismissBirthdayFullscreen()">
         <div class="birthday-fs-confetti" id="birthday-fs-confetti"></div>
-        <div class="birthday-fs-content">
+        <div class="birthday-fs-content" id="birthday-fs-welcome">
+            <div class="birthday-fs-wave">👋</div>
+            <h1 id="birthday-fs-welcome-name" class="birthday-fs-name"></h1>
+        </div>
+        <div class="birthday-fs-content" id="birthday-fs-celebrate" style="display:none;">
             <div class="birthday-fs-crown">👑</div>
             <img id="birthday-fs-avatar" class="birthday-fs-avatar" src="" alt="">
             <h1 id="birthday-fs-name" class="birthday-fs-name"></h1>
@@ -10415,14 +10424,22 @@ function checkBirthdayPopup() {
 }
 
 const BIRTHDAY_FS_EMOJIS = ['🎉','🎊','🎈','✨','🥳','🎁'];
+const BIRTHDAY_FS_WELCOME_MS = 1800;
+const BIRTHDAY_FS_CELEBRATE_MS = 4500;
 let _birthdayFsTimer = null;
+let _birthdayFsPhaseTimer = null;
 
-// Full-page celebration: covers the whole viewport with confetti + the
-// celebrant's name, then fades itself out on its own after a few seconds
-// so the normal dashboard underneath is revealed automatically.
+// Full-page celebration: shows a brief "Welcome back, <you>!" first, then
+// swaps to confetti + the celebrant's name, then fades itself out on its
+// own so the normal dashboard underneath is revealed automatically.
 function showBirthdayFullscreen(celebrants) {
+    const session = getSession();
+    const viewerEmp = resolveSessionEmployee(session);
+    const viewerFirstName = ((viewerEmp && viewerEmp.name) || session.name || '').split(' ')[0] || 'there';
+    document.getElementById('birthday-fs-welcome-name').textContent = `Welcome back, ${viewerFirstName}!`;
+
     const names = celebrants.map(e => e.name).join(' & ');
-    const isSelf = celebrants.length === 1 && celebrants[0].employeeId === (resolveSessionEmployee(getSession()) || {}).employeeId;
+    const isSelf = celebrants.length === 1 && celebrants[0].employeeId === (viewerEmp || {}).employeeId;
 
     document.getElementById('birthday-fs-avatar').src = celebrants[0].avatar;
     document.getElementById('birthday-fs-avatar').alt = names;
@@ -10440,15 +10457,26 @@ function showBirthdayFullscreen(celebrants) {
         return `<span style="left:${left}%;animation-duration:${duration}s;animation-delay:${delay}s;">${emoji}</span>`;
     }).join('');
 
+    const welcomeEl   = document.getElementById('birthday-fs-welcome');
+    const celebrateEl = document.getElementById('birthday-fs-celebrate');
+    welcomeEl.style.display = 'block';
+    celebrateEl.style.display = 'none';
+
     const overlay = document.getElementById('birthday-fullscreen');
     overlay.classList.remove('birthday-fs-hide');
     overlay.style.display = 'flex';
 
     clearTimeout(_birthdayFsTimer);
-    _birthdayFsTimer = setTimeout(dismissBirthdayFullscreen, 4500);
+    clearTimeout(_birthdayFsPhaseTimer);
+    _birthdayFsPhaseTimer = setTimeout(() => {
+        welcomeEl.style.display = 'none';
+        celebrateEl.style.display = 'block';
+    }, BIRTHDAY_FS_WELCOME_MS);
+    _birthdayFsTimer = setTimeout(dismissBirthdayFullscreen, BIRTHDAY_FS_WELCOME_MS + BIRTHDAY_FS_CELEBRATE_MS);
 }
 
 function dismissBirthdayFullscreen() {
+    clearTimeout(_birthdayFsPhaseTimer);
     const overlay = document.getElementById('birthday-fullscreen');
     if (!overlay || overlay.style.display === 'none') return;
     clearTimeout(_birthdayFsTimer);
