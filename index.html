@@ -2001,49 +2001,79 @@ body {
 }
 .home-birthday-banner .birthday-banner-text strong { color: #be185d; }
 
-.birthday-modal-box {
-    max-width: 420px;
-    text-align: center;
-    position: relative;
-    background: linear-gradient(160deg, #fff 0%, #fff7ed 60%, #fdf2f8 100%);
-    padding: 2.25rem 1.75rem 1.75rem;
-}
-.birthday-modal-emoji-row {
-    font-size: 1.5rem;
-    display: flex;
-    justify-content: center;
-    gap: 0.5rem;
-    margin-bottom: 0.25rem;
-}
-.birthday-crown {
-    font-size: 2.75rem;
-    animation: birthday-bounce 1.4s ease-in-out infinite;
-    margin: 0.25rem 0 0.5rem;
-}
-.birthday-modal-avatar {
-    width: 84px;
-    height: 84px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid #fbbf24;
-    box-shadow: 0 4px 14px rgba(251,191,36,0.35);
-    margin-bottom: 0.85rem;
-}
-.birthday-modal-name {
-    margin: 0 0 0.35rem;
-    font-size: 1.35rem;
-    font-weight: 800;
-    color: #0f172a;
-}
-.birthday-modal-msg {
-    margin: 0 0 0.5rem;
-    color: #64748b;
-    font-size: 0.9rem;
-    font-weight: 600;
-}
 @keyframes birthday-bounce {
     0%, 100% { transform: translateY(0) rotate(0deg); }
     50% { transform: translateY(-6px) rotate(-4deg); }
+}
+
+/* Full-page birthday takeover, shown right after sign-in, auto-dismisses */
+.birthday-fullscreen {
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 50% 30%, #fff7ed 0%, #fdf2f8 45%, #f0fdfa 100%);
+    overflow: hidden;
+    opacity: 1;
+    transition: opacity 0.6s ease;
+    cursor: pointer;
+}
+.birthday-fullscreen.birthday-fs-hide { opacity: 0; pointer-events: none; }
+
+.birthday-fs-confetti {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+}
+.birthday-fs-confetti span {
+    position: absolute;
+    top: -8%;
+    font-size: 1.8rem;
+    animation: birthday-fall linear infinite;
+}
+@keyframes birthday-fall {
+    0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(115vh) rotate(360deg); opacity: 0.85; }
+}
+
+.birthday-fs-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 1.5rem;
+    animation: birthday-pop-in 0.6s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes birthday-pop-in {
+    0%   { transform: scale(0.6); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+.birthday-fs-crown {
+    font-size: 4.5rem;
+    animation: birthday-bounce 1.4s ease-in-out infinite;
+}
+.birthday-fs-avatar {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 5px solid #fbbf24;
+    box-shadow: 0 10px 30px rgba(251,191,36,0.4);
+    margin: 1rem 0;
+}
+.birthday-fs-name {
+    margin: 0.25rem 0;
+    font-size: clamp(1.75rem, 5vw, 2.75rem);
+    font-weight: 900;
+    color: #0f172a;
+}
+.birthday-fs-msg {
+    margin: 0;
+    color: #475569;
+    font-size: clamp(0.95rem, 2vw, 1.15rem);
+    font-weight: 600;
 }
 
 /* Modal Styles */
@@ -5602,20 +5632,14 @@ body {
         </div>
     </div>
 
-    <!-- Birthday Celebration Modal -->
-    <div class="modal-overlay" id="birthday-modal" style="display:none;" onclick="closeBirthdayModal(event)">
-        <div class="modal birthday-modal-box" onclick="event.stopPropagation()">
-            <button class="icon-btn" style="position:absolute;top:0.85rem;right:0.85rem;" onclick="closeBirthdayModal()"><i data-lucide="x"></i></button>
-            <div class="birthday-modal-emoji-row">
-                <span>🎉</span><span>🎊</span><span>🎈</span><span>🎊</span><span>🎉</span>
-            </div>
-            <div class="birthday-crown">👑</div>
-            <img id="birthday-modal-avatar" class="birthday-modal-avatar" src="" alt="">
-            <h2 id="birthday-modal-name" class="birthday-modal-name"></h2>
-            <p id="birthday-modal-msg" class="birthday-modal-msg"></p>
-            <div class="birthday-modal-emoji-row">
-                <span>🎊</span><span>🎈</span><span>🎉</span><span>🎈</span><span>🎊</span>
-            </div>
+    <!-- Birthday Full-Page Celebration (auto-dismisses) -->
+    <div id="birthday-fullscreen" class="birthday-fullscreen" style="display:none;" onclick="dismissBirthdayFullscreen()">
+        <div class="birthday-fs-confetti" id="birthday-fs-confetti"></div>
+        <div class="birthday-fs-content">
+            <div class="birthday-fs-crown">👑</div>
+            <img id="birthday-fs-avatar" class="birthday-fs-avatar" src="" alt="">
+            <h1 id="birthday-fs-name" class="birthday-fs-name"></h1>
+            <p id="birthday-fs-msg" class="birthday-fs-msg"></p>
         </div>
     </div>
 
@@ -10387,21 +10411,49 @@ function checkBirthdayPopup() {
     if (celebrants.length === 0) return;
 
     _birthdayPopupShown = true;
-    const names = celebrants.map(e => e.name).join(' & ');
-    const isSelf = celebrants.length === 1 && celebrants[0].employeeId === (resolveSessionEmployee(getSession()) || {}).employeeId;
-    document.getElementById('birthday-modal-avatar').src = celebrants[0].avatar;
-    document.getElementById('birthday-modal-avatar').alt = names;
-    document.getElementById('birthday-modal-name').textContent = names;
-    document.getElementById('birthday-modal-msg').textContent = isSelf
-        ? '🎂 Happy Birthday to you! Have a fantastic day! 🎂'
-        : `🎂 It's ${names}'s birthday today — join us in wishing them well! 🎂`;
-    document.getElementById('birthday-modal').style.display = 'flex';
-    lucide.createIcons();
+    showBirthdayFullscreen(celebrants);
 }
 
-function closeBirthdayModal(event) {
-    if (event && event.target !== event.currentTarget) return;
-    document.getElementById('birthday-modal').style.display = 'none';
+const BIRTHDAY_FS_EMOJIS = ['🎉','🎊','🎈','✨','🥳','🎁'];
+let _birthdayFsTimer = null;
+
+// Full-page celebration: covers the whole viewport with confetti + the
+// celebrant's name, then fades itself out on its own after a few seconds
+// so the normal dashboard underneath is revealed automatically.
+function showBirthdayFullscreen(celebrants) {
+    const names = celebrants.map(e => e.name).join(' & ');
+    const isSelf = celebrants.length === 1 && celebrants[0].employeeId === (resolveSessionEmployee(getSession()) || {}).employeeId;
+
+    document.getElementById('birthday-fs-avatar').src = celebrants[0].avatar;
+    document.getElementById('birthday-fs-avatar').alt = names;
+    document.getElementById('birthday-fs-name').textContent = names;
+    document.getElementById('birthday-fs-msg').textContent = isSelf
+        ? '🎂 Happy Birthday to you! Have a fantastic day! 🎂'
+        : `🎂 It's ${names}'s birthday today — join us in wishing them well! 🎂`;
+
+    const confettiWrap = document.getElementById('birthday-fs-confetti');
+    confettiWrap.innerHTML = Array.from({ length: 28 }, () => {
+        const left = Math.random() * 100;
+        const duration = (3 + Math.random() * 2.5).toFixed(2);
+        const delay = (Math.random() * 1.5).toFixed(2);
+        const emoji = BIRTHDAY_FS_EMOJIS[Math.floor(Math.random() * BIRTHDAY_FS_EMOJIS.length)];
+        return `<span style="left:${left}%;animation-duration:${duration}s;animation-delay:${delay}s;">${emoji}</span>`;
+    }).join('');
+
+    const overlay = document.getElementById('birthday-fullscreen');
+    overlay.classList.remove('birthday-fs-hide');
+    overlay.style.display = 'flex';
+
+    clearTimeout(_birthdayFsTimer);
+    _birthdayFsTimer = setTimeout(dismissBirthdayFullscreen, 4500);
+}
+
+function dismissBirthdayFullscreen() {
+    const overlay = document.getElementById('birthday-fullscreen');
+    if (!overlay || overlay.style.display === 'none') return;
+    clearTimeout(_birthdayFsTimer);
+    overlay.classList.add('birthday-fs-hide');
+    setTimeout(() => { overlay.style.display = 'none'; }, 600);
 }
 
 function renderLeaveHistory(session) {
