@@ -1977,6 +1977,75 @@ body {
 }
 .deadline-toast-close:hover { background: #e2e8f0; color: #0f172a; }
 
+/* ---- Birthday celebration ---- */
+.home-birthday-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.9rem 1.1rem;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #fff1f8 0%, #fff7e6 100%);
+    border: 1.5px solid #fbcfe8;
+    box-shadow: 0 4px 14px rgba(236,72,153,0.08);
+}
+.home-birthday-banner .birthday-banner-icon {
+    font-size: 1.6rem;
+    flex-shrink: 0;
+    animation: birthday-bounce 1.6s ease-in-out infinite;
+}
+.home-birthday-banner .birthday-banner-text {
+    font-size: 0.88rem;
+    color: #831843;
+    font-weight: 600;
+    line-height: 1.4;
+}
+.home-birthday-banner .birthday-banner-text strong { color: #be185d; }
+
+.birthday-modal-box {
+    max-width: 420px;
+    text-align: center;
+    position: relative;
+    background: linear-gradient(160deg, #fff 0%, #fff7ed 60%, #fdf2f8 100%);
+    padding: 2.25rem 1.75rem 1.75rem;
+}
+.birthday-modal-emoji-row {
+    font-size: 1.5rem;
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+.birthday-crown {
+    font-size: 2.75rem;
+    animation: birthday-bounce 1.4s ease-in-out infinite;
+    margin: 0.25rem 0 0.5rem;
+}
+.birthday-modal-avatar {
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #fbbf24;
+    box-shadow: 0 4px 14px rgba(251,191,36,0.35);
+    margin-bottom: 0.85rem;
+}
+.birthday-modal-name {
+    margin: 0 0 0.35rem;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+.birthday-modal-msg {
+    margin: 0 0 0.5rem;
+    color: #64748b;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+@keyframes birthday-bounce {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-6px) rotate(-4deg); }
+}
+
 /* Modal Styles */
 .modal-overlay {
     position: fixed;
@@ -5270,6 +5339,7 @@ body {
             <!-- Home View (All Roles) -->
             <section id="home-view" class="view-section" style="display:none;">
                 <div id="home-welcome-card-wrap" style="margin-bottom:1.5rem;"></div>
+                <div id="home-birthday-banner-wrap" style="margin-bottom:1.5rem;"></div>
                 <div id="home-absent-today-wrap" style="margin-bottom:1.5rem;"></div>
                 <div class="home-container">
                     <!-- Left: Calendar, then Work Updates below -->
@@ -5528,6 +5598,23 @@ body {
             <div class="modal-actions">
                 <button type="button" class="btn-outline" onclick="closeLeaveRequestModal()">Cancel</button>
                 <button type="button" class="btn-primary" onclick="saveLeaveRequest()">Log Leave</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Birthday Celebration Modal -->
+    <div class="modal-overlay" id="birthday-modal" style="display:none;" onclick="closeBirthdayModal(event)">
+        <div class="modal birthday-modal-box" onclick="event.stopPropagation()">
+            <button class="icon-btn" style="position:absolute;top:0.85rem;right:0.85rem;" onclick="closeBirthdayModal()"><i data-lucide="x"></i></button>
+            <div class="birthday-modal-emoji-row">
+                <span>🎉</span><span>🎊</span><span>🎈</span><span>🎊</span><span>🎉</span>
+            </div>
+            <div class="birthday-crown">👑</div>
+            <img id="birthday-modal-avatar" class="birthday-modal-avatar" src="" alt="">
+            <h2 id="birthday-modal-name" class="birthday-modal-name"></h2>
+            <p class="birthday-modal-msg">🎂 Wishing you a fantastic birthday! 🎂</p>
+            <div class="birthday-modal-emoji-row">
+                <span>🎊</span><span>🎈</span><span>🎉</span><span>🎈</span><span>🎊</span>
             </div>
         </div>
     </div>
@@ -6358,6 +6445,7 @@ function parseCSV(csv) {
                 role: obj['Role'] || 'Bioinformatician',
                 email: obj['Email'] || obj['Email ID'] || obj['email'] || `${obj['Name'].toLowerCase().replace(/\s+/g, '.')}@genomicdesk.com`,
                 doj: obj['Date of Joining'] || 'N/A',
+                dob: obj['Date of Birth'] || obj['DOB'] || obj['D.O.B'] || obj['Birthday'] || '',
                 lastAppraisal: obj['Last Appraisal Date'] || 'NA',
                 team: obj['Team'] || 'Primary',
                 teamLeader: obj['Team Leader name'] || 'N/A',
@@ -6512,6 +6600,18 @@ function isPastEmployee(emp) {
     if (emp.employeeId && _pastIdSet.has(emp.employeeId.trim().toLowerCase())) return true;
     if (emp.name && _pastNameSet.has(emp.name.trim().toLowerCase())) return true;
     return false;
+}
+
+// Employees (excluding past employees) whose Date of Birth falls on today's
+// month/day, regardless of birth year.
+function getTodaysBirthdays() {
+    const today = new Date();
+    const m = today.getMonth() + 1, d = today.getDate();
+    return employees.filter(emp => {
+        if (isPastEmployee(emp)) return false;
+        const dob = parseDMY(emp.dob);
+        return dob && dob.getMonth() + 1 === m && dob.getDate() === d;
+    });
 }
 
 // Load the alumni list from the "Past Employees" tab (fetched by name via gviz).
@@ -10177,6 +10277,10 @@ function renderHomeTab() {
     // Show who is on leave today (all roles)
     renderAbsentToday();
 
+    // Show today's birthdays, if any (all roles)
+    renderBirthdayBanner();
+    checkBirthdayPopup();
+
     // Render calendar for all roles
     renderCalendar();
 
@@ -10248,6 +10352,52 @@ function renderAbsentToday() {
             </div>`;
     }
     lucide.createIcons();
+}
+
+// Festive banner on the home tab when one or more employees have a birthday
+// today (Date of Birth column, matched on month/day only).
+function renderBirthdayBanner() {
+    const wrap = document.getElementById('home-birthday-banner-wrap');
+    if (!wrap) return;
+
+    const celebrants = getTodaysBirthdays();
+    if (celebrants.length === 0) {
+        wrap.innerHTML = '';
+        return;
+    }
+
+    const names = celebrants.map(e => e.name).join(' & ');
+    wrap.innerHTML = `
+        <div class="home-birthday-banner">
+            <span class="birthday-banner-icon">👑🎉</span>
+            <span class="birthday-banner-text">It's <strong>${names}</strong>'s birthday today! 🎂 Wish them well.</span>
+        </div>`;
+}
+
+// Popup once per page load celebrating today's birthday employee(s), shown
+// right after sign-in / on landing on the Home tab.
+let _birthdayPopupShown = false;
+function checkBirthdayPopup() {
+    if (_birthdayPopupShown) return;
+    if (!getSession()) return;
+    const homeView = document.getElementById('home-view');
+    if (!homeView || homeView.style.display === 'none') return;
+
+    const celebrants = getTodaysBirthdays();
+    if (celebrants.length === 0) return;
+
+    _birthdayPopupShown = true;
+    const names = celebrants.map(e => e.name).join(' & ');
+    document.getElementById('birthday-modal-avatar').src = celebrants[0].avatar;
+    document.getElementById('birthday-modal-avatar').alt = names;
+    document.getElementById('birthday-modal-name').textContent = names;
+    document.getElementById('birthday-modal').style.display = 'flex';
+    lucide.createIcons();
+}
+
+function closeBirthdayModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('birthday-modal').style.display = 'none';
 }
 
 function renderLeaveHistory(session) {
