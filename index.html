@@ -1089,24 +1089,27 @@ body {
 
 .birthday-popper {
     position: absolute;
-    top: 8px;
+    bottom: 6px;
     font-size: 1.05rem;
     line-height: 1;
-    animation: birthdayPopperWiggle 1.9s ease-in-out infinite;
+    opacity: 0;
+    animation: birthdayPopperBlast 2.4s ease-out infinite;
     pointer-events: none;
 }
 
-.birthday-popper.left { left: 8px; }
-.birthday-popper.right { right: 8px; animation-delay: 0.35s; }
+.birthday-popper.left { left: 10px; }
+.birthday-popper.right { right: 10px; animation-delay: 0.9s; }
 
 @keyframes birthdayCrownBob {
     0%, 100% { transform: translateX(-50%) rotate(-6deg) translateY(0); }
     50%      { transform: translateX(-50%) rotate(-6deg) translateY(-4px); }
 }
 
-@keyframes birthdayPopperWiggle {
-    0%, 100% { transform: rotate(-12deg) scale(1); }
-    50%      { transform: rotate(8deg) scale(1.12); }
+@keyframes birthdayPopperBlast {
+    0%   { transform: translateY(0) scale(0.6) rotate(-15deg); opacity: 0; }
+    10%  { opacity: 1; }
+    70%  { opacity: 1; }
+    100% { transform: translateY(-110px) scale(1.2) rotate(12deg); opacity: 0; }
 }
 
 .emp-stat-card:hover {
@@ -3570,6 +3573,11 @@ body {
     padding: 0.25rem 0.75rem;
     font-size: 0.78rem;
     font-weight: 600;
+}
+.home-meta-chip-birthday {
+    background: rgba(251,191,36,0.22);
+    color: #fde68a;
+    border: 1px solid rgba(251,191,36,0.4);
 }
 .absent-today-card {
     background: #fff;
@@ -10145,6 +10153,22 @@ function resolveSessionEmployee(session) {
 }
 
 // ===== HOME TAB =====
+// Birthday mention chip for the home welcome card. Personalizes to "you"
+// when the viewer themselves is celebrating today.
+function buildBirthdayChip(viewerEmployeeId) {
+    const celebrants = getTodaysBirthdays();
+    if (celebrants.length === 0) return '';
+
+    const isViewerCelebrant = viewerEmployeeId && celebrants.some(c => c.employeeId === viewerEmployeeId);
+    if (isViewerCelebrant) {
+        const others = celebrants.filter(c => c.employeeId !== viewerEmployeeId);
+        const suffix = others.length ? ` (along with ${others.map(o => o.name.split(' ')[0]).join(' & ')})` : '';
+        return `<span class="home-meta-chip home-meta-chip-birthday">🎉 Happy Birthday to you${suffix}!</span>`;
+    }
+    const names = celebrants.map(c => c.name.split(' ')[0]).join(' & ');
+    return `<span class="home-meta-chip home-meta-chip-birthday">🎂 It's ${names}'s birthday today!</span>`;
+}
+
 function renderHomeTab() {
     const session = getSession();
     if (!session) return;
@@ -10176,6 +10200,7 @@ function renderHomeTab() {
                             <span class="home-meta-chip">${emp.team}</span>
                             <span class="home-meta-chip">DOJ: ${formatDate(emp.doj)}</span>
                             <span class="home-meta-chip">${emp.employeeId}</span>
+                            ${buildBirthdayChip(emp.employeeId)}
                         </div>
                     </div>
                 </div>`;
@@ -10229,6 +10254,7 @@ function renderHomeTab() {
                     <div class="home-welcome-meta">
                         <span class="home-meta-chip">${roleLabel} Dashboard</span>
                         <span class="home-meta-chip">${todayLabel}</span>
+                        ${buildBirthdayChip(null)}
                     </div>
                 </div>
             </div>`;
