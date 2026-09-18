@@ -1054,6 +1054,7 @@ body {
 }
 
 .emp-stat-card {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1066,6 +1067,46 @@ body {
     text-align: center;
     border: 1.5px solid #f1f5f9;
     gap: 0;
+}
+
+/* Birthday decoration on manager dashboard employee cards */
+.emp-stat-card.is-birthday {
+    border-color: #fde68a;
+    background: linear-gradient(180deg, #fffbeb 0%, #ffffff 65%);
+}
+
+.birthday-crown {
+    position: absolute;
+    top: -13px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-6deg);
+    font-size: 1.5rem;
+    line-height: 1;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.18));
+    animation: birthdayCrownBob 2.4s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.birthday-popper {
+    position: absolute;
+    top: 8px;
+    font-size: 1.05rem;
+    line-height: 1;
+    animation: birthdayPopperWiggle 1.9s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.birthday-popper.left { left: 8px; }
+.birthday-popper.right { right: 8px; animation-delay: 0.35s; }
+
+@keyframes birthdayCrownBob {
+    0%, 100% { transform: translateX(-50%) rotate(-6deg) translateY(0); }
+    50%      { transform: translateX(-50%) rotate(-6deg) translateY(-4px); }
+}
+
+@keyframes birthdayPopperWiggle {
+    0%, 100% { transform: rotate(-12deg) scale(1); }
+    50%      { transform: rotate(8deg) scale(1.12); }
 }
 
 .emp-stat-card:hover {
@@ -6248,6 +6289,7 @@ function parseCSV(csv) {
                 role: obj['Role'] || 'Bioinformatician',
                 email: obj['Email'] || obj['Email ID'] || obj['email'] || `${obj['Name'].toLowerCase().replace(/\s+/g, '.')}@genomicdesk.com`,
                 doj: obj['Date of Joining'] || 'N/A',
+                dob: obj['Date of Birth'] || '',
                 lastAppraisal: obj['Last Appraisal Date'] || 'NA',
                 team: obj['Team'] || 'Primary',
                 teamLeader: obj['Team Leader name'] || 'N/A',
@@ -6292,6 +6334,14 @@ function parseDMY(dateStr) {
     const [day, month, year] = parts.map(Number);
     if (!day || !month || !year) return null;
     return new Date(year, month - 1, day);
+}
+
+// True if today is emp's birthday (month + day match), ignoring year
+function isBirthdayToday(emp) {
+    const d = parseDMY(emp.dob);
+    if (!d) return false;
+    const today = new Date();
+    return d.getDate() === today.getDate() && d.getMonth() === today.getMonth();
 }
 
 // Appraisal cycle status for an employee, anchored on Last Appraisal Date
@@ -6785,14 +6835,19 @@ function renderEmployeeSpace(data = employees) {
                         : teamLower === 'cmc'             ? 'cmc'
                         : '';
         const apprStatus = getAppraisalStatus(emp);
-        const cardStatusClass = apprStatus ? ` appraisal-${apprStatus}` : '';
+        const isBirthday = isBirthdayToday(emp);
+        const cardStatusClass = (apprStatus ? ` appraisal-${apprStatus}` : '') + (isBirthday ? ' is-birthday' : '');
         const apprBadge = apprStatus === 'overdue'
             ? `<span class="appraisal-flag overdue"><i data-lucide="alert-triangle" style="width:11px;height:11px;"></i> Appraisal Overdue</span>`
             : apprStatus === 'due-soon'
             ? `<span class="appraisal-flag due-soon"><i data-lucide="clock" style="width:11px;height:11px;"></i> Appraisal Due Soon</span>`
             : '';
+        const birthdayDecor = isBirthday
+            ? `<span class="birthday-popper left" aria-hidden="true">🎉</span><span class="birthday-crown" title="Happy Birthday, ${emp.name}!">👑</span><span class="birthday-popper right" aria-hidden="true">🎊</span>`
+            : '';
         return `
         <div class="emp-stat-card${cardStatusClass}" onclick="openEmployeeDetails(${emp.id})">
+            ${birthdayDecor}
             <img src="${emp.avatar}" alt="${emp.name}" class="stat-avatar">
             <div class="stat-info">
                 <h3>${emp.name}</h3>
