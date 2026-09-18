@@ -1967,6 +1967,57 @@ body {
     border-top: 1px dashed var(--panel-border);
 }
 
+/* Conference deadline alert toast — small card fixed to the bottom-right,
+   unlike the full-screen dimmed .modal-overlay dialogs. */
+.deadline-toast {
+    position: fixed;
+    bottom: 1.25rem;
+    right: 1.25rem;
+    width: 320px;
+    max-width: calc(100vw - 2.5rem);
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(15,23,42,0.18);
+    padding: 0.9rem 1rem 1rem;
+    z-index: 2500;
+    animation: deadlineToastIn 0.25s ease-out;
+}
+@keyframes deadlineToastIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.deadline-toast-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    font-size: 0.88rem;
+    color: #0f172a;
+    margin-bottom: 0.65rem;
+}
+.deadline-toast-body {
+    max-height: 40vh;
+    overflow-y: auto;
+    display: grid;
+    gap: 0.5rem;
+}
+.deadline-toast-close {
+    margin-left: auto;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    background: #f1f5f9;
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.deadline-toast-close:hover { background: #e2e8f0; color: #0f172a; }
+
 /* Modal Styles */
 .modal-overlay {
     position: fixed;
@@ -2917,6 +2968,16 @@ body {
     line-height: 1.4;
 }
 
+/* Emails are the one value long enough to wrap the 260px panel at the
+   default size — shrink just this field so it stays on one line instead
+   of breaking mid-word ("gmail.c" / "om"). */
+#details-email {
+    font-size: 0.72rem;
+    letter-spacing: -0.1px;
+    word-break: normal;
+    overflow-wrap: break-word;
+}
+
 /* --- Right column --- */
 .profile-right {
     display: flex;
@@ -3169,6 +3230,7 @@ body {
     transition: filter 0.2s;
 }
 .dir-add-btn:hover { filter: brightness(0.88); }
+.dir-add-btn:disabled { opacity: 0.5; cursor: not-allowed; filter: none; }
 .dir-table-wrap {
     overflow-x: auto;
 }
@@ -3285,6 +3347,37 @@ body {
 .dir-tb-btn:hover { color: #0d9488; background: rgba(13,148,136,0.08); }
 .dir-tb-btn.del:hover { color: #ef4444; background: rgba(239,68,68,0.08); }
 .dir-row-actions { display: flex; gap: 0.2rem; }
+.lab-pres-actions { gap: 0.65rem; }
+.lab-pres-actions .dir-tb-btn { padding: 6px; }
+.lab-pres-actions .dir-tb-btn:hover { background: rgba(13,148,136,0.12); }
+.lab-pres-actions .dir-tb-btn.del:hover { background: rgba(239,68,68,0.12); }
+.lab-pres-date-rel {
+    display: inline-block;
+    margin-left: 0.45rem;
+    padding: 0.1rem 0.45rem;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+.lab-pres-date-rel.soon { background: rgba(13,148,136,0.12); color: #0d9488; }
+.lab-pres-date-rel.later { background: #f1f5f9; color: #64748b; }
+.lab-pres-upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+    background: rgba(13,148,136,0.1);
+    color: #0d9488;
+    font-size: 0.76rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+.lab-pres-upload-btn:hover { background: #0d9488; color: #fff; }
+.lab-pres-topic-pending { color: #94a3b8; font-style: italic; font-weight: 500; }
 .dir-empty-row td {
     text-align: center;
     color: #94a3b8;
@@ -4633,17 +4726,6 @@ body {
 
                 <div class="employee-grid" id="employee-cards-container" style="display:none;"></div>
 
-                <!-- Assigned Presentations Panel -->
-                <div style="background: #f0f9ff; border-left: 4px solid #0ea5e9; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
-                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
-                        <i data-lucide="presentation" style="width:24px;height:24px;color:#0ea5e9;"></i>
-                        <h2 style="font-size: 1.1rem; color: #1e293b; margin: 0;">Your Assigned Presentations</h2>
-                    </div>
-                    <div id="emp-assignments-container" style="display: grid; gap: 1rem;">
-                        <!-- Populated by JS -->
-                    </div>
-                </div>
-
                 <!-- Work Updates panel -->
                 <div id="emp-panel-updates">
                     <div class="wu-two-col">
@@ -4790,7 +4872,6 @@ body {
                             <div class="form-group">
                                 <label>Type</label>
                                 <select id="pres-type" onchange="togglePresEventField()">
-                                    <option value="Internal Presentation">Internal Presentation</option>
                                     <option value="Outer Event">Conference</option>
                                 </select>
                             </div>
@@ -5041,6 +5122,8 @@ body {
                                     <th style="width:40px;">#</th>
                                     <th>Employee / System</th>
                                     <th>Remote ID</th>
+                                    <th>Anydesk Password</th>
+                                    <th>System Password</th>
                                 </tr>
                             </thead>
                             <tbody id="anydesk-tbody"></tbody>
@@ -5153,9 +5236,14 @@ body {
                         <h1>Lab Presentations</h1>
                         <p>Internal presentations shared within the team.</p>
                     </div>
-                    <button class="dir-add-btn" onclick="openAddLabPresentationModal()">
-                        <i data-lucide="plus" style="width:13px;height:13px;"></i> Add Presentation
-                    </button>
+                    <div style="display:flex;gap:0.6rem;align-items:center;">
+                        <button class="dir-add-btn" id="lp-undo-btn" onclick="undoLabPresentation()" disabled title="Nothing to undo" style="background:#fff;color:#475569;border:1.5px solid #e2e8f0;">
+                            <i data-lucide="undo-2" style="width:13px;height:13px;"></i> Undo
+                        </button>
+                        <button class="dir-add-btn" onclick="openAddLabPresentationModal()">
+                            <i data-lucide="plus" style="width:13px;height:13px;"></i> Add Presentation
+                        </button>
+                    </div>
                 </div>
                 <div class="dir-section lab-pres-table-card">
                     <div class="dir-table-wrap">
@@ -5169,6 +5257,7 @@ body {
                                     <th>Upload PPT</th>
                                     <th>Link</th>
                                     <th>Status</th>
+                                    <th>Remarks</th>
                                     <th style="width:70px;">Actions</th>
                                 </tr>
                             </thead>
@@ -5185,6 +5274,9 @@ body {
                     <div style="display:flex;gap:0.6rem;">
                         <button class="dir-add-btn" id="conference-pending-btn" style="background:#d97706;display:none;" onclick="openPendingChangesModal()" title="Review changes detected on conference sites">
                             <i data-lucide="bell" style="width:13px;height:13px;"></i> <span id="conference-pending-count">0</span> Pending
+                        </button>
+                        <button class="dir-add-btn" id="conf-undo-btn" onclick="undoConference()" disabled title="Nothing to undo" style="background:#fff;color:#475569;border:1.5px solid #e2e8f0;">
+                            <i data-lucide="undo-2" style="width:13px;height:13px;"></i> Undo
                         </button>
                         <button class="dir-add-btn" style="background:#7c3aed;" onclick="openAddConferenceModal()" title="Extract conference details from a link">
                             <i data-lucide="sparkles" style="width:13px;height:13px;"></i> Add Details
@@ -5705,6 +5797,20 @@ body {
         </div>
     </div>
 
+    <!-- Conference Deadline Alert Toast (shown once per session on Home when a
+         registration deadline is 7 days or less away) -->
+    <div id="conference-deadline-toast" class="deadline-toast" style="display:none;">
+        <div class="deadline-toast-header">
+            <i data-lucide="alarm-clock" style="color:#dc2626;width:18px;height:18px;flex-shrink:0;"></i>
+            <span>Deadline Alert</span>
+            <button class="deadline-toast-close" onclick="closeConferenceDeadlineToast()" title="Dismiss"><i data-lucide="x" style="width:14px;height:14px;"></i></button>
+        </div>
+        <div id="conference-deadline-list" class="deadline-toast-body">
+            <!-- Populated by JS -->
+        </div>
+        <button class="btn-primary" style="width:100%;margin-top:0.6rem;padding:0.5rem;font-size:0.82rem;" onclick="closeConferenceDeadlineToast(); switchView('conference');">View Conferences</button>
+    </div>
+
     <!-- Add Employee Modal -->
     <div class="modal-overlay" id="add-employee-modal" style="display: none;">
         <div class="modal glass-panel">
@@ -6032,6 +6138,10 @@ body {
                             <option value="Scheduled">Scheduled</option>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label>Remarks <span style="color:#94a3b8;font-weight:400;">(optional)</span></label>
+                        <textarea id="lp-remarks" placeholder="Any notes about this presentation..." rows="2" style="border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; font-size: 0.9rem; font-family: inherit; background: white; color: #1e293b; width: 100%; box-sizing: border-box; resize: vertical;"></textarea>
+                    </div>
                 </div>
                 <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem; justify-content: flex-end;">
                     <button class="btn-secondary" onclick="closeAddLabPresentationModal()" style="padding: 0.5rem 1.5rem;">Cancel</button>
@@ -6289,7 +6399,7 @@ function parseCSV(csv) {
                 role: obj['Role'] || 'Bioinformatician',
                 email: obj['Email'] || obj['Email ID'] || obj['email'] || `${obj['Name'].toLowerCase().replace(/\s+/g, '.')}@genomicdesk.com`,
                 doj: obj['Date of Joining'] || 'N/A',
-                dob: obj['Date of Birth'] || '',
+                dob: obj['Date of Birth'] || obj['DOB'] || obj['D.O.B'] || obj['Birthday'] || '',
                 lastAppraisal: obj['Last Appraisal Date'] || 'NA',
                 team: obj['Team'] || 'Primary',
                 teamLeader: obj['Team Leader name'] || 'N/A',
@@ -6334,14 +6444,6 @@ function parseDMY(dateStr) {
     const [day, month, year] = parts.map(Number);
     if (!day || !month || !year) return null;
     return new Date(year, month - 1, day);
-}
-
-// True if today is emp's birthday (month + day match), ignoring year
-function isBirthdayToday(emp) {
-    const d = parseDMY(emp.dob);
-    if (!d) return false;
-    const today = new Date();
-    return d.getDate() === today.getDate() && d.getMonth() === today.getMonth();
 }
 
 // Appraisal cycle status for an employee, anchored on Last Appraisal Date
@@ -6452,6 +6554,18 @@ function isPastEmployee(emp) {
     if (emp.employeeId && _pastIdSet.has(emp.employeeId.trim().toLowerCase())) return true;
     if (emp.name && _pastNameSet.has(emp.name.trim().toLowerCase())) return true;
     return false;
+}
+
+// Employees (excluding past employees) whose Date of Birth falls on today's
+// month/day, regardless of birth year.
+function getTodaysBirthdays() {
+    const today = new Date();
+    const m = today.getMonth() + 1, d = today.getDate();
+    return employees.filter(emp => {
+        if (isPastEmployee(emp)) return false;
+        const dob = parseDMY(emp.dob);
+        return dob && dob.getMonth() + 1 === m && dob.getDate() === d;
+    });
 }
 
 // Load the alumni list from the "Past Employees" tab (fetched by name via gviz).
@@ -6827,6 +6941,7 @@ function renderEmployeeSpace(data = employees) {
     const container = document.getElementById('employee-cards-container');
     if (!container) return;
     data = data.filter(emp => !isPastEmployee(emp));
+    const todaysBirthdayIds = new Set(getTodaysBirthdays().map(emp => emp.id));
 
     container.innerHTML = data.map(emp => {
         const teamLower = (emp.team || '').toLowerCase();
@@ -6835,7 +6950,7 @@ function renderEmployeeSpace(data = employees) {
                         : teamLower === 'cmc'             ? 'cmc'
                         : '';
         const apprStatus = getAppraisalStatus(emp);
-        const isBirthday = isBirthdayToday(emp);
+        const isBirthday = todaysBirthdayIds.has(emp.id);
         const cardStatusClass = (apprStatus ? ` appraisal-${apprStatus}` : '') + (isBirthday ? ' is-birthday' : '');
         const apprBadge = apprStatus === 'overdue'
             ? `<span class="appraisal-flag overdue"><i data-lucide="alert-triangle" style="width:11px;height:11px;"></i> Appraisal Overdue</span>`
@@ -7614,6 +7729,26 @@ function _fmtLongDate(d) {
     return `${dd}${sf(dd)} ${mons[m-1]} ${y}`;
 }
 
+// Compact "27 Aug" date plus a relative tag ("Today"/"Tomorrow"/"in 3 days")
+// for near-term rows, used by the Lab Presentations table.
+function _fmtCompactDateRel(d) {
+    if (!d) return { compact: '', rel: '', relClass: '' };
+    const [y, m, dd] = d.split('-').map(Number);
+    const mons = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const now = new Date();
+    const compact = `${dd} ${mons[m-1]}${y !== now.getFullYear() ? ' ' + y : ''}`;
+    const target = new Date(y, m - 1, dd);
+    target.setHours(0, 0, 0, 0);
+    now.setHours(0, 0, 0, 0);
+    const diffDays = Math.round((target - now) / 86400000);
+    let rel = '', relClass = '';
+    if (diffDays === 0) { rel = 'Today'; relClass = 'soon'; }
+    else if (diffDays === 1) { rel = 'Tomorrow'; relClass = 'soon'; }
+    else if (diffDays === -1) { rel = 'Yesterday'; relClass = 'later'; }
+    else if (diffDays > 1 && diffDays <= 7) { rel = `in ${diffDays} days`; relClass = 'later'; }
+    return { compact, rel, relClass };
+}
+
 function _isImageName(name) {
     return ['png','jpg','jpeg','gif','webp','bmp','svg'].includes((name || '').split('.').pop().toLowerCase());
 }
@@ -7769,17 +7904,107 @@ function _achPresCard(row, showActions) {
     </div>`;
 }
 
+// ---- Lab Presentation sheet sync ----
+// Mirrors every add/edit/delete (including undos) on the `presentations`
+// table out to the "Lab Presentation" tab of the team Google Sheet, via the
+// lab-presentation-tools Edge Function -> Apps Script, the same way the
+// Conference tab stays in sync with its own sheet tab. Best-effort: a sync
+// failure (e.g. the sheet isn't configured yet) is logged, not surfaced —
+// the Supabase save this rides on has already succeeded either way.
+function _lpFieldsFromRow(row) {
+    return {
+        id: row.id,
+        topic: row.title || '',
+        date: row.pres_date || '',
+        presenter: row.author_name || '',
+        status: row.status || '',
+        remarks: row.remarks || '',
+        link: row.ref_link || '',
+        file: row.file_name || ''
+    };
+}
+
+async function _lpSyncSheet(mode, opts) {
+    try {
+        const body = { mode };
+        if (opts.fields) body.fields = opts.fields;
+        if (opts.matchId) body.match = { id: opts.matchId };
+        const { data, error } = await _sb.functions.invoke('lab-presentation-tools', { body });
+        if (error) throw error;
+        if (!data || !data.ok) throw new Error((data && data.error) || 'Sheet sync failed');
+    } catch (e) {
+        console.error('Lab Presentation sheet sync failed:', e);
+    }
+}
+
+// ---- Undo (last add/edit/delete/upload on the presentations table) ----
+let _lpUndoAction = null;
+
+function _lpSetUndoAction(action) {
+    _lpUndoAction = action;
+    _lpRefreshUndoBtn();
+}
+
+function _lpRefreshUndoBtn() {
+    const btn = document.getElementById('lp-undo-btn');
+    if (!btn) return;
+    if (!_lpUndoAction) {
+        btn.disabled = true;
+        btn.title = 'Nothing to undo';
+        return;
+    }
+    const labels = { insert: 'Undo add', update: 'Undo edit', delete: 'Undo delete' };
+    btn.disabled = false;
+    btn.title = `${labels[_lpUndoAction.type]}${_lpUndoAction.label ? `: ${_lpUndoAction.label}` : ''}`;
+}
+
+async function undoLabPresentation() {
+    if (!_lpUndoAction) return;
+    const action = _lpUndoAction;
+    _lpSetUndoAction(null);
+    try {
+        if (action.type === 'insert') {
+            const { error } = await _sb.from('presentations').delete().eq('id', action.id);
+            if (error) throw error;
+            presentationsCache = presentationsCache.filter(r => r.id !== action.id);
+            _lpSyncSheet('delete', { matchId: action.id });
+        } else if (action.type === 'update') {
+            const { data, error } = await _sb.from('presentations').update(action.snapshot).eq('id', action.id).select().single();
+            if (error) throw error;
+            const idx = presentationsCache.findIndex(r => r.id === action.id);
+            if (idx !== -1) presentationsCache[idx] = data;
+            _lpSyncSheet('update', { fields: _lpFieldsFromRow(data), matchId: data.id });
+        } else if (action.type === 'delete') {
+            const { data, error } = await _sb.from('presentations').insert(action.snapshot).select().single();
+            if (error) throw error;
+            presentationsCache.unshift(data);
+            // deletePresentation() also handles Outer Event (achievements) rows,
+            // which never lived in the Lab Presentation sheet tab to begin with.
+            if (data.pres_type !== 'Outer Event') _lpSyncSheet('add', { fields: _lpFieldsFromRow(data) });
+        }
+    } catch (e) {
+        console.error('Undo failed:', e);
+        alert('Undo failed: ' + (e.message || e));
+        return;
+    }
+    renderPresentations();
+    renderAchievementsWall();
+}
+
 // Single row for the Lab Presentations table.
 function _labPresRow(row, i) {
     const canEdit = !!getSession();
-    const dateDisplay = _fmtLongDate(row.pres_date) || '—';
+    const _dt = _fmtCompactDateRel(row.pres_date);
+    const dateDisplay = _dt.compact
+        ? `${_dt.compact}${_dt.rel ? `<span class="lab-pres-date-rel ${_dt.relClass}">${_dt.rel}</span>` : ''}`
+        : '—';
     const presEmp = _empByEmployeeId(row.employee_id);
     const presName = presEmp ? presEmp.name : (row.author_name || 'Team Member');
     const pptCell = row.file_url
         ? `<a href="${_previewUrl(row.file_url)}" target="_blank" rel="noopener" style="color:#0d9488;font-weight:600;text-decoration:none;">View</a>`
         : (canEdit
-            ? `<label class="dir-tb-btn" style="cursor:pointer;display:inline-flex;" title="Upload PPT">
-                    <i data-lucide="upload" style="width:14px;height:14px;"></i>
+            ? `<label class="lab-pres-upload-btn" title="Upload PPT">
+                    <i data-lucide="upload" style="width:13px;height:13px;"></i> Upload
                     <input type="file" accept=".ppt,.pptx,.pdf" style="display:none;" onchange="uploadLabPresentationPpt('${row.id}', this)">
                 </label>`
             : '<span style="color:#cbd5e1;">—</span>');
@@ -7789,19 +8014,24 @@ function _labPresRow(row, i) {
     const status = row.status || 'Completed';
     const statusColor = status === 'Completed' ? '#10b981' : status === 'Ongoing' ? '#3b82f6' : status === 'Scheduled' ? '#f59e0b' : '#6b7280';
     const statusBg = status === 'Completed' ? '#d1fae5' : status === 'Ongoing' ? '#dbeafe' : status === 'Scheduled' ? '#fef3c7' : '#e5e7eb';
-    const actions = canEdit ? `<div class="dir-row-actions" style="justify-content:center;">
+    const actions = canEdit ? `<div class="dir-row-actions lab-pres-actions" style="justify-content:center;">
             <button class="dir-tb-btn" onclick="openEditLabPresentationModal('${row.id}')" title="Edit"><i data-lucide="pencil" style="width:14px;height:14px;"></i></button>
             <button class="dir-tb-btn del" onclick="deletePresentation('${row.id}')" title="Delete"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
         </div>` : '';
 
+    const remarksCell = row.remarks
+        ? `<span title="${row.remarks.replace(/"/g, '&quot;')}" style="display:inline-block;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom;color:#475569;">${row.remarks}</span>`
+        : '<span style="color:#cbd5e1;">—</span>';
+
     return `<tr>
         <td style="color:#94a3b8;font-size:0.76rem;font-weight:500;">${i + 1}</td>
-        <td><strong>${row.title || '—'}</strong></td>
+        <td>${row.title ? `<strong>${row.title}</strong>` : '<span class="lab-pres-topic-pending">Topic to be added</span>'}</td>
         <td>${dateDisplay}</td>
         <td>${presName}</td>
         <td>${pptCell}</td>
         <td>${linkCell}</td>
         <td><span style="background:${statusBg};color:${statusColor};padding:0.3rem 0.7rem;border-radius:6px;font-size:0.78rem;font-weight:600;">${status}</span></td>
+        <td>${remarksCell}</td>
         <td>${actions}</td>
     </tr>`;
 }
@@ -7814,7 +8044,7 @@ function renderPresentations() {
     const internal = presentationsCache.filter(r => r.pres_type !== 'Outer Event');
 
     if (!internal.length) {
-        tbody.innerHTML = `<tr class="dir-empty-row"><td colspan="8">No lab presentations added yet.</td></tr>`;
+        tbody.innerHTML = `<tr class="dir-empty-row"><td colspan="9">No lab presentations added yet.</td></tr>`;
         return;
     }
 
@@ -7849,6 +8079,7 @@ function openAddLabPresentationModal() {
     document.getElementById('lp-file-current').textContent = '';
     document.getElementById('lp-ref-link').value = '';
     document.getElementById('lp-status').value = 'Completed';
+    document.getElementById('lp-remarks').value = '';
     document.getElementById('lab-pres-modal-title').textContent = 'Add Presentation';
     document.getElementById('lp-save-btn').innerHTML = '<i data-lucide="check" style="width:16px;height:16px;"></i> Save';
     document.getElementById('add-lab-presentation-modal').style.display = 'flex';
@@ -7869,6 +8100,7 @@ function openEditLabPresentationModal(id) {
         : '';
     document.getElementById('lp-ref-link').value = row.ref_link || '';
     document.getElementById('lp-status').value = row.status || 'Completed';
+    document.getElementById('lp-remarks').value = row.remarks || '';
     document.getElementById('lab-pres-modal-title').textContent = 'Edit Presentation';
     document.getElementById('lp-save-btn').innerHTML = '<i data-lucide="check" style="width:16px;height:16px;"></i> Save Changes';
     document.getElementById('add-lab-presentation-modal').style.display = 'flex';
@@ -7892,6 +8124,7 @@ async function saveLabPresentation() {
     const fileInput = document.getElementById('lp-file-input');
     const refLink = document.getElementById('lp-ref-link').value.trim();
     const status = document.getElementById('lp-status').value;
+    const remarks = document.getElementById('lp-remarks').value.trim();
 
     if (!presDate) { alert('Please select the date.'); return; }
 
@@ -7908,14 +8141,20 @@ async function saveLabPresentation() {
         }
 
         if (_lpEditingId) {
+            const prevRow = presentationsCache.find(r => r.id === _lpEditingId);
+            const prevSnapshot = prevRow ? { ...prevRow } : null;
+            if (prevSnapshot) { delete prevSnapshot.id; delete prevSnapshot.created_at; }
             const update = {
                 employee_id: empIds, author_name: empNames, title: title || null,
-                pres_date: presDate, file_url: fileUrl, file_name: fileName, ref_link: refLink || null, status
+                pres_date: presDate, file_url: fileUrl, file_name: fileName, ref_link: refLink || null, status,
+                remarks: remarks || null
             };
             const { data, error } = await _sb.from('presentations').update(update).eq('id', _lpEditingId).select().single();
             if (error) throw error;
             const idx = presentationsCache.findIndex(r => r.id === _lpEditingId);
             if (idx !== -1) presentationsCache[idx] = data;
+            if (prevSnapshot) _lpSetUndoAction({ type: 'update', id: _lpEditingId, snapshot: prevSnapshot, label: data.title || 'presentation' });
+            _lpSyncSheet('update', { fields: _lpFieldsFromRow(data), matchId: data.id });
         } else {
             const { data, error } = await _sb.from('presentations').insert({
                 employee_id: empIds,
@@ -7929,10 +8168,13 @@ async function saveLabPresentation() {
                 file_name: fileName,
                 photo_url: null,
                 ref_link: refLink || null,
-                status
+                status,
+                remarks: remarks || null
             }).select().single();
             if (error) throw error;
             presentationsCache.unshift(data);
+            _lpSetUndoAction({ type: 'insert', id: data.id, label: data.title || 'presentation' });
+            _lpSyncSheet('add', { fields: _lpFieldsFromRow(data) });
         }
     } catch (e) {
         console.error('Save presentation failed:', e);
@@ -7951,6 +8193,9 @@ async function uploadLabPresentationPpt(id, input) {
     if (!file) return;
     if (!getSession()) { alert('Please log in to upload.'); return; }
     try {
+        const prevRow = presentationsCache.find(r => r.id === id);
+        const prevSnapshot = prevRow ? { ...prevRow } : null;
+        if (prevSnapshot) { delete prevSnapshot.id; delete prevSnapshot.created_at; }
         const uploaded = await sbUpload('presentations', file);
         const { data, error } = await _sb.from('presentations')
             .update({ file_url: uploaded.url, file_name: uploaded.name })
@@ -7958,6 +8203,8 @@ async function uploadLabPresentationPpt(id, input) {
         if (error) throw error;
         const idx = presentationsCache.findIndex(r => r.id === id);
         if (idx !== -1) presentationsCache[idx] = data;
+        if (prevSnapshot) _lpSetUndoAction({ type: 'update', id, snapshot: prevSnapshot, label: data.title || 'presentation' });
+        _lpSyncSheet('update', { fields: _lpFieldsFromRow(data), matchId: data.id });
     } catch (e) {
         console.error('Upload PPT failed:', e);
         alert('Upload failed: ' + (e.message || e));
@@ -8071,7 +8318,7 @@ async function submitPresentation() {
 
     document.getElementById('pres-title').value = '';
     document.getElementById('pres-date').value = '';
-    document.getElementById('pres-type').value = 'Internal Presentation';
+    document.getElementById('pres-type').value = 'Outer Event';
     document.getElementById('pres-event-name').value = '';
     document.getElementById('pres-file-link').value = '';
     document.getElementById('pres-ref-link').value = '';
@@ -8106,6 +8353,10 @@ async function deletePresentation(id) {
         if (row) { await sbDeleteByUrl('presentations', row.file_url); await sbDeleteByUrl('presentations', row.photo_url); }
     } catch (e) { console.error('deletePresentation failed:', e); alert('Delete failed: ' + (e.message || e)); return; }
     presentationsCache = presentationsCache.filter(r => r.id !== id);
+    if (row) {
+        _lpSetUndoAction({ type: 'delete', snapshot: { ...row }, label: row.title || 'presentation' });
+        if (row.pres_type !== 'Outer Event') _lpSyncSheet('delete', { matchId: id });
+    }
     renderPresentations();
     renderAchievementsWall();
 }
@@ -8330,22 +8581,35 @@ let upcomingConferences = [];
 // RFC4180 escaped-quote rule ("" inside a quoted field -> a literal ") —
 // a bare `"` toggle-only parser silently drops those quote characters
 // instead, which breaks exact-value matching for any cell that contains one.
+// Quote-aware CSV -> array of string[] rows. Parses the whole text in one
+// pass rather than splitting on '\n' first, so a quoted cell containing an
+// embedded newline (a wrapped multi-line cell in the sheet) stays inside its
+// own field instead of being cut into a bogus extra row.
 function parseCSVRows(csv) {
     const rows = [];
-    (csv || '').split('\n').forEach(line => {
-        if (line.replace(/[\s,]/g, '') === '') { rows.push([]); return; } // blank line
-        const row = []; let cur = '', inQ = false;
-        for (let i = 0; i < line.length; i++) {
-            const ch = line[i];
+    const text = csv || '';
+    let row = [], cur = '', inQ = false;
+    for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (inQ) {
             if (ch === '"') {
-                if (inQ && line[i + 1] === '"') { cur += '"'; i++; }
-                else inQ = !inQ;
-            } else if (ch === ',' && !inQ) { row.push(cur.trim()); cur = ''; }
-            else cur += ch;
+                if (text[i + 1] === '"') { cur += '"'; i++; }
+                else inQ = false;
+            } else cur += ch;
+        } else if (ch === '"') {
+            inQ = true;
+        } else if (ch === ',') {
+            row.push(cur.trim()); cur = '';
+        } else if (ch === '\r') {
+            // ignore — paired \n (if any) ends the row below
+        } else if (ch === '\n') {
+            row.push(cur.trim()); rows.push(row); row = []; cur = '';
+        } else {
+            cur += ch;
         }
-        row.push(cur.trim());
-        rows.push(row);
-    });
+    }
+    row.push(cur.trim());
+    rows.push(row);
     return rows;
 }
 
@@ -8397,8 +8661,10 @@ async function loadDirData() {
             fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('Important')}`).then(r => r.text())
         ]);
         dirAnydesk = extractSheetTable(parseCSVRows(aTxt), {
-            user:     ['employee/system', 'employee / system', 'employee', 'name', 'system'],
-            remoteId: ['remote id', 'remoteid', 'anydesk id', 'id']
+            user:             ['employee/system', 'employee / system', 'employee', 'name', 'system'],
+            remoteId:         ['remote id', 'remoteid', 'anydesk id', 'id'],
+            anydeskPassword:  ['anydesk password', 'anydesk pwd'],
+            systemPassword:   ['system password', 'system pwd']
         });
         dirEmpMails = extractSheetTable(parseCSVRows(eTxt), {
             user:      ['user', 'name'],
@@ -8513,11 +8779,13 @@ function renderDirSystems() {
 function renderDirAnydesk() {
     const tbody = document.getElementById('anydesk-tbody');
     if (!tbody) return;
-    if (!dirAnydesk.length) return _dirEmpty(tbody, 3);
+    if (!dirAnydesk.length) return _dirEmpty(tbody, 5);
     tbody.innerHTML = dirAnydesk.map((r, i) => `<tr>
         <td style="color:#94a3b8;font-size:0.76rem;font-weight:500;">${i + 1}</td>
         <td>${userChip(r.user)}</td>
         <td>${copyCell(r.remoteId, true)}</td>
+        <td>${maskedCell(r.anydeskPassword, 'ad' + i, 'adpw')}</td>
+        <td>${maskedCell(r.systemPassword, 'ad' + i, 'syspw')}</td>
     </tr>`).join('');
     lucide.createIcons();
 }
@@ -8559,15 +8827,21 @@ function _parseLooseDate(str) {
     return isNaN(d.getTime()) ? null : d;
 }
 
-const CONFERENCE_URGENT_DAYS = 10;
-function daysLeftCell(deadlineStr) {
+// Whole days between today and a loosely-formatted deadline string, or null
+// if the deadline can't be parsed. Negative once the deadline has passed.
+function _confDaysLeft(deadlineStr) {
     const deadline = _parseLooseDate(deadlineStr);
-    if (!deadline) return '<span style="color:#cbd5e1;">—</span>';
+    if (!deadline) return null;
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const target = new Date(deadline.getFullYear(), deadline.getMonth(), deadline.getDate());
-    const days = Math.round((target - today) / 86400000);
+    return Math.round((target - today) / 86400000);
+}
 
+const CONFERENCE_URGENT_DAYS = 10;
+function daysLeftCell(deadlineStr) {
+    const days = _confDaysLeft(deadlineStr);
+    if (days === null) return '<span style="color:#cbd5e1;">—</span>';
     if (days < 0) return '<span style="color:#94a3b8;">Closed</span>';
     const label = days === 0 ? 'Today' : days === 1 ? '1 day' : `${days} days`;
     if (days > CONFERENCE_URGENT_DAYS) return `<span>${label}</span>`;
@@ -8589,6 +8863,48 @@ async function loadConferenceData() {
         console.error('loadConferenceData (sheet) failed:', err);
     }
     renderConferences();
+    checkConferenceDeadlineAlert();
+}
+
+// ---- Deadline alert popup (Home) ----
+// Shown at most once per page load, and only while the Home tab is actually
+// visible — if data resolves while the user is elsewhere, renderHomeTab()
+// re-checks the next time they land on Home.
+const CONFERENCE_DEADLINE_ALERT_DAYS = 7;
+let _confDeadlineAlertShown = false;
+
+function _upcomingConferenceDeadlines() {
+    return upcomingConferences
+        .map(r => ({ ...r, daysLeft: _confDaysLeft(r.deadline) }))
+        .filter(r => r.daysLeft !== null && r.daysLeft >= 0 && r.daysLeft <= CONFERENCE_DEADLINE_ALERT_DAYS)
+        .sort((a, b) => a.daysLeft - b.daysLeft);
+}
+
+function checkConferenceDeadlineAlert() {
+    if (_confDeadlineAlertShown) return;
+    if (!getSession()) return;
+    const homeView = document.getElementById('home-view');
+    if (!homeView || homeView.style.display === 'none') return;
+
+    const urgent = _upcomingConferenceDeadlines();
+    if (!urgent.length) return;
+
+    _confDeadlineAlertShown = true;
+    const list = document.getElementById('conference-deadline-list');
+    list.innerHTML = urgent.map(r => `
+        <div style="padding:0.6rem 0.7rem;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem;">
+                <div style="font-weight:700;color:#0f172a;font-size:0.82rem;line-height:1.3;">${r.name || 'Untitled conference'}</div>
+                <span style="color:#dc2626;background:#fff;border:1px solid #fecaca;border-radius:20px;padding:0.15rem 0.5rem;font-weight:700;font-size:0.72rem;white-space:nowrap;flex-shrink:0;">${r.daysLeft === 0 ? 'Today' : r.daysLeft === 1 ? '1 day' : `${r.daysLeft} days`}</span>
+            </div>
+            <div style="font-size:0.72rem;color:#64748b;margin-top:0.25rem;">Deadline: ${r.deadline || '—'}</div>
+        </div>`).join('');
+    document.getElementById('conference-deadline-toast').style.display = 'block';
+    lucide.createIcons();
+}
+
+function closeConferenceDeadlineToast() {
+    document.getElementById('conference-deadline-toast').style.display = 'none';
 }
 
 function renderConferences() {
@@ -8620,6 +8936,53 @@ function renderConferences() {
 // Non-null while editing an existing row: the row's own last-loaded values,
 // sent back as `match` so the Apps Script can find the same row to overwrite.
 let _acEditingMatch = null;
+
+// ---- Undo (last add/edit/delete on the Upcoming Conferences sheet) ----
+// Rows here have no id (they live in a Google Sheet), so "match" — the row's
+// full field set — doubles as its identity for both editing and undoing.
+let _acUndoAction = null;
+
+function _acSetUndoAction(action) {
+    _acUndoAction = action;
+    _acRefreshUndoBtn();
+}
+
+function _acRefreshUndoBtn() {
+    const btn = document.getElementById('conf-undo-btn');
+    if (!btn) return;
+    if (!_acUndoAction) {
+        btn.disabled = true;
+        btn.title = 'Nothing to undo';
+        return;
+    }
+    const labels = { add: 'Undo add', update: 'Undo edit', delete: 'Undo delete' };
+    btn.disabled = false;
+    btn.title = `${labels[_acUndoAction.type]}${_acUndoAction.label ? `: ${_acUndoAction.label}` : ''}`;
+}
+
+async function undoConference() {
+    if (!_acUndoAction) return;
+    const action = _acUndoAction;
+    _acSetUndoAction(null);
+    try {
+        let data, error;
+        if (action.type === 'add') {
+            ({ data, error } = await _sb.functions.invoke('conference-tools', { body: { mode: 'delete', match: action.match } }));
+        } else if (action.type === 'update') {
+            ({ data, error } = await _sb.functions.invoke('conference-tools', { body: { mode: 'update', match: action.afterMatch, fields: action.beforeMatch } }));
+        } else if (action.type === 'delete') {
+            ({ data, error } = await _sb.functions.invoke('conference-tools', { body: { mode: 'add', fields: action.match } }));
+        }
+        if (error) throw error;
+        if (!data || !data.ok) throw new Error((data && data.error) || 'Undo failed');
+        await loadConferenceData();
+        await reconcilePendingChanges();
+        _updatePendingBadge();
+    } catch (e) {
+        console.error('undoConference failed:', e);
+        alert('Undo failed: ' + (await _edgeFunctionErrorMessage(e)));
+    }
+}
 
 function openAddConferenceModal() {
     if (!getSession()) { alert('Please log in to add a conference.'); return; }
@@ -8667,6 +9030,7 @@ async function deleteConferenceRow(idx) {
         const { data, error } = await _sb.functions.invoke('conference-tools', { body: { mode: 'delete', match } });
         if (error) throw error;
         if (!data || !data.ok) throw new Error((data && data.error) || 'Delete failed');
+        _acSetUndoAction({ type: 'delete', match, label: row.name || 'conference' });
         await loadConferenceData();
         await reconcilePendingChanges();
         _updatePendingBadge();
@@ -8880,6 +9244,7 @@ async function saveConferenceDetails() {
         abstract: document.getElementById('ac-abstract').value.trim()
     };
     const isEdit = !!_acEditingMatch;
+    const prevMatch = _acEditingMatch;
     const payload = isEdit ? { mode: 'update', match: _acEditingMatch, fields } : { mode: 'add', fields };
     const btn = document.getElementById('ac-save-btn');
     btn.disabled = true;
@@ -8888,6 +9253,11 @@ async function saveConferenceDetails() {
         const { data, error } = await _sb.functions.invoke('conference-tools', { body: payload });
         if (error) throw error;
         if (!data || !data.ok) throw new Error((data && data.error) || 'Save failed');
+        if (isEdit) {
+            _acSetUndoAction({ type: 'update', afterMatch: fields, beforeMatch: prevMatch, label: name });
+        } else {
+            _acSetUndoAction({ type: 'add', match: fields, label: name });
+        }
         closeAddConferenceModal();
         await loadConferenceData();
         await reconcilePendingChanges();
@@ -9885,6 +10255,9 @@ function renderHomeTab() {
 
     // Team achievements wall (all roles)
     renderAchievementsWall();
+
+    // Popup once if a conference registration deadline is closing in soon
+    checkConferenceDeadlineAlert();
 
     lucide.createIcons();
 }
