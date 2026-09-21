@@ -25,7 +25,8 @@
 //        APPS_SCRIPT_SECRET = <the same string you put in SHARED_SECRET below>
 //
 // The "Lab Presentation" tab needs these column headers in row 1 (any order,
-// case-insensitive): ID, Topic, Date, Presenter, Status, Remarks, Link, File.
+// case-insensitive): ID, Topic, Date, Webinar Date, Presenter, Status,
+// Remarks, Link, File.
 // The ID column holds the presentation's Supabase id — it's what Edit/Delete
 // use to find the right row again, so don't remove or hand-edit it.
 //
@@ -36,7 +37,7 @@
 // in both Supabase Edge Function secrets above.
 
 var SHEET_GID = 1232290898; // "upcoming Conference" tab (matches CONFERENCE_SHEET_GID in the app)
-var LAB_PRES_SHEET_GID = 0; // TODO: replace with the "Lab Presentation" tab's gid
+var LAB_PRES_SHEET_GID = 765424597; // "Lab Presentations" tab
 var SHARED_SECRET = 'REPLACE_WITH_A_RANDOM_SECRET';
 
 function doPost(e) {
@@ -172,6 +173,7 @@ function _lpFieldsToRow(headers, fields) {
     'id': fields.id || '',
     'topic': fields.topic || '',
     'date': fields.date || '',
+    'webinar date': fields.webinarDate || '',
     'presenter': fields.presenter || '',
     'status': fields.status || '',
     'remarks': fields.remarks || '',

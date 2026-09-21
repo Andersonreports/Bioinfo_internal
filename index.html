@@ -5260,7 +5260,8 @@ body {
                                 <tr>
                                     <th style="width:40px;">#</th>
                                     <th>Topic</th>
-                                    <th>Date</th>
+                                    <th>Allocated on</th>
+                                    <th>Webinar Date/Presentation Date</th>
                                     <th>Presenter</th>
                                     <th>Upload PPT</th>
                                     <th>Link</th>
@@ -6126,8 +6127,12 @@ body {
                         <input type="text" id="lp-title" placeholder="e.g. Single-cell approaches to tumor profiling" style="border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; font-size: 0.9rem; font-family: inherit; background: white; color: #1e293b; width: 100%; box-sizing: border-box;">
                     </div>
                     <div class="form-group">
-                        <label>Date</label>
+                        <label>Allocated on</label>
                         <input type="date" id="lp-date" style="border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; font-size: 0.9rem; font-family: inherit; background: white; color: #1e293b; width: 100%; box-sizing: border-box;">
+                    </div>
+                    <div class="form-group">
+                        <label>Webinar Date/Presentation Date <span style="color:#94a3b8;font-weight:400;">(optional)</span></label>
+                        <input type="date" id="lp-webinar-date" style="border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; font-size: 0.9rem; font-family: inherit; background: white; color: #1e293b; width: 100%; box-sizing: border-box;">
                     </div>
                     <div class="form-group">
                         <label>Upload PPT <span style="color:#94a3b8;font-weight:400;">(PDF or PPT/PPTX, optional)</span></label>
@@ -7924,6 +7929,7 @@ function _lpFieldsFromRow(row) {
         id: row.id,
         topic: row.title || '',
         date: row.pres_date || '',
+        webinarDate: row.webinar_date || '',
         presenter: row.author_name || '',
         status: row.status || '',
         remarks: row.remarks || '',
@@ -7943,6 +7949,22 @@ async function _lpSyncSheet(mode, opts) {
     } catch (e) {
         console.error('Lab Presentation sheet sync failed:', e);
     }
+}
+
+// One-off backfill: pushes every presentation already in Supabase into the
+// sheet tab, for rows that predate the LAB_PRES_SHEET_GID fix and so never
+// made it there. Run once from the browser console: _lpBackfillSheet()
+// Re-running it after that would duplicate rows (it always uses 'add'), so
+// don't call it a second time once it's reported done.
+async function _lpBackfillSheet() {
+    const rows = presentationsCache.filter(r => r.pres_type !== 'Outer Event');
+    console.log(`Backfilling ${rows.length} presentation(s) to the sheet...`);
+    for (const row of rows) {
+        await _lpSyncSheet('add', { fields: _lpFieldsFromRow(row) });
+        console.log(`  synced: ${row.title || row.id}`);
+        await new Promise(resolve => setTimeout(resolve, 400));
+    }
+    console.log('Backfill done.');
 }
 
 // ---- Undo (last add/edit/delete/upload on the presentations table) ----
@@ -8006,6 +8028,10 @@ function _labPresRow(row, i) {
     const dateDisplay = _dt.compact
         ? `${_dt.compact}${_dt.rel ? `<span class="lab-pres-date-rel ${_dt.relClass}">${_dt.rel}</span>` : ''}`
         : '—';
+    const _wdt = _fmtCompactDateRel(row.webinar_date);
+    const webinarDateDisplay = _wdt.compact
+        ? `${_wdt.compact}${_wdt.rel ? `<span class="lab-pres-date-rel ${_wdt.relClass}">${_wdt.rel}</span>` : ''}`
+        : '—';
     const presEmp = _empByEmployeeId(row.employee_id);
     const presName = presEmp ? presEmp.name : (row.author_name || 'Team Member');
     const pptCell = row.file_url
@@ -8035,6 +8061,7 @@ function _labPresRow(row, i) {
         <td style="color:#94a3b8;font-size:0.76rem;font-weight:500;">${i + 1}</td>
         <td>${row.title ? `<strong>${row.title}</strong>` : '<span class="lab-pres-topic-pending">Topic to be added</span>'}</td>
         <td>${dateDisplay}</td>
+        <td>${webinarDateDisplay}</td>
         <td>${presName}</td>
         <td>${pptCell}</td>
         <td>${linkCell}</td>
@@ -8052,7 +8079,7 @@ function renderPresentations() {
     const internal = presentationsCache.filter(r => r.pres_type !== 'Outer Event');
 
     if (!internal.length) {
-        tbody.innerHTML = `<tr class="dir-empty-row"><td colspan="9">No lab presentations added yet.</td></tr>`;
+        tbody.innerHTML = `<tr class="dir-empty-row"><td colspan="10">No lab presentations added yet.</td></tr>`;
         return;
     }
 
@@ -8083,6 +8110,7 @@ function openAddLabPresentationModal() {
     _lpPopulateEmpList([]);
     document.getElementById('lp-title').value = '';
     document.getElementById('lp-date').value = '';
+    document.getElementById('lp-webinar-date').value = '';
     document.getElementById('lp-file-input').value = '';
     document.getElementById('lp-file-current').textContent = '';
     document.getElementById('lp-ref-link').value = '';
@@ -8102,6 +8130,7 @@ function openEditLabPresentationModal(id) {
     _lpPopulateEmpList((row.employee_id || '').split(',').map(s => s.trim()).filter(Boolean));
     document.getElementById('lp-title').value = row.title || '';
     document.getElementById('lp-date').value = row.pres_date || '';
+    document.getElementById('lp-webinar-date').value = row.webinar_date || '';
     document.getElementById('lp-file-input').value = '';
     document.getElementById('lp-file-current').innerHTML = row.file_url
         ? `Current: <a href="${_previewUrl(row.file_url)}" target="_blank" rel="noopener" style="color:#0d9488;font-weight:600;">${row.file_name || 'View file'}</a> — choosing a new file replaces it.`
@@ -8129,6 +8158,7 @@ async function saveLabPresentation() {
     const empNames = presenters.map(e => e.name).join(', ');
     const title = document.getElementById('lp-title').value.trim();
     const presDate = document.getElementById('lp-date').value;
+    const webinarDate = document.getElementById('lp-webinar-date').value;
     const fileInput = document.getElementById('lp-file-input');
     const refLink = document.getElementById('lp-ref-link').value.trim();
     const status = document.getElementById('lp-status').value;
@@ -8154,7 +8184,7 @@ async function saveLabPresentation() {
             if (prevSnapshot) { delete prevSnapshot.id; delete prevSnapshot.created_at; }
             const update = {
                 employee_id: empIds, author_name: empNames, title: title || null,
-                pres_date: presDate, file_url: fileUrl, file_name: fileName, ref_link: refLink || null, status,
+                pres_date: presDate, webinar_date: webinarDate || null, file_url: fileUrl, file_name: fileName, ref_link: refLink || null, status,
                 remarks: remarks || null
             };
             const { data, error } = await _sb.from('presentations').update(update).eq('id', _lpEditingId).select().single();
@@ -8170,6 +8200,7 @@ async function saveLabPresentation() {
                 title: title || null,
                 event_name: null,
                 pres_date: presDate,
+                webinar_date: webinarDate || null,
                 place: null,
                 pres_type: 'Internal Presentation',
                 file_url: fileUrl,
