@@ -5261,7 +5261,7 @@ body {
                                     <th style="width:40px;">#</th>
                                     <th>Topic</th>
                                     <th>Allocated on</th>
-                                    <th>Webinar Date/Presentation Date</th>
+                                    <th>Webinar / Presentation Date</th>
                                     <th>Presenter</th>
                                     <th>Upload PPT</th>
                                     <th>Link</th>
@@ -6131,7 +6131,7 @@ body {
                         <input type="date" id="lp-date" style="border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; font-size: 0.9rem; font-family: inherit; background: white; color: #1e293b; width: 100%; box-sizing: border-box;">
                     </div>
                     <div class="form-group">
-                        <label>Webinar Date/Presentation Date <span style="color:#94a3b8;font-weight:400;">(optional)</span></label>
+                        <label>Webinar / Presentation Date <span style="color:#94a3b8;font-weight:400;">(optional)</span></label>
                         <input type="date" id="lp-webinar-date" style="border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; font-size: 0.9rem; font-family: inherit; background: white; color: #1e293b; width: 100%; box-sizing: border-box;">
                     </div>
                     <div class="form-group">
@@ -7939,6 +7939,7 @@ function _lpFieldsFromRow(row) {
 }
 
 async function _lpSyncSheet(mode, opts) {
+    console.log(`Lab Presentation sheet sync (${mode}): calling...`);
     try {
         const body = { mode };
         if (opts.fields) body.fields = opts.fields;
@@ -7946,6 +7947,7 @@ async function _lpSyncSheet(mode, opts) {
         const { data, error } = await _sb.functions.invoke('lab-presentation-tools', { body });
         if (error) throw error;
         if (!data || !data.ok) throw new Error((data && data.error) || 'Sheet sync failed');
+        console.log(`Lab Presentation sheet sync (${mode}): OK`);
     } catch (e) {
         console.error('Lab Presentation sheet sync failed:', e);
     }
