@@ -8044,7 +8044,7 @@ async function _lpSyncSheet(mode, opts) {
         // deliberately not thrown — but a silent failure here means the
         // change never reaches the Google Sheet with no way to notice short
         // of checking the console, so surface it instead of hiding it.
-        alert('Saved, but syncing to the Google Sheet failed: ' + (e.message || e));
+        alert('Saved, but syncing to the Google Sheet failed: ' + (await _edgeFunctionErrorMessage(e)));
     }
 }
 
