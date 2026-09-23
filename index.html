@@ -224,7 +224,16 @@
     border-bottom: 1px solid rgba(15,23,42,0.06);
     gap: 0.4rem;
     box-shadow: 0 2px 12px rgba(15,42,94,0.05);
+    /* Even above the 820px breakpoint, a narrowed browser window (e.g. a
+       split-screen editor) can squeeze this below the tabs' total width —
+       scroll instead of clipping tabs with no way to reach them. cursor:grab
+       + the JS drag/wheel handlers below make that reachable with a mouse,
+       not just touch/trackpad. */
+    overflow-x: auto;
+    scrollbar-width: thin;
+    cursor: grab;
 }
+.nav-tabs.nav-tabs-dragging { cursor: grabbing; user-select: none; }
 
 .nav-tab {
     padding: 0.55rem 1rem;
@@ -4445,12 +4454,9 @@ body {
     .nav-tabs {
         gap: 0.35rem;
         padding: 0.5rem 1rem;
-        overflow-x: auto;
         flex-wrap: nowrap;
         -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
     }
-    .nav-tabs::-webkit-scrollbar { display: none; }
     .nav-tab { font-size: 0.85rem; white-space: nowrap; flex-shrink: 0; }
 
     .search-bar      { width: 100%; }
@@ -10894,6 +10900,50 @@ function closeLeaveDetailModal(event) {
 
 // (render hooks for home/profile are handled inside switchView below)
 
+// The nav tabs bar can overflow (a narrowed/split-screen window, or a phone)
+// with no scrollbar visible/usable and no touchpad — a plain vertical mouse
+// wheel over it does nothing, and there's no way to reach the hidden tabs.
+// Make it drag-scrollable with the mouse and convert vertical wheel input
+// into horizontal scroll, same as most horizontally-scrolling toolbars do.
+function _initNavTabsScroll() {
+    const el = document.querySelector('.nav-tabs');
+    if (!el) return;
+
+    el.addEventListener('wheel', (e) => {
+        if (el.scrollWidth <= el.clientWidth) return; // nothing to scroll
+        if (e.deltaY === 0) return; // already a horizontal gesture (trackpad) — let it through
+        el.scrollLeft += e.deltaY;
+        e.preventDefault();
+    }, { passive: false });
+
+    let dragging = false, startX = 0, startScroll = 0, moved = false;
+    el.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return;
+        dragging = true;
+        moved = false;
+        startX = e.clientX;
+        startScroll = el.scrollLeft;
+        el.classList.add('nav-tabs-dragging');
+    });
+    window.addEventListener('mousemove', (e) => {
+        if (!dragging) return;
+        const dx = e.clientX - startX;
+        if (Math.abs(dx) > 3) moved = true;
+        el.scrollLeft = startScroll - dx;
+    });
+    window.addEventListener('mouseup', () => {
+        if (!dragging) return;
+        dragging = false;
+        el.classList.remove('nav-tabs-dragging');
+        // Swallow the click that follows a real drag so it doesn't also
+        // trigger the tab's onclick (switchView) underneath the cursor.
+        if (moved) {
+            const swallow = (e) => { e.stopPropagation(); el.removeEventListener('click', swallow, true); };
+            el.addEventListener('click', swallow, true);
+        }
+    });
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
     loadDirData();
@@ -10906,6 +10956,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderAchievementsWall(); // re-draw so "Outer Event" talks aren't missing if this resolves after the first wall render
     });
     lucide.createIcons();
+    _initNavTabsScroll();
 
     const addForm = document.getElementById('add-emp-form');
     if (addForm) addForm.addEventListener('submit', handleAddEmployee);
