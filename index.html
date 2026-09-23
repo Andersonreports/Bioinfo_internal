@@ -4578,7 +4578,7 @@ body {
                             <span><i data-lucide="user" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;"></i> Employee Dashboard</span>
                         </div>
                         <div class="settings-row" id="menu-tools" style="cursor:pointer;" onclick="switchView('tools')">
-                            <span><i data-lucide="wrench" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;"></i> Tools</span>
+                            <span><i data-lucide="wrench" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;"></i> Inhouse Tools</span>
                         </div>
                         <div class="settings-row danger-row" style="cursor:pointer;" onclick="doLogout()">
                             <span style="color:#ef5350;"><i data-lucide="log-out" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;"></i> Sign Out</span>
@@ -4619,7 +4619,7 @@ body {
             </button>
             <button class="nav-tab" id="btn-tools-view" onclick="switchView('tools')">
                 <i data-lucide="wrench"></i>
-                <span>Tools</span>
+                <span>Inhouse Tools</span>
             </button>
             <button class="nav-tab" id="btn-directory-view" onclick="switchView('directory')">
                 <i data-lucide="book-user"></i>
@@ -4930,7 +4930,7 @@ body {
             <section id="tools-view" class="view-section" style="display: none;">
                 <div class="view-header">
                     <div>
-                        <h1>Tools</h1>
+                        <h1>Inhouse Tools</h1>
                         <p>Quick access to team tracking tools.</p>
                     </div>
                 </div>
@@ -4956,48 +4956,6 @@ body {
                             </div>
                         </div>
                     </div>
-                    <!-- Clinical History Tracker -->
-                    <div class="tool-card" style="--tc1:#064e3b;--tc2:#0d9488;--tc-shadow:rgba(6,78,59,0.36);">
-                        <div class="tool-card-inner">
-                            <div class="tool-card-top">
-                                <div class="tool-card-icon-wrap">
-                                    <i data-lucide="file-heart"></i>
-                                </div>
-                                <span class="tool-card-num">02</span>
-                            </div>
-                            <div class="tool-card-content">
-                                <h3>Clinical History Tracker</h3>
-                                <p>Manage and review patient clinical history records.</p>
-                            </div>
-                            <div class="tool-card-footer">
-                                <span class="tool-card-tag">Live</span>
-                                <button class="tool-card-btn" onclick="window.open('https://andersonreports.github.io/Clinical-history/', '_blank')">
-                                    Open Tracker <i data-lucide="arrow-right"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- CMC Tracker -->
-                    <div class="tool-card" style="--tc1:#4c1d95;--tc2:#7c3aed;--tc-shadow:rgba(76,29,149,0.36);">
-                        <div class="tool-card-inner">
-                            <div class="tool-card-top">
-                                <div class="tool-card-icon-wrap">
-                                    <i data-lucide="flask-conical"></i>
-                                </div>
-                                <span class="tool-card-num">03</span>
-                            </div>
-                            <div class="tool-card-content">
-                                <h3>CMC Tracker</h3>
-                                <p>Monitor Chemistry, Manufacturing and Controls progress.</p>
-                            </div>
-                            <div class="tool-card-footer">
-                                <span class="tool-card-tag">Live</span>
-                                <button class="tool-card-btn" onclick="window.open('https://andersonbioinfo.github.io/CMC__Sample_Tracking/', '_blank')">
-                                    Open Tracker <i data-lucide="arrow-right"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
                     <!-- Report Database -->
                     <div class="tool-card" style="--tc1:#9a3412;--tc2:#ea580c;--tc-shadow:rgba(154,52,18,0.36);">
                         <div class="tool-card-inner">
@@ -5005,7 +4963,7 @@ body {
                                 <div class="tool-card-icon-wrap">
                                     <i data-lucide="database"></i>
                                 </div>
-                                <span class="tool-card-num">04</span>
+                                <span class="tool-card-num">02</span>
                             </div>
                             <div class="tool-card-content">
                                 <h3>Report Database</h3>
@@ -5014,6 +4972,90 @@ body {
                             <div class="tool-card-footer">
                                 <span class="tool-card-tag">Live</span>
                                 <button class="tool-card-btn" onclick="window.open('https://andersonreports.github.io/Report-database/', '_blank')">
+                                    Open Tracker <i data-lucide="arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- VSwarehouse Token Monitor -->
+                    <div class="tool-card" style="--tc1:#713f12;--tc2:#ca8a04;--tc-shadow:rgba(113,63,18,0.36);">
+                        <div class="tool-card-inner">
+                            <div class="tool-card-top">
+                                <div class="tool-card-icon-wrap">
+                                    <i data-lucide="coins"></i>
+                                </div>
+                                <span class="tool-card-num">03</span>
+                            </div>
+                            <div class="tool-card-content">
+                                <h3>VSwarehouse Token Monitor</h3>
+                                <p>Track VSwarehouse token usage and status.</p>
+                            </div>
+                            <div class="tool-card-footer">
+                                <span class="tool-card-tag">Live</span>
+                                <button class="tool-card-btn" onclick="window.open('http://localhost:4173/index.html', '_blank')">
+                                    Open Tracker <i data-lucide="arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ADVAT-Gene Panel -->
+                    <div class="tool-card" style="--tc1:#831843;--tc2:#db2777;--tc-shadow:rgba(131,24,67,0.36);">
+                        <div class="tool-card-inner">
+                            <div class="tool-card-top">
+                                <div class="tool-card-icon-wrap">
+                                    <i data-lucide="dna"></i>
+                                </div>
+                                <span class="tool-card-num">04</span>
+                            </div>
+                            <div class="tool-card-content">
+                                <h3>ADVAT-Gene Panel</h3>
+                                <p>Browse the ADVAT germline gene panel coverage.</p>
+                            </div>
+                            <div class="tool-card-footer">
+                                <span class="tool-card-tag">Live</span>
+                                <button class="tool-card-btn" onclick="window.open('https://andersongenecoverage.github.io/ADVAT-GERMLINE-PANEL/', '_blank')">
+                                    Open Tracker <i data-lucide="arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Germline Panel -->
+                    <div class="tool-card" style="--tc1:#134e4a;--tc2:#0891b2;--tc-shadow:rgba(19,78,74,0.36);">
+                        <div class="tool-card-inner">
+                            <div class="tool-card-top">
+                                <div class="tool-card-icon-wrap">
+                                    <i data-lucide="dna"></i>
+                                </div>
+                                <span class="tool-card-num">05</span>
+                            </div>
+                            <div class="tool-card-content">
+                                <h3>Germline Panel</h3>
+                                <p>Browse the germline gene panel records.</p>
+                            </div>
+                            <div class="tool-card-footer">
+                                <span class="tool-card-tag">Live</span>
+                                <button class="tool-card-btn" onclick="window.open('https://andersonreports.github.io/Germline-Panel/', '_blank')">
+                                    Open Tracker <i data-lucide="arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Germline Exome QC Hub -->
+                    <div class="tool-card" style="--tc1:#1e293b;--tc2:#475569;--tc-shadow:rgba(30,41,59,0.36);">
+                        <div class="tool-card-inner">
+                            <div class="tool-card-top">
+                                <div class="tool-card-icon-wrap">
+                                    <i data-lucide="shield-check"></i>
+                                </div>
+                                <span class="tool-card-num">06</span>
+                            </div>
+                            <div class="tool-card-content">
+                                <h3>Germline Exome QC Hub</h3>
+                                <p>Review quality control metrics for germline exome runs.</p>
+                            </div>
+                            <div class="tool-card-footer">
+                                <span class="tool-card-tag">Live</span>
+                                <button class="tool-card-btn" onclick="window.open('http://192.168.2.161:9000/', '_blank')">
                                     Open Tracker <i data-lucide="arrow-right"></i>
                                 </button>
                             </div>
