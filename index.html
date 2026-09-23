@@ -5061,6 +5061,48 @@ body {
                             </div>
                         </div>
                     </div>
+                    <!-- Metagenomics Sample Tracker -->
+                    <div class="tool-card" style="--tc1:#14532d;--tc2:#65a30d;--tc-shadow:rgba(21,82,45,0.36);">
+                        <div class="tool-card-inner">
+                            <div class="tool-card-top">
+                                <div class="tool-card-icon-wrap">
+                                    <i data-lucide="microscope"></i>
+                                </div>
+                                <span class="tool-card-num">07</span>
+                            </div>
+                            <div class="tool-card-content">
+                                <h3>Metagenomics Sample Tracker</h3>
+                                <p>Track and manage metagenomics sample status and workflows.</p>
+                            </div>
+                            <div class="tool-card-footer">
+                                <span class="tool-card-tag">Live</span>
+                                <button class="tool-card-btn" onclick="window.open('https://andersonreports.github.io/Metagenomics/', '_blank')">
+                                    Open Tracker <i data-lucide="arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Excel Consolidator -->
+                    <div class="tool-card" style="--tc1:#14532d;--tc2:#16a34a;--tc-shadow:rgba(21,82,45,0.36);">
+                        <div class="tool-card-inner">
+                            <div class="tool-card-top">
+                                <div class="tool-card-icon-wrap">
+                                    <i data-lucide="table"></i>
+                                </div>
+                                <span class="tool-card-num">08</span>
+                            </div>
+                            <div class="tool-card-content">
+                                <h3>Excel Consolidator</h3>
+                                <p>Consolidate CMC Excel sheets into a single report.</p>
+                            </div>
+                            <div class="tool-card-footer">
+                                <span class="tool-card-tag">Live</span>
+                                <button class="tool-card-btn" onclick="window.open('https://andersonreports.github.io/cmcexcelconsolidator/', '_blank')">
+                                    Open Tracker <i data-lucide="arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -7992,6 +8034,11 @@ async function _lpSyncSheet(mode, opts) {
         console.log(`Lab Presentation sheet sync (${mode}): OK`);
     } catch (e) {
         console.error('Lab Presentation sheet sync failed:', e);
+        // The Supabase save this rides on has already succeeded, so this is
+        // deliberately not thrown — but a silent failure here means the
+        // change never reaches the Google Sheet with no way to notice short
+        // of checking the console, so surface it instead of hiding it.
+        alert('Saved, but syncing to the Google Sheet failed: ' + (e.message || e));
     }
 }
 

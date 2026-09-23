@@ -263,10 +263,11 @@ ${siteText}
     }
     const errText = await geminiRes.text();
     lastError = new Error(`Extraction failed (Gemini HTTP ${geminiRes.status}, model ${model}): ${errText.slice(0, 300)}`);
-    // Worth trying the next model on a quota error (429) or an unavailable
-    // model (404) — both are model-specific. Anything else (bad key, bad
-    // request) will fail identically for every model, so stop there.
-    if (geminiRes.status !== 429 && geminiRes.status !== 404) break;
+    // Worth trying the next model on a quota error (429), an unavailable
+    // model (404), or a model temporarily overloaded (503) — all three are
+    // model-specific. Anything else (bad key, bad request) will fail
+    // identically for every model, so stop there.
+    if (geminiRes.status !== 429 && geminiRes.status !== 404 && geminiRes.status !== 503) break;
   }
   if (lastError) throw lastError;
   if (!rawText) throw new Error("Extraction returned no data");
