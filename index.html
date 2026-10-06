@@ -1096,6 +1096,12 @@ body {
     pointer-events: none;
 }
 
+.profile-avatar-wrap .birthday-crown { top: -16px; z-index: 3; }
+.profile-meta-item.is-birthday-today {
+    border-color: #fde68a;
+    box-shadow: 0 0 0 1px rgba(253,230,138,0.5), 0 0 14px rgba(253,230,138,0.25);
+}
+
 .birthday-popper {
     position: absolute;
     bottom: 6px;
@@ -5697,6 +5703,7 @@ body {
             <!-- Left Column: Avatar + Quick Info -->
             <div class="profile-left">
                 <div class="profile-avatar-wrap">
+                    <span class="birthday-crown" id="details-bday-crown" style="display:none;" aria-hidden="true">👑</span>
                     <img id="details-avatar" src="" alt="Avatar" class="profile-avatar-img">
                 </div>
                 <h2 id="details-name" class="profile-name"></h2>
@@ -5716,6 +5723,10 @@ body {
                     <div class="profile-meta-item">
                         <span class="profile-meta-label">Date of Joining</span>
                         <span class="profile-meta-value" id="details-doj"></span>
+                    </div>
+                    <div class="profile-meta-item" id="details-dob-item">
+                        <span class="profile-meta-label">Date of Birth</span>
+                        <span class="profile-meta-value" id="details-dob"></span>
                     </div>
                     <div class="profile-meta-item">
                         <span class="profile-meta-label">Last Appraisal Date</span>
@@ -6803,6 +6814,11 @@ function openEmployeeDetails(id) {
     document.getElementById('details-leader').textContent = emp.teamLeader;
     document.getElementById('details-doj').textContent = formatDate(emp.doj);
     document.getElementById('details-appraisal').textContent = formatDate(emp.lastAppraisal);
+    const dobDate = parseDMY(emp.dob);
+    const isBdayToday = !!dobDate && dobDate.getDate() === new Date().getDate() && dobDate.getMonth() === new Date().getMonth();
+    document.getElementById('details-dob').textContent = dobDate ? formatDate(emp.dob) + (isBdayToday ? ' 🎂' : '') : '—';
+    document.getElementById('details-bday-crown').style.display = isBdayToday ? '' : 'none';
+    document.getElementById('details-dob-item').classList.toggle('is-birthday-today', isBdayToday);
     document.getElementById('details-email').textContent = emp.email;
     document.getElementById('details-phone').textContent = emp.phone || '—';
     document.getElementById('details-emergency').textContent = emp.secondaryPhone || '—';
