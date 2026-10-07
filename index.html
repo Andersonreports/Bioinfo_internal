@@ -3261,7 +3261,7 @@ body {
 .dir-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.84rem;
+    font-size: 1.05rem;
 }
 .dir-table thead tr {
     background: linear-gradient(100deg, #0f172a 0%, #134e4a 65%, #0d9488 100%);
@@ -3269,16 +3269,16 @@ body {
 .dir-table th {
     padding: 0.85rem 1.15rem;
     text-align: left;
-    font-size: 0.68rem;
+    font-size: 0.85rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.07em;
-    color: rgba(255,255,255,0.72);
+    color: rgba(255,255,255,0.85);
     white-space: nowrap;
 }
 .dir-table th:first-child { color: rgba(255,255,255,0.32); }
 .dir-table td {
-    padding: 0.78rem 1.15rem;
+    padding: 0.95rem 1.15rem;
     border-bottom: 1px solid #f1f5f9;
     color: #374151;
     vertical-align: middle;
@@ -3342,7 +3342,7 @@ body {
 .dir-user-name {
     font-weight: 600;
     color: #0f172a;
-    font-size: 0.86rem;
+    font-size: 1.05rem;
 }
 .dir-field-wrap {
     display: flex;
@@ -3355,13 +3355,14 @@ body {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-.dir-masked { font-family: monospace; letter-spacing: 0.12em; color: #94a3b8; font-size: 0.9rem; }
+.dir-masked { font-family: monospace; letter-spacing: 0.12em; color: #64748b; font-size: 1.1rem; }
+.dir-tb-btn svg { width: 18px !important; height: 18px !important; }
 .dir-tb-btn {
     background: none;
     border: none;
     cursor: pointer;
-    padding: 4px;
-    color: #cbd5e1;
+    padding: 5px;
+    color: #94a3b8;
     display: flex;
     align-items: center;
     border-radius: 5px;
@@ -8891,7 +8892,7 @@ function renderDirEmpMails() {
     if (!tbody) return;
     if (!dirEmpMails.length) return _dirEmpty(tbody, 6);
     tbody.innerHTML = dirEmpMails.map((r, i) => `<tr>
-        <td style="color:#94a3b8;font-size:0.76rem;font-weight:500;">${i + 1}</td>
+        <td style="color:#64748b;font-size:0.95rem;font-weight:500;">${i + 1}</td>
         <td>${userChip(r.user)}</td>
         <td>${copyCell(r.mail)}</td>
         <td>${maskedCell(r.password, 'em' + i, 'pw')}</td>
@@ -8906,7 +8907,7 @@ function renderDirCommonMails() {
     if (!tbody) return;
     if (!dirCommonMails.length) return _dirEmpty(tbody, 3);
     tbody.innerHTML = dirCommonMails.map((r, i) => `<tr>
-        <td style="color:#94a3b8;font-size:0.76rem;font-weight:500;">${i + 1}</td>
+        <td style="color:#64748b;font-size:0.95rem;font-weight:500;">${i + 1}</td>
         <td>${copyCell(r.mail)}</td>
         <td>${maskedCell(r.password, 'cm' + i, 'pw')}</td>
     </tr>`).join('');
@@ -8918,7 +8919,7 @@ function renderDirSystems() {
     if (!tbody) return;
     if (!dirSystems.length) return _dirEmpty(tbody, 7);
     tbody.innerHTML = dirSystems.map((r, i) => `<tr>
-        <td style="color:#94a3b8;font-size:0.76rem;font-weight:500;">${r.sysNo || (i + 1)}</td>
+        <td style="color:#64748b;font-size:0.95rem;font-weight:500;">${r.sysNo || (i + 1)}</td>
         <td>${copyCell(r.ip, true)}</td>
         <td><strong>${r.model || '—'}</strong></td>
         <td>${r.user || '—'}</td>
@@ -8934,7 +8935,7 @@ function renderDirAnydesk() {
     if (!tbody) return;
     if (!dirAnydesk.length) return _dirEmpty(tbody, 5);
     tbody.innerHTML = dirAnydesk.map((r, i) => `<tr>
-        <td style="color:#94a3b8;font-size:0.76rem;font-weight:500;">${i + 1}</td>
+        <td style="color:#64748b;font-size:0.95rem;font-weight:500;">${i + 1}</td>
         <td>${userChip(r.user)}</td>
         <td>${copyCell(r.remoteId, true)}</td>
         <td>${maskedCell(r.anydeskPassword, 'ad' + i, 'adpw')}</td>
