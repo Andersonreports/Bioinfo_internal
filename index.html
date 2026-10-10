@@ -10064,7 +10064,10 @@ function closeChangeHeroModal() {
 
 // ===== AUTH =====
 // ===== SUPABASE =====
-const SUPABASE_URL  = 'https://boghqathvnkygdzxnzkh.supabase.co';
+// Routed through a Cloudflare Worker proxy (cloudflare-worker/supabase-proxy.js)
+// because some office Wi-Fi networks block *.supabase.co. Direct project URL:
+// https://boghqathvnkygdzxnzkh.supabase.co
+const SUPABASE_URL  = 'https://bioinfo-api.andersonreportautomation.workers.dev';
 const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJvZ2hxYXRodm5reWdkenhuemtoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NzAzODAsImV4cCI6MjA5NTM0NjM4MH0.c9KemDmU7d4YGhkizU3TZx-hYaXSftazb-5RuHgV0Rs';
 const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
