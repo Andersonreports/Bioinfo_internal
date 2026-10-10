@@ -5266,6 +5266,32 @@ body {
                         </table>
                     </div>
                 </div>
+
+                <!-- andrsn.in Users & Passwords -->
+                <div class="dir-section">
+                    <div class="dir-section-header">
+                        <div class="dir-section-title">
+                            <div class="dir-icon-chip" style="background:rgba(37,99,235,0.12);">
+                                <i data-lucide="users" style="width:16px;height:16px;color:#2563eb;"></i>
+                            </div>
+                            andrsn.in Users &amp; Passwords
+                        </div>
+                    </div>
+                    <div class="dir-table-wrap">
+                        <table class="dir-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:40px;">#</th>
+                                    <th>Name</th>
+                                    <th>Phone Number</th>
+                                    <th>Employee ID</th>
+                                    <th>Password</th>
+                                </tr>
+                            </thead>
+                            <tbody id="andrsn-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
             </section>
 
             <!-- Album View -->
@@ -8728,7 +8754,7 @@ const DIR_SHEET_GIDS = {
 const CONFERENCE_SHEET_GID = '1232290898'; // "upcoming Conference" tab
 const dirSheetUrl = (gid) => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
 
-let dirEmpMails = [], dirCommonMails = [], dirSystems = [], dirAnydesk = [], dirImportant = [];
+let dirEmpMails = [], dirCommonMails = [], dirSystems = [], dirAnydesk = [], dirImportant = [], dirAndrsn = [];
 let upcomingConferences = [];
 
 // Quote-aware CSV -> array of string[] rows (no header mapping). Handles the
@@ -8805,14 +8831,15 @@ function extractSheetTable(rows, fields, minMatch) {
 
 async function loadDirData() {
     try {
-        const [aTxt, eTxt, cTxt, sTxt, iTxt] = await Promise.all([
+        const [aTxt, eTxt, cTxt, sTxt, iTxt, uTxt] = await Promise.all([
             fetch(dirSheetUrl(DIR_SHEET_GIDS.anydesk)).then(r => r.text()),
             fetch(dirSheetUrl(DIR_SHEET_GIDS.emailPwd)).then(r => r.text()),
             fetch(dirSheetUrl(DIR_SHEET_GIDS.commonMails)).then(r => r.text()),
             fetch(dirSheetUrl(DIR_SHEET_GIDS.systemDetails)).then(r => r.text()),
             // Fetched by tab name (like the Past Employees tab) since it's a
             // newly added sheet tab with no known gid.
-            fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('Important')}`).then(r => r.text())
+            fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('Important')}`).then(r => r.text()),
+            fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('andrsn.in users and password')}`).then(r => r.text())
         ]);
         dirAnydesk = extractSheetTable(parseCSVRows(aTxt), {
             user:             ['employee/system', 'employee / system', 'employee', 'name', 'system'],
@@ -8845,6 +8872,12 @@ async function loadDirData() {
             username: ['username', 'user name', 'user'],
             password: ['password', 'pwd']
         });
+        dirAndrsn = extractSheetTable(parseCSVRows(uTxt), {
+            name:       ['name'],
+            phone:      ['phone number', 'phone', 'mobile'],
+            employeeId: ['employee id', 'emp id', 'employee_id'],
+            password:   ['password', 'pwd']
+        }, 3);
     } catch (err) {
         console.error('loadDirData (sheet) failed:', err);
     }
@@ -8853,6 +8886,7 @@ async function loadDirData() {
     renderDirSystems();
     renderDirAnydesk();
     renderDirImportant();
+    renderDirAndrsn();
 }
 
 function maskedCell(val, rowId, field) {
@@ -8961,6 +8995,20 @@ function renderDirImportant() {
         <td><strong>${titleCase(r.purpose) || '—'}</strong></td>
         <td>${copyCell(r.username)}</td>
         <td>${maskedCell(r.password, 'imp' + i, 'pw')}</td>
+    </tr>`).join('');
+    lucide.createIcons();
+}
+
+function renderDirAndrsn() {
+    const tbody = document.getElementById('andrsn-tbody');
+    if (!tbody) return;
+    if (!dirAndrsn.length) return _dirEmpty(tbody, 5);
+    tbody.innerHTML = dirAndrsn.map((r, i) => `<tr>
+        <td style="color:#94a3b8;font-size:0.76rem;font-weight:500;">${i + 1}</td>
+        <td>${userChip(r.name)}</td>
+        <td>${copyCell(r.phone, true)}</td>
+        <td>${copyCell(r.employeeId, true)}</td>
+        <td>${maskedCell(r.password, 'ua' + i, 'pw')}</td>
     </tr>`).join('');
     lucide.createIcons();
 }
