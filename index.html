@@ -10074,7 +10074,23 @@ function closeChangeHeroModal() {
 // https://boghqathvnkygdzxnzkh.supabase.co
 const SUPABASE_URL  = 'https://bioinfo-api.andersonreportautomation.workers.dev';
 const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJvZ2hxYXRodm5reWdkenhuemtoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NzAzODAsImV4cCI6MjA5NTM0NjM4MH0.c9KemDmU7d4YGhkizU3TZx-hYaXSftazb-5RuHgV0Rs';
-const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// Files uploaded before the proxy are stored in the database as direct
+// supabase.co URLs, which a blocking network can't load. Rewrite those to the
+// proxy origin in every table (REST) response so images/files load everywhere.
+const SUPABASE_DIRECT_URL = 'https://boghqathvnkygdzxnzkh.supabase.co';
+async function _sbProxyFetch(input, init) {
+    const res = await fetch(input, init);
+    const reqUrl = typeof input === 'string' ? input : (input && input.url) || '';
+    const type = res.headers.get('content-type') || '';
+    if (SUPABASE_URL === SUPABASE_DIRECT_URL || !res.ok || res.status === 204
+        || !reqUrl.includes('/rest/v1/') || !type.includes('json')) return res;
+    const text = (await res.text()).split(SUPABASE_DIRECT_URL).join(SUPABASE_URL);
+    const headers = new Headers(res.headers);
+    headers.delete('content-length');
+    headers.delete('content-encoding');
+    return new Response(text, { status: res.status, statusText: res.statusText, headers });
+}
+const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { global: { fetch: _sbProxyFetch } });
 
 // ===== SUPABASE STORAGE HELPERS =====
 // Upload a File to a public bucket and return { url, name }.
@@ -11105,6 +11121,8 @@ async function submitPresentationAssignment() {
     if (!empId) { alert('Please select an employee'); return; }
     if (!title) { alert('Please enter a post title'); return; }
 
+    const session = getSession();
+    if (!session) { alert('Please log in to assign a presentation.'); return; }
     const today = new Date().toISOString().split('T')[0];
     const { data, error } = await _sb.from('presentation_assignments').insert({
         assigned_to: empId,
@@ -11212,6 +11230,7 @@ async function deleteAssignment(id) {
 }
 
 function renderEmployeeAssignments() {
+    const session = getSession();
     if (!session || !session.employeeId) return;
 
     const myAssignments = presentationAssignmentsCache.filter(a => a.assigned_to === session.employeeId);
