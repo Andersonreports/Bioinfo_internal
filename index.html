@@ -3220,7 +3220,7 @@ body {
     margin-left: auto;
     margin-right: auto;
 }
-#directory-view .dir-section-title { font-size: 1.25rem; }
+#directory-view .dir-section-title { font-size: 1.5rem; font-weight: 800; }
 .dir-section-header {
     display: flex;
     align-items: center;
@@ -9013,7 +9013,7 @@ function renderDirAndrsn() {
     let n = 0;
     tbody.innerHTML = dirAndrsn.map((r, i) => {
         if (r.name && !r.phone && !r.employeeId && !r.password) {
-            return `<tr><td></td><td colspan="4"><strong>${r.name}</strong></td></tr>`;
+            return `<tr><td></td><td colspan="4" style="font-weight:800;color:#0f172a;font-size:1rem;"><strong style="font-weight:800;">${r.name}</strong></td></tr>`;
         }
         n++;
         return `<tr>
