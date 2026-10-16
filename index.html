@@ -140,41 +140,6 @@
     color: #1a1a1a;
 }
 
-.notif-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.6rem;
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid #f8f9fa;
-    font-size: 0.8rem;
-}
-
-.notif-item:last-child { border-bottom: none; }
-
-.notif-dot-icon {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #0d9488;
-    flex-shrink: 0;
-    margin-top: 4px;
-}
-
-.notif-item-text { color: #374151; line-height: 1.4; }
-.notif-item-time { font-size: 0.7rem; color: #94a3b8; margin-top: 2px; }
-
-.notif-dot {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #ef5350;
-    border: 1.5px solid #fff;
-    display: none;
-}
-
 .settings-row {
     display: flex;
     align-items: center;
@@ -1524,243 +1489,6 @@ body {
 .kpi-card.clickable:hover {
     border-color: #0d9488 !important;
     background: rgba(255, 255, 255, 0.9) !important;
-}
-
-/* Daily updates KPI card */
-.daily-updates-card {
-    grid-column: span 1;
-}
-
-.kpi-daily-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.55rem;
-    margin-top: 0.5rem;
-    max-height: 160px;
-    overflow-y: auto;
-}
-
-.kpi-daily-entry {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.55rem;
-}
-
-.kpi-daily-avatar {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    object-fit: cover;
-    flex-shrink: 0;
-    border: 1.5px solid #ccfbf1;
-}
-
-.kpi-daily-text {
-    display: flex;
-    flex-direction: column;
-    gap: 0.1rem;
-    min-width: 0;
-}
-
-.kpi-daily-name {
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: #1a1a1a;
-}
-
-.kpi-daily-update {
-    font-size: 0.72rem;
-    color: #64748b;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 180px;
-}
-
-.kpi-daily-hint {
-    font-size: 0.7rem;
-    color: #cbd5e1;
-    margin-top: 0.6rem;
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
-}
-
-.daily-updates-card:hover .kpi-daily-hint {
-    color: #0d9488;
-}
-
-/* Employee sub-tabs */
-.emp-subtabs {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 1.5rem;
-    border-bottom: 2px solid #f1f5f9;
-    padding-bottom: 0;
-}
-
-.emp-subtab {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.55rem 1.1rem;
-    background: none;
-    border: none;
-    border-bottom: 2.5px solid transparent;
-    margin-bottom: -2px;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #64748b;
-    cursor: pointer;
-    font-family: inherit;
-    transition: all 0.2s;
-    border-radius: 0;
-}
-
-.emp-subtab:hover { color: #0d9488; }
-.emp-subtab.active { color: #0d9488; border-bottom-color: #0d9488; }
-
-/* Work updates two-column layout */
-.wu-two-col {
-    display: grid;
-    grid-template-columns: 1fr 1.5fr;
-    gap: 1.5rem;
-    align-items: start;
-}
-
-/* Work update form card */
-.work-update-form-card {
-    background: #fff;
-    border: 1.5px solid #f1f5f9;
-    border-radius: 16px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-}
-
-.work-update-form-card h3 {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: #1a1a1a;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-}
-
-.work-update-form-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1rem;
-}
-
-.work-update-form-grid .form-group[style*="span 2"] {
-    grid-column: span 1;
-}
-
-/* Work updates history */
-.work-updates-history {
-    background: #fff;
-    border: 1.5px solid #f1f5f9;
-    border-radius: 16px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-    max-height: 520px;
-    display: flex;
-    flex-direction: column;
-}
-
-#wu-history-list {
-    overflow-y: auto;
-    flex: 1;
-}
-
-.wu-history-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-bottom: 1.25rem;
-}
-
-.wu-history-header h3 {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: #1a1a1a;
-}
-
-.wu-date-group {
-    margin-bottom: 1.25rem;
-}
-
-.wu-date-label {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: #0d9488;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 0.6rem;
-}
-
-.wu-entry {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.85rem;
-    padding: 0.85rem 0;
-    border-bottom: 1px solid #f8f9fa;
-}
-
-.wu-entry:last-child { border-bottom: none; }
-
-.wu-avatar {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    object-fit: cover;
-    flex-shrink: 0;
-    border: 2px solid #ccfbf1;
-}
-
-.wu-entry-body { flex: 1; }
-
-.wu-entry-header {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.3rem;
-    flex-wrap: wrap;
-}
-
-.wu-entry-name {
-    font-size: 0.875rem;
-    font-weight: 700;
-    color: #1a1a1a;
-}
-
-.wu-entry-role {
-    font-size: 0.72rem;
-    color: #64748b;
-    background: #f1f5f9;
-    padding: 2px 8px;
-    border-radius: 20px;
-}
-
-.wu-entry-text {
-    font-size: 0.85rem;
-    color: #374151;
-    line-height: 1.55;
-}
-
-.wu-empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 2rem;
-    color: #94a3b8;
-    font-size: 0.85rem;
 }
 
 /* Tools view */
@@ -3677,7 +3405,7 @@ body {
     .home-container { flex-direction: column; }
 }
 
-/* Left column holds the (reduced) calendar with work updates stacked below */
+/* Left column holds the (reduced) calendar */
 .home-left-col {
     flex: 0 0 480px;
     display: flex;
@@ -3692,16 +3420,6 @@ body {
     border-radius: 16px;
     padding: 1.25rem;
     box-shadow: var(--shadow-card);
-}
-
-.home-updates-col {
-    width: 100%;
-    background: #fff;
-    border-radius: 16px;
-    padding: 1.5rem;
-    box-shadow: var(--shadow-card);
-    max-height: 420px;
-    overflow-y: auto;
 }
 
 /* Achievements wall sits beside the calendar and matches its height */
@@ -4452,7 +4170,6 @@ body {
 /* --- Tablets & iPad landscape (≤1024px) --- */
 @media (max-width: 1024px) {
     .kpi-grid       { grid-template-columns: repeat(2, 1fr); }
-    .wu-two-col     { grid-template-columns: 1fr; }
     .mgr-main-row   { grid-template-columns: 1fr; }
     .main-content   { padding: 2rem 1.5rem; }
     #directory-view .dir-section { width: 100%; }
@@ -4575,21 +4292,6 @@ body {
                 <h2>AND-Bioinfo</h2>
             </div>
             <div class="header-actions">
-
-                <!-- Notifications -->
-                <div class="hdr-dropdown-wrap" id="notif-wrap">
-                    <button class="icon-btn" onclick="toggleHdrDropdown('notif-panel')" title="Notifications">
-                        <i data-lucide="bell"></i>
-                        <span class="notif-dot" id="notif-dot"></span>
-                    </button>
-                    <div class="hdr-dropdown" id="notif-panel" style="display:none;">
-                        <div class="hdr-dropdown-header">
-                            <span>Notifications</span>
-                            <button onclick="clearNotifications()" style="font-size:0.72rem;color:#0d9488;background:none;border:none;cursor:pointer;font-family:inherit;font-weight:600;">Clear all</button>
-                        </div>
-                        <div id="notif-list"><p class="hdr-empty">No new notifications.</p></div>
-                    </div>
-                </div>
 
                 <!-- User profile -->
                 <div class="hdr-dropdown-wrap" id="profile-wrap">
@@ -4756,57 +4458,11 @@ body {
                 <div class="view-header" style="margin-bottom:0.75rem;">
                     <div>
                         <h1>Employee Dashboard</h1>
-                        <p>Post and view work updates.</p>
+                        <p>Upload certificates, achievements and publications.</p>
                     </div>
                 </div>
 
                 <div class="employee-grid" id="employee-cards-container" style="display:none;"></div>
-
-                <!-- Work Updates panel -->
-                <div id="emp-panel-updates">
-                    <div class="wu-two-col">
-
-                    <!-- Post update form -->
-                    <div class="work-update-form-card">
-                        <h3><i data-lucide="edit-3" style="width:16px;height:16px;vertical-align:middle;margin-right:6px;"></i>Post a Work Update</h3>
-                        <div class="work-update-form-grid">
-                            <div class="form-group">
-                                <label>Your Name</label>
-                                <input type="text" id="wu-name" readonly title="Logged in as" style="background:#f8f9fa;color:#475569;cursor:not-allowed;">
-                            </div>
-                            <div class="form-group">
-                                <label>Date <span style="font-weight:400;color:#94a3b8;font-size:0.75rem;">(today or up to 5 days back)</span></label>
-                                <input type="date" id="wu-date">
-                            </div>
-                            <div class="form-group">
-                                <label>Work Update</label>
-                                <textarea id="wu-text" rows="3" placeholder="Describe what you worked on today..." style="width:100%;box-sizing:border-box;resize:vertical;background:#fafafa;border:1.5px solid #f1f5f9;border-radius:10px;padding:0.75rem 1rem;font-family:inherit;font-size:0.92rem;outline:none;transition:border 0.2s;"></textarea>
-                            </div>
-                        </div>
-                        <div style="display:flex;justify-content:flex-end;margin-top:0.75rem;">
-                            <button class="btn-primary" onclick="submitWorkUpdate()" style="display:flex;align-items:center;gap:0.4rem;">
-                                <i data-lucide="send" style="width:15px;height:15px;"></i> Post Update
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- History -->
-                    <div class="work-updates-history">
-                        <div class="wu-history-header">
-                            <h3>Update History</h3>
-                            <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
-                                <select id="wu-filter-name" onchange="renderWorkUpdates()" style="border:1.5px solid #f1f5f9;border-radius:8px;padding:0.4rem 0.75rem;font-size:0.82rem;font-family:inherit;background:#fff;color:#374151;">
-                                    <option value="all">All Employees</option>
-                                </select>
-                                <input type="date" id="wu-filter-date" onchange="renderWorkUpdates()" style="border:1.5px solid #f1f5f9;border-radius:8px;padding:0.4rem 0.75rem;font-size:0.82rem;font-family:inherit;background:#fff;color:#374151;">
-                                <button onclick="clearWuFilters()" style="font-size:0.78rem;color:#0d9488;background:none;border:none;cursor:pointer;font-family:inherit;font-weight:600;">Clear</button>
-                            </div>
-                        </div>
-                        <div id="wu-history-list"></div>
-                    </div>
-
-                    </div><!-- end wu-two-col -->
-                </div>
 
                 <!-- Certificate / Achievement Upload -->
                 <div class="emp-cert-section">
@@ -5456,7 +5112,7 @@ body {
                 <div id="home-welcome-card-wrap" style="margin-bottom:1.5rem;"></div>
                 <div id="home-absent-today-wrap" style="margin-bottom:1.5rem;"></div>
                 <div class="home-container">
-                    <!-- Left: Calendar, then Work Updates below -->
+                    <!-- Left: Calendar -->
                     <div class="home-left-col">
                         <div class="home-calendar-col">
                             <div class="calendar-header">
@@ -5474,11 +5130,6 @@ body {
                                 <h4 id="home-leave-history-title">Leave History</h4>
                                 <div id="home-leave-history-list"></div>
                             </div>
-                        </div>
-                        <!-- Work Updates (below the calendar) -->
-                        <div class="home-updates-col">
-                            <h3 id="home-updates-date-label" style="margin:0 0 1rem 0;font-size:0.95rem;font-weight:700;color:#0f172a;"></h3>
-                            <div id="home-updates-list"></div>
                         </div>
                     </div>
 
@@ -5635,25 +5286,6 @@ body {
         <div class="album-lb-grid" id="album-hero-pick-grid"></div>
     </div>
 
-
-    <!-- Daily Updates Modal -->
-    <div class="modal-overlay" id="daily-updates-modal" style="display:none;" onclick="closeDailyUpdatesModal(event)">
-        <div class="modal glass-panel teams-modal" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <div class="details-header-info">
-                    <i data-lucide="clipboard-list" style="color:#0891b2;width:32px;height:32px;"></i>
-                    <div>
-                        <h2>Daily Work Updates</h2>
-                        <p id="daily-updates-date-label">Today's updates</p>
-                    </div>
-                </div>
-                <button class="icon-btn" onclick="closeDailyUpdatesModal()"><i data-lucide="x"></i></button>
-            </div>
-            <div class="details-content">
-                <div id="daily-updates-list"></div>
-            </div>
-        </div>
-    </div>
 
     <!-- Avatar Edit Modal -->
     <div class="modal-overlay" id="avatar-edit-modal" style="display:none;" onclick="closeAvatarModal(event)">
@@ -6364,72 +5996,28 @@ function toggleHdrDropdown(id) {
     if (!panel) return;
     const isOpen = panel.style.display !== 'none';
     // Close all dropdowns first
-    ['notif-panel','profile-panel'].forEach(p => {
+    ['profile-panel'].forEach(p => {
         const el = document.getElementById(p);
         if (el) el.style.display = 'none';
     });
     if (!isOpen) {
         panel.style.display = 'block';
-        if (id === 'notif-panel') renderNotifications();
         lucide.createIcons();
     }
 }
 
 document.addEventListener('click', e => {
     if (!e.target.closest('.hdr-dropdown-wrap')) {
-        ['notif-panel','profile-panel'].forEach(p => {
+        ['profile-panel'].forEach(p => {
             const el = document.getElementById(p);
             if (el) el.style.display = 'none';
         });
     }
 });
 
-function renderNotifications() {
-    const list = document.getElementById('notif-list');
-    const today = new Date().toISOString().slice(0,10);
-    const todayUpdates = workUpdates.filter(u => u.date === today);
-    if (todayUpdates.length === 0) {
-        list.innerHTML = `<p class="hdr-empty">No new notifications.</p>`;
-        document.getElementById('notif-dot').style.display = 'none';
-        return;
-    }
-    document.getElementById('notif-dot').style.display = 'block';
-    list.innerHTML = todayUpdates.slice(0,5).map(u => `
-        <div class="notif-item">
-            <div class="notif-dot-icon"></div>
-            <div>
-                <div class="notif-item-text"><strong>${u.name}</strong> posted a work update</div>
-                <div class="notif-item-text">${u.text.length > 60 ? u.text.slice(0,60)+'...' : u.text}</div>
-                <div class="notif-item-time">Today</div>
-            </div>
-        </div>
-    `).join('');
-}
-
-function clearNotifications() {
-    document.getElementById('notif-list').innerHTML = `<p class="hdr-empty">No new notifications.</p>`;
-    document.getElementById('notif-dot').style.display = 'none';
-}
-
 function refreshData() {
     toggleHdrDropdown('settings-panel');
     fetchData();
-}
-
-async function clearAllWorkUpdates() {
-    if (!confirm('Clear ALL work updates? This cannot be undone.')) return;
-    try {
-        const { error } = await _sb.from('work_updates').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-        if (error) throw error;
-    } catch (e) {
-        console.error('clearAllWorkUpdates failed:', e);
-        alert('Clear failed: ' + (e.message || e));
-        return;
-    }
-    workUpdates = [];
-    renderWorkUpdates();
-    updateKPIs();
-    toggleHdrDropdown('settings-panel');
 }
 
 async function clearAllCertificates() {
@@ -6629,7 +6217,7 @@ async function fetchData() {
         // Layer shared content (Supabase certificates/avatars/leaves + the Past
         // Employees sheet tab) before rendering so stats exclude alumni.
         const [certMap, avatarMap, leavesMap] = await Promise.all([
-            loadCertificatesMap(), loadAvatarsMap(), loadLeaves(), loadPastEmployees(), loadWorkUpdates()
+            loadCertificatesMap(), loadAvatarsMap(), loadLeaves(), loadPastEmployees()
         ]);
 
         // Add any past employee who isn't in the main roster as an alumni record,
@@ -6671,9 +6259,7 @@ async function fetchData() {
         renderPresentations();
         renderPresentationAssignments();
         renderEmployeeAssignments();
-        populateWuNameDropdowns();
-        setDefaultWuDate();
-        renderWorkUpdates();
+        setupUploaderFields();
     } catch (error) {
         console.error('Error fetching data:', error);
     }
@@ -6744,66 +6330,6 @@ function updateKPIs() {
     const activeTeams = [...new Set(present.map(emp => emp.team))].filter(t => t && t !== 'Team' && t.trim() !== '').length;
     document.getElementById('kpi-active-teams').textContent = activeTeams;
     document.getElementById('kpi-past-employees').textContent = pastEmployees.length;
-    const today = new Date().toISOString().slice(0, 10);
-    const todayUpdates = workUpdates.filter(u => u.date === today);
-    const [ty, tm, td] = today.split('-').map(Number);
-    const mons = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const sf = td>=11&&td<=13?'th':['th','st','nd','rd'][td%10]||'th';
-    const dateLabel = document.getElementById('kpi-daily-date');
-    if (dateLabel) dateLabel.textContent = `${td}${sf} ${mons[tm-1]} ${ty}`;
-    const list = document.getElementById('kpi-daily-updates-list');
-    if (!list) return;
-    if (todayUpdates.length === 0) {
-        list.innerHTML = `<p style="color:#94a3b8;font-size:0.8rem;">No updates today.</p>`;
-    } else {
-        list.innerHTML = todayUpdates.map(u => `
-            <div class="kpi-daily-entry">
-                <img src="${u.avatar}" class="kpi-daily-avatar" alt="${u.name}">
-                <div class="kpi-daily-text">
-                    <span class="kpi-daily-name">${u.name}</span>
-                    <span class="kpi-daily-update">${u.text}</span>
-                </div>
-            </div>
-        `).join('');
-    }
-    // Update notification dot
-    const today2 = new Date().toISOString().slice(0,10);
-    const dot = document.getElementById('notif-dot');
-    if (dot) dot.style.display = workUpdates.filter(u => u.date === today2).length > 0 ? 'block' : 'none';
-}
-
-function openDailyUpdatesModal() {
-    const today = new Date().toISOString().slice(0, 10);
-    const todayUpdates = workUpdates.filter(u => u.date === today);
-    const [y, m, d] = today.split('-').map(Number);
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const s = d>=11&&d<=13?'th':['th','st','nd','rd'][d%10]||'th';
-    document.getElementById('daily-updates-date-label').textContent = `${d}${s} ${months[m-1]} ${y}`;
-
-    const list = document.getElementById('daily-updates-list');
-    if (todayUpdates.length === 0) {
-        list.innerHTML = `<div class="wu-empty"><i data-lucide="inbox" style="width:32px;height:32px;color:#cbd5e1;"></i><p>No updates posted today.</p></div>`;
-    } else {
-        list.innerHTML = todayUpdates.map(u => `
-            <div class="wu-entry">
-                <img src="${u.avatar}" class="wu-avatar" alt="${u.name}">
-                <div class="wu-entry-body">
-                    <div class="wu-entry-header">
-                        <span class="wu-entry-name">${u.name}</span>
-                    </div>
-                    <p class="wu-entry-text">${u.text.replace(/\n/g,'<br>')}</p>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    document.getElementById('daily-updates-modal').style.display = 'flex';
-    lucide.createIcons();
-}
-
-function closeDailyUpdatesModal(event) {
-    if (event && event.target !== event.currentTarget) return;
-    document.getElementById('daily-updates-modal').style.display = 'none';
 }
 
 // Filtering Logic
@@ -7462,46 +6988,6 @@ async function saveAvatarChange() {
     }
 }
 
-// Work Updates Logic — shared across all users via Supabase
-let workUpdates = [];
-
-async function loadWorkUpdates() {
-    try {
-        const { data, error } = await _sb.from('work_updates').select('*').order('created_at', { ascending: false });
-        if (error) throw error;
-        workUpdates = (data || []).map(row => ({
-            id: row.id,
-            name: row.name,
-            avatar: row.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(row.name)}&background=ad1457&color=fff`,
-            role: row.role || '',
-            date: row.update_date,
-            text: row.update_text
-        }));
-    } catch (e) { console.error('loadWorkUpdates failed:', e); }
-}
-
-function switchEmpSubtab(tab) {
-    document.querySelectorAll('.emp-subtab').forEach(b => b.classList.remove('active'));
-    document.getElementById(`subtab-${tab}`).classList.add('active');
-    document.getElementById('emp-panel-updates').style.display = tab === 'updates' ? '' : 'none';
-    if (tab === 'updates') {
-        populateWuNameDropdowns();
-        setDefaultWuDate();
-        renderWorkUpdates();
-        lucide.createIcons();
-    }
-}
-
-function populateWuNameDropdowns() {
-    const names = employees.map(e => e.name).sort();
-    const sel = document.getElementById('wu-filter-name');
-    if (sel) {
-        sel.innerHTML = '<option value="all">All Employees</option>' + names.map(n => `<option value="${n}">${n}</option>`).join('');
-    }
-    setupUploaderFields();
-    setWuName();
-}
-
 // Certificate / publication / lab-presentation uploader fields:
 //   • Admin   → a dropdown of all employees (can upload on anyone's behalf).
 //   • Others  → locked to their own name (cannot pick a different employee).
@@ -7531,140 +7017,6 @@ function setupUploaderFields() {
             el.disabled = true;
         });
     }
-}
-
-// Pre-fill the work-update "Your Name" field from the logged-in session.
-function setWuName() {
-    const session = getSession();
-    if (!session) return;
-    const emp = (typeof resolveSessionEmployee === 'function') ? resolveSessionEmployee(session) : null;
-    const name = (emp && emp.name) ? emp.name : (session.name || '');
-    const input = document.getElementById('wu-name');
-    if (input) input.value = name;
-}
-
-function setDefaultWuDate() {
-    const d = document.getElementById('wu-date');
-    if (!d) return;
-    const today = new Date();
-    const earliest = new Date();
-    earliest.setDate(earliest.getDate() - 5); // allow back-dating up to 5 days
-    d.value = dateToISO(today);
-    d.min = dateToISO(earliest);
-    d.max = dateToISO(today);
-    d.readOnly = false;
-}
-
-async function submitWorkUpdate() {
-    const name = document.getElementById('wu-name').value.trim();
-    const date = document.getElementById('wu-date').value;
-    const text = document.getElementById('wu-text').value.trim();
-    if (!name) { alert('Your name is not set. Please re-login.'); return; }
-    if (!date) { alert('Please select a date.'); return; }
-    if (!text) { alert('Please enter a work update.'); return; }
-
-    // Allow today or up to 5 days back only
-    const todayKey = dateToISO(new Date());
-    const earliest = new Date();
-    earliest.setDate(earliest.getDate() - 5);
-    const earliestKey = dateToISO(earliest);
-    if (date > todayKey) { alert('You cannot post a work update for a future date.'); return; }
-    if (date < earliestKey) { alert('You can only back-date a work update up to 5 days.'); return; }
-
-    const emp = employees.find(e => e.name === name);
-    const avatar = emp ? emp.avatar : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=ad1457&color=fff`;
-    const role = emp ? emp.role : '';
-
-    try {
-        const { data, error } = await _sb.from('work_updates').insert({
-            name, avatar, role, update_date: date, update_text: text
-        }).select().single();
-        if (error) throw error;
-        workUpdates.unshift({ id: data.id, name, avatar, role, date, text });
-    } catch (e) {
-        console.error('submitWorkUpdate failed:', e);
-        alert('Failed to post update: ' + (e.message || e));
-        return;
-    }
-
-    document.getElementById('wu-text').value = '';
-    renderWorkUpdates();
-    updateKPIs();
-    lucide.createIcons();
-}
-
-async function deleteWorkUpdate(id) {
-    if (!confirm('Delete this update?')) return;
-    try {
-        const { error } = await _sb.from('work_updates').delete().eq('id', id);
-        if (error) throw error;
-    } catch (e) {
-        console.error('deleteWorkUpdate failed:', e);
-        alert('Delete failed: ' + (e.message || e));
-        return;
-    }
-    workUpdates = workUpdates.filter(u => u.id !== id);
-    renderWorkUpdates();
-    updateKPIs();
-}
-
-function clearWuFilters() {
-    document.getElementById('wu-filter-name').value = 'all';
-    document.getElementById('wu-filter-date').value = '';
-    renderWorkUpdates();
-}
-
-function formatWuDate(dateStr) {
-    if (!dateStr) return '';
-    const [y, m, d] = dateStr.split('-').map(Number);
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const s = d >= 11 && d <= 13 ? 'th' : ['th','st','nd','rd'][d % 10] || 'th';
-    return `${d}${s} ${months[m-1]} ${y}`;
-}
-
-function renderWorkUpdates() {
-    const filterName = document.getElementById('wu-filter-name')?.value || 'all';
-    const filterDate = document.getElementById('wu-filter-date')?.value || '';
-    const list = document.getElementById('wu-history-list');
-    if (!list) return;
-
-    let filtered = workUpdates.filter(u => {
-        if (filterName !== 'all' && u.name !== filterName) return false;
-        if (filterDate && u.date !== filterDate) return false;
-        return true;
-    });
-
-    if (filtered.length === 0) {
-        list.innerHTML = `<div class="wu-empty"><i data-lucide="inbox" style="width:32px;height:32px;color:#cbd5e1;"></i><p>No work updates found.</p></div>`;
-        lucide.createIcons();
-        return;
-    }
-
-    // Group by date
-    const grouped = {};
-    filtered.forEach(u => { (grouped[u.date] = grouped[u.date] || []).push(u); });
-    const sortedDates = Object.keys(grouped).sort((a,b) => b.localeCompare(a));
-
-    list.innerHTML = sortedDates.map(date => `
-        <div class="wu-date-group">
-            <div class="wu-date-label"><i data-lucide="calendar" style="width:13px;height:13px;"></i> ${formatWuDate(date)}</div>
-            ${grouped[date].map(u => `
-                <div class="wu-entry">
-                    <img src="${u.avatar}" class="wu-avatar" alt="${u.name}">
-                    <div class="wu-entry-body">
-                        <div class="wu-entry-header">
-                            <span class="wu-entry-name">${u.name}</span>
-                        </div>
-                        <p class="wu-entry-text">${u.text.replace(/\n/g, '<br>')}</p>
-                    </div>
-                    <button class="cert-delete-btn" onclick="deleteWorkUpdate('${u.id}')" title="Delete">
-                        <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
-                    </button>
-                </div>
-            `).join('')}
-        </div>
-    `).join('');
-    lucide.createIcons();
 }
 
 // Add New Employee Logic
@@ -10834,7 +10186,6 @@ function renderCalendar() {
     }
 
     grid.innerHTML = html;
-    renderTodayWorkUpdates(_selectedCalendarDate);
     lucide.createIcons();
 }
 
@@ -10866,36 +10217,6 @@ function nextCalendarMonth() {
         _currentCalendarYear++;
     }
     renderCalendar();
-}
-
-function renderTodayWorkUpdates(dateISO) {
-    const list = document.getElementById('home-updates-list');
-    const dateLabel = document.getElementById('home-updates-date-label');
-
-    const filtered = workUpdates.filter(u => u.date === dateISO);
-
-    const [y, m, d] = dateISO.split('-').map(Number);
-    const mons = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const sf = (n) => n>=11&&n<=13?'th':['th','st','nd','rd'][n%10]||'th';
-    const displayDate = `${d}${sf(d)} ${mons[m-1]} ${y}`;
-    dateLabel.textContent = `Work Updates - ${displayDate}`;
-
-    if (filtered.length === 0) {
-        list.innerHTML = `<div style="text-align:center;padding:2rem;color:#94a3b8;"><i data-lucide="inbox" style="width:32px;height:32px;margin-bottom:0.5rem;display:block;"></i><p>No work updates for this day.</p></div>`;
-        lucide.createIcons();
-        return;
-    }
-
-    list.innerHTML = filtered.map(u => `
-        <div class="wu-entry" style="margin-bottom:1rem;padding:1rem;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;">
-            <img src="${u.avatar}" class="wu-avatar" alt="${u.name}" style="width:40px;height:40px;border-radius:50%;margin-right:0.75rem;flex-shrink:0;">
-            <div style="flex:1;">
-                <div style="font-weight:700;color:#0f172a;margin-bottom:0.3rem;">${u.name}</div>
-                <p style="margin:0;color:#374151;font-size:0.9rem;line-height:1.4;">${u.text.replace(/\n/g, '<br>')}</p>
-            </div>
-        </div>
-    `).join('');
-    lucide.createIcons();
 }
 
 function openLeaveRequestModal() {
