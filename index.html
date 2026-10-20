@@ -229,10 +229,12 @@
     box-shadow: 0 4px 12px rgba(13,148,136,0.28);
 }
 
-.nav-tab i {
-    width: 17px;
-    height: 17px;
+.nav-tab .nav-icon {
+    width: 30px;
+    height: 30px;
     flex-shrink: 0;
+    object-fit: contain;
+    pointer-events: none;
 }
 
 .nav-item i {
@@ -1557,20 +1559,18 @@ body {
     justify-content: space-between;
 }
 
-.tool-card-icon-wrap {
-    width: 52px;
-    height: 52px;
-    border-radius: 14px;
-    background: rgba(255,255,255,0.16);
-    border: 1px solid rgba(255,255,255,0.28);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
+/* 3D illustration (cut out from the card mockup, see assets/tool-icons) */
+.tool-card-illus {
+    width: 128px;
+    height: 128px;
+    object-fit: contain;
     flex-shrink: 0;
+    filter: drop-shadow(0 10px 16px rgba(0,0,0,0.22));
+    transition: transform 0.3s cubic-bezier(0.34,1.4,0.64,1);
+    pointer-events: none;
 }
 
-.tool-card-icon-wrap i { width: 26px; height: 26px; }
+.tool-card:hover .tool-card-illus { transform: translateY(-4px) scale(1.04); }
 
 .tool-card-num {
     font-size: 3rem;
@@ -2949,6 +2949,48 @@ body {
     margin-right: auto;
 }
 #directory-view .dir-section-title { font-size: 1.5rem; font-weight: 800; }
+.dir-quicknav {
+    position: sticky;
+    top: -1.5rem;
+    z-index: 20;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    overflow-x: auto;
+    width: 85%;
+    max-width: 100%;
+    margin: -0.5rem auto 1.25rem;
+    padding: 0.75rem 0.25rem;
+    background: linear-gradient(to bottom, #f8fafc 72%, rgba(248,250,252,0));
+}
+.dir-quicknav-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    background: #fff;
+    border: 1.5px solid rgba(13,148,136,0.16);
+    color: #334155;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 1px 4px rgba(15,23,42,0.06);
+    transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.15s;
+}
+.dir-quicknav-pill:hover {
+    border-color: rgba(13,148,136,0.4);
+    transform: translateY(-1px);
+}
+.dir-quicknav-pill.active {
+    background: #0d9488;
+    border-color: #0d9488;
+    color: #fff;
+}
+.dir-quicknav-pill.active i { color: #fff !important; }
+#directory-view .dir-section { scroll-margin-top: 4.75rem; }
 .dir-section-header {
     display: flex;
     align-items: center;
@@ -4320,47 +4362,47 @@ body {
         </div>
         <nav class="nav-tabs">
             <button class="nav-tab" id="btn-home-view" onclick="switchView('home')">
-                <i data-lucide="home"></i>
+                <img class="nav-icon" src="assets/nav-icons/home.png" alt="" draggable="false">
                 <span>Home</span>
             </button>
             <button class="nav-tab active" id="btn-manager-view" onclick="switchView('manager')">
-                <i data-lucide="layout-dashboard"></i>
+                <img class="nav-icon" src="assets/nav-icons/manager.png" alt="" draggable="false">
                 <span>Manager Dashboard</span>
             </button>
             <button class="nav-tab" id="btn-employee-view" onclick="switchView('employee')">
-                <i data-lucide="user"></i>
+                <img class="nav-icon" src="assets/nav-icons/employee.png" alt="" draggable="false">
                 <span>Employee Dashboard</span>
             </button>
             <button class="nav-tab" id="btn-achievements-view" onclick="switchView('achievements')">
-                <i data-lucide="trophy"></i>
+                <img class="nav-icon" src="assets/nav-icons/achievements.png" alt="" draggable="false">
                 <span>Achievements</span>
             </button>
             <button class="nav-tab" id="btn-publications-view" onclick="switchView('publications')">
-                <i data-lucide="book-open"></i>
+                <img class="nav-icon" src="assets/nav-icons/publications.png" alt="" draggable="false">
                 <span>Publications</span>
             </button>
             <button class="nav-tab" id="btn-presentations-view" onclick="switchView('presentations')">
-                <i data-lucide="presentation"></i>
+                <img class="nav-icon" src="assets/nav-icons/presentations.png" alt="" draggable="false">
                 <span>Lab Presentations</span>
             </button>
             <button class="nav-tab" id="btn-conference-view" onclick="switchView('conference')">
-                <i data-lucide="calendar-days"></i>
+                <img class="nav-icon" src="assets/nav-icons/conference.png" alt="" draggable="false">
                 <span>Upcoming Conferences</span>
             </button>
             <button class="nav-tab" id="btn-tools-view" onclick="switchView('tools')">
-                <i data-lucide="wrench"></i>
+                <img class="nav-icon" src="assets/nav-icons/tools.png" alt="" draggable="false">
                 <span>Inhouse Tools</span>
             </button>
             <button class="nav-tab" id="btn-directory-view" onclick="switchView('directory')">
-                <i data-lucide="book-user"></i>
+                <img class="nav-icon" src="assets/nav-icons/directory.png" alt="" draggable="false">
                 <span>Directory</span>
             </button>
             <button class="nav-tab" id="btn-album-view" onclick="switchView('album')">
-                <i data-lucide="images"></i>
+                <img class="nav-icon" src="assets/nav-icons/album.png" alt="" draggable="false">
                 <span>Album</span>
             </button>
             <button class="nav-tab" id="btn-profile-view" onclick="switchView('profile')">
-                <i data-lucide="user-circle"></i>
+                <img class="nav-icon" src="assets/nav-icons/profile.png" alt="" draggable="false">
                 <span>My Profile</span>
             </button>
         </nav>
@@ -4623,9 +4665,7 @@ body {
                     <div class="tool-card" style="--tc1:#1e3a8a;--tc2:#0284c7;--tc-shadow:rgba(30,58,138,0.34);">
                         <div class="tool-card-inner">
                             <div class="tool-card-top">
-                                <div class="tool-card-icon-wrap">
-                                    <i data-lucide="test-tube-2"></i>
-                                </div>
+                                <img class="tool-card-illus" src="assets/tool-icons/sample-tracker.png" alt="" draggable="false">
                                 <span class="tool-card-num">01</span>
                             </div>
                             <div class="tool-card-content">
@@ -4644,9 +4684,7 @@ body {
                     <div class="tool-card" style="--tc1:#9a3412;--tc2:#ea580c;--tc-shadow:rgba(154,52,18,0.36);">
                         <div class="tool-card-inner">
                             <div class="tool-card-top">
-                                <div class="tool-card-icon-wrap">
-                                    <i data-lucide="database"></i>
-                                </div>
+                                <img class="tool-card-illus" src="assets/tool-icons/report-database.png" alt="" draggable="false">
                                 <span class="tool-card-num">02</span>
                             </div>
                             <div class="tool-card-content">
@@ -4665,9 +4703,7 @@ body {
                     <div class="tool-card" style="--tc1:#713f12;--tc2:#ca8a04;--tc-shadow:rgba(113,63,18,0.36);">
                         <div class="tool-card-inner">
                             <div class="tool-card-top">
-                                <div class="tool-card-icon-wrap">
-                                    <i data-lucide="coins"></i>
-                                </div>
+                                <img class="tool-card-illus" src="assets/tool-icons/vswarehouse.png" alt="" draggable="false">
                                 <span class="tool-card-num">03</span>
                             </div>
                             <div class="tool-card-content">
@@ -4686,9 +4722,7 @@ body {
                     <div class="tool-card" style="--tc1:#831843;--tc2:#db2777;--tc-shadow:rgba(131,24,67,0.36);">
                         <div class="tool-card-inner">
                             <div class="tool-card-top">
-                                <div class="tool-card-icon-wrap">
-                                    <i data-lucide="dna"></i>
-                                </div>
+                                <img class="tool-card-illus" src="assets/tool-icons/advat.png" alt="" draggable="false">
                                 <span class="tool-card-num">04</span>
                             </div>
                             <div class="tool-card-content">
@@ -4707,9 +4741,7 @@ body {
                     <div class="tool-card" style="--tc1:#134e4a;--tc2:#0891b2;--tc-shadow:rgba(19,78,74,0.36);">
                         <div class="tool-card-inner">
                             <div class="tool-card-top">
-                                <div class="tool-card-icon-wrap">
-                                    <i data-lucide="dna"></i>
-                                </div>
+                                <img class="tool-card-illus" src="assets/tool-icons/germline-panel.png" alt="" draggable="false">
                                 <span class="tool-card-num">05</span>
                             </div>
                             <div class="tool-card-content">
@@ -4728,9 +4760,7 @@ body {
                     <div class="tool-card" style="--tc1:#1e293b;--tc2:#475569;--tc-shadow:rgba(30,41,59,0.36);">
                         <div class="tool-card-inner">
                             <div class="tool-card-top">
-                                <div class="tool-card-icon-wrap">
-                                    <i data-lucide="shield-check"></i>
-                                </div>
+                                <img class="tool-card-illus" src="assets/tool-icons/qc-hub.png" alt="" draggable="false">
                                 <span class="tool-card-num">06</span>
                             </div>
                             <div class="tool-card-content">
@@ -4749,9 +4779,7 @@ body {
                     <div class="tool-card" style="--tc1:#14532d;--tc2:#65a30d;--tc-shadow:rgba(21,82,45,0.36);">
                         <div class="tool-card-inner">
                             <div class="tool-card-top">
-                                <div class="tool-card-icon-wrap">
-                                    <i data-lucide="microscope"></i>
-                                </div>
+                                <img class="tool-card-illus" src="assets/tool-icons/metagenomics.png" alt="" draggable="false">
                                 <span class="tool-card-num">07</span>
                             </div>
                             <div class="tool-card-content">
@@ -4770,9 +4798,7 @@ body {
                     <div class="tool-card" style="--tc1:#14532d;--tc2:#16a34a;--tc-shadow:rgba(21,82,45,0.36);">
                         <div class="tool-card-inner">
                             <div class="tool-card-top">
-                                <div class="tool-card-icon-wrap">
-                                    <i data-lucide="table"></i>
-                                </div>
+                                <img class="tool-card-illus" src="assets/tool-icons/excel.png" alt="" draggable="false">
                                 <span class="tool-card-num">08</span>
                             </div>
                             <div class="tool-card-content">
@@ -4798,8 +4824,30 @@ body {
                     </div>
                 </div>
 
+                <!-- Quick-jump section nav -->
+                <nav class="dir-quicknav" id="dir-quicknav">
+                    <a href="#dir-anydesk" class="dir-quicknav-pill" data-target="dir-anydesk">
+                        <i data-lucide="monitor-smartphone" style="width:14px;height:14px;color:#ea580c;"></i> AnyDesk Remote IDs
+                    </a>
+                    <a href="#dir-office-mail" class="dir-quicknav-pill" data-target="dir-office-mail">
+                        <i data-lucide="building-2" style="width:14px;height:14px;color:#0891b2;"></i> Common Office Mail IDs
+                    </a>
+                    <a href="#dir-important" class="dir-quicknav-pill" data-target="dir-important">
+                        <i data-lucide="key-round" style="width:14px;height:14px;color:#d97706;"></i> Important Accounts
+                    </a>
+                    <a href="#dir-andrsn" class="dir-quicknav-pill" data-target="dir-andrsn">
+                        <i data-lucide="users" style="width:14px;height:14px;color:#2563eb;"></i> andrsn.in Users &amp; Passwords
+                    </a>
+                    <a href="#dir-sysdetails" class="dir-quicknav-pill" data-target="dir-sysdetails">
+                        <i data-lucide="monitor" style="width:14px;height:14px;color:#7c3aed;"></i> System Details
+                    </a>
+                    <a href="#dir-empmail" class="dir-quicknav-pill" data-target="dir-empmail">
+                        <i data-lucide="mail" style="width:14px;height:14px;color:#0d9488;"></i> Employee Mail IDs
+                    </a>
+                </nav>
+
                 <!-- AnyDesk Remote IDs -->
-                <div class="dir-section">
+                <div class="dir-section" id="dir-anydesk">
                     <div class="dir-section-header">
                         <div class="dir-section-title">
                             <div class="dir-icon-chip" style="background:rgba(234,88,12,0.12);">
@@ -4825,7 +4873,7 @@ body {
                 </div>
 
                 <!-- Common Office Mail IDs -->
-                <div class="dir-section">
+                <div class="dir-section" id="dir-office-mail">
                     <div class="dir-section-header">
                         <div class="dir-section-title">
                             <div class="dir-icon-chip" style="background:rgba(8,145,178,0.12);">
@@ -4849,7 +4897,7 @@ body {
                 </div>
 
                 <!-- Important Accounts -->
-                <div class="dir-section">
+                <div class="dir-section" id="dir-important">
                     <div class="dir-section-header">
                         <div class="dir-section-title">
                             <div class="dir-icon-chip" style="background:rgba(217,119,6,0.12);">
@@ -4874,7 +4922,7 @@ body {
                 </div>
 
                 <!-- andrsn.in Users & Passwords -->
-                <div class="dir-section">
+                <div class="dir-section" id="dir-andrsn">
                     <div class="dir-section-header">
                         <div class="dir-section-title">
                             <div class="dir-icon-chip" style="background:rgba(37,99,235,0.12);">
@@ -4900,7 +4948,7 @@ body {
                 </div>
 
                 <!-- System Details -->
-                <div class="dir-section">
+                <div class="dir-section" id="dir-sysdetails">
                     <div class="dir-section-header">
                         <div class="dir-section-title">
                             <div class="dir-icon-chip" style="background:rgba(124,58,237,0.12);">
@@ -4928,7 +4976,7 @@ body {
                 </div>
 
                 <!-- Employee Mail IDs -->
-                <div class="dir-section">
+                <div class="dir-section" id="dir-empmail">
                     <div class="dir-section-header">
                         <div class="dir-section-title">
                             <div class="dir-icon-chip" style="background:rgba(13,148,136,0.12);">
@@ -6063,6 +6111,7 @@ function switchView(viewName) {
     if (viewName === 'conference')   renderConferences();
     if (viewName === 'manager')      renderPresentationAssignments();
     if (viewName === 'employee')     renderEmployeeAssignments();
+    if (viewName === 'directory' && window._dirQuickNavUpdate) window._dirQuickNavUpdate();
 }
 
 // Sidebar Logic
@@ -8098,6 +8147,51 @@ async function saveEditAchievement() {
 
 // Directory — replaced below; stub kept to avoid reference errors during load
 function renderDirectory() { loadDirData(); }
+
+// Directory quick-jump nav: smooth-scrolls to a section and highlights
+// whichever pill matches the section nearest the top of the viewport, since
+// the directory page stacks several unrelated tables and it's otherwise easy
+// to lose track of which one you're looking at.
+function initDirQuickNav() {
+    const nav = document.getElementById('dir-quicknav');
+    if (!nav) return;
+    const scroller = document.querySelector('.main-content');
+    const pills = Array.from(nav.querySelectorAll('.dir-quicknav-pill'));
+    const sections = pills
+        .map(p => ({ pill: p, el: document.getElementById(p.dataset.target) }))
+        .filter(s => s.el);
+
+    nav.addEventListener('click', (e) => {
+        const pill = e.target.closest('.dir-quicknav-pill');
+        if (!pill) return;
+        e.preventDefault();
+        const target = document.getElementById(pill.dataset.target);
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    function updateActive() {
+        if (document.getElementById('directory-view').style.display === 'none') return;
+        let current = sections[0];
+        // Scrolled to (near) the bottom: the last section may be shorter than
+        // the viewport and so never cross the threshold below — pin it active.
+        if (scroller && scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 4) {
+            current = sections[sections.length - 1];
+        } else {
+            // Tolerance covers the gap scroll-margin-top leaves above a
+            // section when it's scrolled to via the nav (a bit more than the
+            // nav's own height, so content doesn't hug it too closely).
+            const navBottom = nav.getBoundingClientRect().bottom;
+            for (const s of sections) {
+                if (s.el.getBoundingClientRect().top - navBottom <= 32) current = s;
+            }
+        }
+        pills.forEach(p => p.classList.toggle('active', current && p === current.pill));
+    }
+
+    if (scroller) scroller.addEventListener('scroll', updateActive, { passive: true });
+    updateActive();
+    window._dirQuickNavUpdate = updateActive;
+}
 
 // ---- DIRECTORY TABLES ----
 
@@ -10367,6 +10461,7 @@ function _initNavTabsScroll() {
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
     loadDirData();
+    initDirQuickNav();
     loadConferenceData(); // upcoming conferences from the team Google Sheet
     loadPendingChanges(); // changes detected by the daily auto-refresh, awaiting approval
     loadAlbum();   // loads shared album photos + hero from Supabase, then renders
