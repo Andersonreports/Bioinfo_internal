@@ -5725,7 +5725,7 @@ body {
                 </div>
                 <div class="form-group">
                     <label>Allocated To</label>
-                    <input type="text" id="ac-allocated" placeholder="Who is this conference allocated to?">
+                    <select id="ac-allocated"><option value="">Not allocated</option></select>
                 </div>
             </div>
             <div class="modal-actions">
@@ -6431,6 +6431,15 @@ async function fetchData() {
             if (avatarMap[emp.employeeId]) emp.avatar = avatarMap[emp.employeeId];
         });
         leaves = leavesMap;
+        // The home page may already have rendered (right after login) while
+        // `leaves` was still empty, which showed "Everyone is present today"
+        // and a blank calendar. Refresh the leave-driven pieces now.
+        const _homeSession = getSession();
+        if (_homeSession) {
+            renderAbsentToday();
+            renderCalendar();
+            renderLeaveHistory(_homeSession);
+        }
 
         populateTeamLeaders();
         updateKPIs();
@@ -8714,6 +8723,55 @@ function _confDaysLeft(deadlineStr) {
     return Math.round((target - today) / 86400000);
 }
 
+// Month name -> index, tolerant of abbreviations and stray words around it.
+const _CONF_MONTHS = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+function _confMonthIndex(str) {
+    for (const word of String(str).toLowerCase().match(/[a-z]{3,}/g) || []) {
+        const i = _CONF_MONTHS.indexOf(word.slice(0, 3));
+        if (i !== -1) return i;
+    }
+    return -1;
+}
+
+// Last calendar day a conference date cell covers. Cells are usually ranges —
+// "October 9-10, 2026", "Jan 30 - Feb 2, 2027", "19-21 Nov 2026" — and only
+// the end of the range tells us the event is finished, so the closing chunk
+// wins and borrows the month/year from the opening chunk when it omits them.
+// A month with no day runs to the end of that month. Returns null when nothing
+// can be read, so odd entries stay on the page instead of disappearing.
+function _confEndDate(dateStr) {
+    if (!dateStr) return null;
+    const cleaned = String(dateStr).replace(/(\d+)(st|nd|rd|th)\b/gi, '$1').trim();
+    const parts = cleaned.split(/\s*[–—]\s*|\s+-\s+|\s+to\s+/i).filter(p => p.trim());
+    const first = parts[0] || cleaned;
+    const last  = parts[parts.length - 1] || cleaned;
+
+    const month = _confMonthIndex(last) !== -1 ? _confMonthIndex(last) : _confMonthIndex(first);
+    if (month === -1) return _parseLooseDate(cleaned);  // numeric / ISO form
+
+    // The closing chunk's own year wins ("Dec 31, 2026 to Jan 2, 2027"),
+    // otherwise the last year mentioned anywhere in the cell.
+    const years = cleaned.match(/\b\d{4}\b/g) || [];
+    const year = Number((last.match(/\b\d{4}\b/) || [])[0] || years[years.length - 1]);
+    if (!year) return _parseLooseDate(cleaned);
+    const dayOf = s => {
+        const nums = s.match(/\b\d{1,2}\b/g) || [];
+        return nums.length ? Number(nums[nums.length - 1]) : null;
+    };
+    const day = dayOf(last) || dayOf(first) || new Date(year, month + 1, 0).getDate();
+    return new Date(year, month, day);
+}
+
+// Conferences leave the Upcoming list the day after the event ends — a closed
+// registration deadline is not enough, the conference itself has to be over.
+function _isConferenceOver(row) {
+    const end = _confEndDate(row && row.date);
+    if (!end) return false;
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return new Date(end.getFullYear(), end.getMonth(), end.getDate()) < today;
+}
+
 const CONFERENCE_URGENT_DAYS = 10;
 function daysLeftCell(deadlineStr) {
     const days = _confDaysLeft(deadlineStr);
@@ -8735,7 +8793,7 @@ async function loadConferenceData() {
             abstract: ['abstraction submission', 'abstract submission'],
             allocated: ['allocated to', 'allocated', 'assigned to', 'assignee'],
             link:     ['link']
-        });
+        }).filter(r => !_isConferenceOver(r));
     } catch (err) {
         console.error('loadConferenceData (sheet) failed:', err);
     }
@@ -8938,12 +8996,27 @@ async function undoConference() {
     }
 }
 
+// Fill the "Allocated To" dropdown with current employees. A saved value that
+// isn't in the list (a past employee, or free text typed into the sheet) is
+// kept as its own option so editing a row never silently clears it.
+function _populateConferenceAllocated(current) {
+    const sel = document.getElementById('ac-allocated');
+    const names = employees.filter(e => !isPastEmployee(e)).map(e => e.name)
+        .sort((a, b) => a.localeCompare(b));
+    current = (current || '').trim();
+    if (current && !names.includes(current)) names.unshift(current);
+    sel.innerHTML = '<option value="">Not allocated</option>' +
+        names.map(n => `<option value="${_escHtml(n)}">${_escHtml(n)}</option>`).join('');
+    sel.value = current;
+}
+
 function openAddConferenceModal() {
     if (!getSession()) { alert('Please log in to add a conference.'); return; }
     _acEditingMatch = null;
-    ['ac-link', 'ac-name', 'ac-date', 'ac-deadline', 'ac-location', 'ac-abstract', 'ac-allocated'].forEach(id => {
+    ['ac-link', 'ac-name', 'ac-date', 'ac-deadline', 'ac-location', 'ac-abstract'].forEach(id => {
         document.getElementById(id).value = '';
     });
+    _populateConferenceAllocated('');
     document.getElementById('ac-extract-status').textContent = '';
     document.getElementById('ac-modal-title').textContent = 'Add Conference from Link';
     document.getElementById('ac-save-btn').textContent = 'Save to Sheet';
@@ -8962,7 +9035,7 @@ function openEditConferenceModal(idx) {
     document.getElementById('ac-deadline').value = row.deadline || '';
     document.getElementById('ac-location').value = row.location || '';
     document.getElementById('ac-abstract').value = row.abstract || '';
-    document.getElementById('ac-allocated').value = row.allocated || '';
+    _populateConferenceAllocated(row.allocated);
     document.getElementById('ac-extract-status').textContent = '';
     document.getElementById('ac-modal-title').textContent = 'Edit Conference';
     document.getElementById('ac-save-btn').textContent = 'Save Changes';
