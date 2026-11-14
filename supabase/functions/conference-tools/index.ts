@@ -16,7 +16,7 @@
 //        review in the app) for any field that already had a value but now
 //        differs. Triggered by the pg_cron job in supabase_setup.sql, not by
 //        the client.
-// `fields`/`match` shape: { name, date, deadline, location, abstract, link }
+// `fields`/`match` shape: { name, date, deadline, location, abstract, allocated, link }
 //
 // Deploy:
 //   supabase functions deploy conference-tools
@@ -278,6 +278,10 @@ ${siteText}
     deadline: fields.deadline || "",
     location: fields.location || "",
     abstract: fields.abstract || "",
+    // Never scraped from the page — only carried so the return matches
+    // ConferenceRow. The real value lives in the sheet and is preserved by
+    // the auto-fill update path, not produced here.
+    allocated: "",
     link: effectiveUrl,
   };
 }
@@ -336,7 +340,12 @@ function jsonResponse(obj: unknown, status = 200) {
 
 // ---- Daily auto-refresh (mode: "refresh_all") ----
 
-type ConferenceRow = { name: string; date: string; deadline: string; location: string; abstract: string; link: string };
+type ConferenceRow = { name: string; date: string; deadline: string; location: string; abstract: string; allocated: string; link: string };
+// `allocated` is deliberately NOT a diff field: it's a human-assigned value,
+// never scraped from the conference page, so the refresh must neither flag it
+// as "changed" nor auto-fill it. It IS read into ConferenceRow (via
+// FIELD_ALIASES below) so that when an auto-fill update rewrites the whole row,
+// the existing allocation is carried through { ...row } rather than blanked.
 const DIFF_FIELDS: (keyof ConferenceRow)[] = ["date", "deadline", "location", "abstract"];
 
 // These 5 rows were typed straight into the sheet by hand, before this
@@ -370,6 +379,7 @@ const FIELD_ALIASES: Record<keyof ConferenceRow, string[]> = {
   deadline: ["deadline", "registration deadline"],
   location: ["location"],
   abstract: ["abstraction submission", "abstract submission"],
+  allocated: ["allocated to", "allocated", "assigned to", "assignee"],
   link: ["link"],
 };
 

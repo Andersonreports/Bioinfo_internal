@@ -79,7 +79,7 @@ function _headers(sheet) {
   return headerRow.map(function (h) { return String(h || '').trim().toLowerCase(); });
 }
 
-// Maps our field names (name/date/deadline/location/abstract/link) onto
+// Maps our field names (name/date/deadline/location/abstract/allocated/link) onto
 // whatever the sheet's actual column headers are, so column reordering or
 // renaming (e.g. "Deadline" -> "Registration Deadline") doesn't break this.
 function _fieldsToRow(headers, fields) {
@@ -92,6 +92,9 @@ function _fieldsToRow(headers, fields) {
     'location': fields.location || '',
     'abstraction submission': fields.abstract || '',
     'abstract submission': fields.abstract || '',
+    'allocated to': fields.allocated || '',
+    'allocated': fields.allocated || '',
+    'assigned to': fields.allocated || '',
     'link': fields.link || ''
   };
   return headers.map(function (h) {

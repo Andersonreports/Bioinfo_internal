@@ -3076,6 +3076,51 @@ body {
     gap: 1rem;
     flex-wrap: wrap;
 }
+/* Search bar above the Conference / Lab Presentations hero tables. */
+.table-search-wrap {
+    position: relative;
+    max-width: 360px;
+    margin-bottom: 1rem;
+}
+.table-search-wrap .table-search-icon {
+    position: absolute;
+    left: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    color: #94a3b8;
+    pointer-events: none;
+}
+.table-search-wrap input {
+    width: 100%;
+    padding: 0.6rem 2.2rem 0.6rem 2.4rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    background: #fff;
+    font-size: 0.9rem;
+    color: #1e293b;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.table-search-wrap input:focus {
+    outline: none;
+    border-color: #2A98A2;
+    box-shadow: 0 0 0 3px rgba(42, 152, 162, 0.15);
+}
+.table-search-wrap .table-search-clear {
+    position: absolute;
+    right: 0.55rem;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 0.25rem;
+    display: none;
+    line-height: 0;
+}
+.table-search-wrap .table-search-clear:hover { color: #475569; }
 .conference-table-card { margin-bottom: 0; }
 .conference-table-card .dir-table { font-size: 0.92rem; }
 .conference-table-card .dir-table th,
@@ -5090,6 +5135,11 @@ body {
                         </button>
                     </div>
                 </div>
+                <div class="table-search-wrap">
+                    <i data-lucide="search" class="table-search-icon"></i>
+                    <input type="text" id="lp-search" placeholder="Search by topic, presenter, status…" oninput="filterLabPresentations(this.value)">
+                    <button type="button" class="table-search-clear" id="lp-search-clear" onclick="clearLabPresentationSearch()" title="Clear search"><i data-lucide="x" style="width:14px;height:14px;"></i></button>
+                </div>
                 <div class="dir-section lab-pres-table-card">
                     <div class="dir-table-wrap">
                         <table class="dir-table">
@@ -5132,6 +5182,11 @@ body {
                         </button>
                     </div>
                 </div>
+                <div class="table-search-wrap">
+                    <i data-lucide="search" class="table-search-icon"></i>
+                    <input type="text" id="conf-search" placeholder="Search by name, location, allocation…" oninput="filterConferences(this.value)">
+                    <button type="button" class="table-search-clear" id="conf-search-clear" onclick="clearConferenceSearch()" title="Clear search"><i data-lucide="x" style="width:14px;height:14px;"></i></button>
+                </div>
                 <div class="dir-section conference-table-card">
                     <div class="dir-table-wrap">
                         <table class="dir-table">
@@ -5144,6 +5199,7 @@ body {
                                     <th>Days Left</th>
                                     <th>Location</th>
                                     <th>Abstract Submission</th>
+                                    <th>Allocated To</th>
                                     <th>Link</th>
                                     <th style="width:70px;">Actions</th>
                                 </tr>
@@ -5592,6 +5648,10 @@ body {
                 <div class="form-group">
                     <label>Abstract Submission</label>
                     <input type="text" id="ac-abstract">
+                </div>
+                <div class="form-group">
+                    <label>Allocated To</label>
+                    <input type="text" id="ac-allocated" placeholder="Who is this conference allocated to?">
                 </div>
             </div>
             <div class="modal-actions">
@@ -7617,6 +7677,31 @@ function _labPresRow(row, i) {
     </tr>`;
 }
 
+// Free-text filter for the Lab Presentations table. Empty string shows all.
+let _lpSearchQuery = '';
+
+function filterLabPresentations(value) {
+    _lpSearchQuery = value || '';
+    const clearBtn = document.getElementById('lp-search-clear');
+    if (clearBtn) clearBtn.style.display = _lpSearchQuery ? 'block' : 'none';
+    renderPresentations();
+}
+
+function clearLabPresentationSearch() {
+    const input = document.getElementById('lp-search');
+    if (input) input.value = '';
+    filterLabPresentations('');
+}
+
+// Everything searchable about a presentation row, as one lowercased string:
+// topic, presenter name(s), status, remarks, and both dates.
+function _labPresSearchText(row) {
+    const presEmp = _empByEmployeeId(row.employee_id);
+    const presName = presEmp ? presEmp.name : (row.author_name || '');
+    return [row.title, presName, row.author_name, row.status, row.remarks, row.pres_date, row.webinar_date]
+        .map(v => String(v || '')).join(' ').toLowerCase();
+}
+
 function renderPresentations() {
     const tbody = document.getElementById('presentations-tbody');
     if (!tbody) return;
@@ -7629,7 +7714,14 @@ function renderPresentations() {
         return;
     }
 
-    tbody.innerHTML = internal.map((row, i) => _labPresRow(row, i)).join('');
+    const q = _lpSearchQuery.trim().toLowerCase();
+    const matches = q ? internal.filter(r => _labPresSearchText(r).includes(q)) : internal;
+    if (!matches.length) {
+        tbody.innerHTML = `<tr class="dir-empty-row"><td colspan="10">No presentations match “${_escHtml(_lpSearchQuery)}”.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = matches.map((row, i) => _labPresRow(row, i)).join('');
     lucide.createIcons();
 }
 
@@ -8518,6 +8610,7 @@ async function loadConferenceData() {
             deadline: ['deadline', 'registration deadline'],
             location: ['location'],
             abstract: ['abstraction submission', 'abstract submission'],
+            allocated: ['allocated to', 'allocated', 'assigned to', 'assignee'],
             link:     ['link']
         });
     } catch (err) {
@@ -8568,22 +8661,62 @@ function closeConferenceDeadlineToast() {
     document.getElementById('conference-deadline-toast').style.display = 'none';
 }
 
+// Minimal HTML-escaper for interpolating user-typed text (e.g. a search
+// query) back into innerHTML without breaking out of the markup.
+function _escHtml(s) {
+    return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+// Free-text filter for the Upcoming Conferences table (matches on every
+// visible text field). Empty string shows all rows.
+let _confSearchQuery = '';
+
+function filterConferences(value) {
+    _confSearchQuery = value || '';
+    const clearBtn = document.getElementById('conf-search-clear');
+    if (clearBtn) clearBtn.style.display = _confSearchQuery ? 'block' : 'none';
+    renderConferences();
+}
+
+function clearConferenceSearch() {
+    const input = document.getElementById('conf-search');
+    if (input) input.value = '';
+    filterConferences('');
+}
+
 function renderConferences() {
     const tbody = document.getElementById('conference-tbody');
     if (!tbody) return;
     if (!upcomingConferences.length) {
-        tbody.innerHTML = `<tr class="dir-empty-row"><td colspan="9">No available conferences</td></tr>`;
+        tbody.innerHTML = `<tr class="dir-empty-row"><td colspan="10">No available conferences</td></tr>`;
+        return;
+    }
+    const q = _confSearchQuery.trim().toLowerCase();
+    // Keep each row's original index so Edit/Delete still target the right
+    // entry in upcomingConferences after the list has been filtered down.
+    const matches = upcomingConferences
+        .map((r, i) => ({ r, i }))
+        .filter(({ r }) => !q || [r.name, r.date, r.deadline, r.location, r.abstract, r.allocated]
+            .some(v => String(v || '').toLowerCase().includes(q)));
+    if (!matches.length) {
+        tbody.innerHTML = `<tr class="dir-empty-row"><td colspan="10">No conferences match “${_escHtml(_confSearchQuery)}”.</td></tr>`;
         return;
     }
     const canManage = !!getSession();
-    tbody.innerHTML = upcomingConferences.map((r, i) => `<tr>
-        <td style="color:#94a3b8;font-size:0.76rem;font-weight:500;">${i + 1}</td>
+    tbody.innerHTML = matches.map(({ r, i }, n) => `<tr>
+        <td style="color:#94a3b8;font-size:0.76rem;font-weight:500;">${n + 1}</td>
         <td><strong>${r.name || '—'}</strong></td>
         <td><strong>${r.date || '—'}</strong></td>
         <td>${r.deadline || '—'}</td>
         <td>${daysLeftCell(r.deadline)}</td>
         <td>${r.location || '—'}</td>
         <td>${r.abstract || '—'}</td>
+        <td>${r.allocated || '—'}</td>
         <td>${linkCell(r.link)}</td>
         <td>${canManage ? `<div class="dir-row-actions">
             <button class="dir-tb-btn" onclick="openEditConferenceModal(${i})" title="Edit"><i data-lucide="pencil" style="width:14px;height:14px;"></i></button>
@@ -8648,7 +8781,7 @@ async function undoConference() {
 function openAddConferenceModal() {
     if (!getSession()) { alert('Please log in to add a conference.'); return; }
     _acEditingMatch = null;
-    ['ac-link', 'ac-name', 'ac-date', 'ac-deadline', 'ac-location', 'ac-abstract'].forEach(id => {
+    ['ac-link', 'ac-name', 'ac-date', 'ac-deadline', 'ac-location', 'ac-abstract', 'ac-allocated'].forEach(id => {
         document.getElementById(id).value = '';
     });
     document.getElementById('ac-extract-status').textContent = '';
@@ -8662,13 +8795,14 @@ function openEditConferenceModal(idx) {
     if (!getSession()) { alert('Please log in to edit a conference.'); return; }
     const row = upcomingConferences[idx];
     if (!row) return;
-    _acEditingMatch = { name: row.name || '', date: row.date || '', deadline: row.deadline || '', location: row.location || '', abstract: row.abstract || '', link: row.link || '' };
+    _acEditingMatch = { name: row.name || '', date: row.date || '', deadline: row.deadline || '', location: row.location || '', abstract: row.abstract || '', allocated: row.allocated || '', link: row.link || '' };
     document.getElementById('ac-link').value = row.link || '';
     document.getElementById('ac-name').value = row.name || '';
     document.getElementById('ac-date').value = row.date || '';
     document.getElementById('ac-deadline').value = row.deadline || '';
     document.getElementById('ac-location').value = row.location || '';
     document.getElementById('ac-abstract').value = row.abstract || '';
+    document.getElementById('ac-allocated').value = row.allocated || '';
     document.getElementById('ac-extract-status').textContent = '';
     document.getElementById('ac-modal-title').textContent = 'Edit Conference';
     document.getElementById('ac-save-btn').textContent = 'Save Changes';
@@ -8687,7 +8821,7 @@ async function deleteConferenceRow(idx) {
     if (!row) return;
     if (!confirm(`Delete "${row.name || 'this conference'}" from the sheet?`)) return;
     try {
-        const match = { name: row.name || '', date: row.date || '', deadline: row.deadline || '', location: row.location || '', abstract: row.abstract || '', link: row.link || '' };
+        const match = { name: row.name || '', date: row.date || '', deadline: row.deadline || '', location: row.location || '', abstract: row.abstract || '', allocated: row.allocated || '', link: row.link || '' };
         const { data, error } = await _sb.functions.invoke('conference-tools', { body: { mode: 'delete', match } });
         if (error) throw error;
         if (!data || !data.ok) throw new Error((data && data.error) || 'Delete failed');
@@ -8803,7 +8937,7 @@ async function applyPendingChange(id) {
     const row = upcomingConferences.find(r => _confNorm(r.name) === _confNorm(p.conference_name));
     if (!row) { alert('Could not find this conference in the current table — it may have been deleted or renamed.'); return; }
     try {
-        const match = { name: row.name || '', date: row.date || '', deadline: row.deadline || '', location: row.location || '', abstract: row.abstract || '', link: row.link || '' };
+        const match = { name: row.name || '', date: row.date || '', deadline: row.deadline || '', location: row.location || '', abstract: row.abstract || '', allocated: row.allocated || '', link: row.link || '' };
         const fields = { ...match, [p.field]: p.new_value };
         const { data, error } = await _sb.functions.invoke('conference-tools', { body: { mode: 'update', match, fields } });
         if (error) throw error;
@@ -8902,7 +9036,8 @@ async function saveConferenceDetails() {
         date: document.getElementById('ac-date').value.trim(),
         deadline: document.getElementById('ac-deadline').value.trim(),
         location: document.getElementById('ac-location').value.trim(),
-        abstract: document.getElementById('ac-abstract').value.trim()
+        abstract: document.getElementById('ac-abstract').value.trim(),
+        allocated: document.getElementById('ac-allocated').value.trim()
     };
     const isEdit = !!_acEditingMatch;
     const prevMatch = _acEditingMatch;
