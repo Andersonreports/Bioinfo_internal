@@ -3523,6 +3523,9 @@ body {
     font-weight: 600;
 }
 .absent-today-empty i { width: 16px; height: 16px; }
+/* Nobody on leave: green "Attendance" card instead of the amber "Absent" one. */
+.absent-today-card.all-present { border-left-color: #16a34a; }
+.absent-today-card.all-present .absent-today-header i { color: #16a34a; }
 .home-ach-section {
     background: #fff;
     border-radius: 16px;
@@ -10416,10 +10419,10 @@ function renderAbsentToday() {
 
     if (absent.length === 0) {
         wrap.innerHTML = `
-            <div class="absent-today-card">
+            <div class="absent-today-card all-present">
                 <div class="absent-today-header">
-                    <i data-lucide="user-x"></i>
-                    <span>Absent Today · ${todayLabel}</span>
+                    <i data-lucide="user-check"></i>
+                    <span>Attendance Today · ${todayLabel}</span>
                 </div>
                 <div class="absent-today-empty">
                     <i data-lucide="check-circle-2"></i>
