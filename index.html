@@ -3076,11 +3076,66 @@ body {
     gap: 1rem;
     flex-wrap: wrap;
 }
+/* Title + inline search grouped on the left of a hero-table header. */
+.view-header-lead {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
 /* Search bar above the Conference / Lab Presentations hero tables. */
 .table-search-wrap {
     position: relative;
     max-width: 360px;
     margin-bottom: 1rem;
+}
+/* When the search sits inline beside the title it drops the bottom gap and
+   narrows a touch so it doesn't crowd the heading. */
+.table-search-inline {
+    margin-bottom: 0;
+    width: 300px;
+    max-width: 40vw;
+}
+/* Excel download dropdown (status filter). */
+.excel-dd-wrap { position: relative; }
+.excel-dd-menu {
+    position: absolute;
+    top: calc(100% + 0.4rem);
+    right: 0;
+    z-index: 50;
+    display: none;
+    min-width: 200px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
+    padding: 0.7rem;
+}
+.excel-dd-menu.open { display: block; }
+.excel-dd-title {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    color: #94a3b8;
+    padding: 0.1rem 0.35rem 0.5rem;
+}
+.excel-dd-opt {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.35rem;
+    font-size: 0.88rem;
+    color: #1e293b;
+    cursor: pointer;
+    border-radius: 7px;
+}
+.excel-dd-opt:hover { background: #f1f5f9; }
+.excel-dd-opt input { width: auto; accent-color: #0d9488; cursor: pointer; }
+.excel-dd-download {
+    width: 100%;
+    justify-content: center;
+    margin-top: 0.55rem;
 }
 .table-search-wrap .table-search-icon {
     position: absolute;
@@ -5122,26 +5177,39 @@ body {
             <!-- Presentations View -->
             <section id="presentations-view" class="view-section" style="display: none;">
                 <div class="view-header conference-view-header">
-                    <div>
-                        <h1>Lab Presentations</h1>
-                        <p>Internal presentations shared within the team.</p>
+                    <div class="view-header-lead">
+                        <div>
+                            <h1>Lab Presentations</h1>
+                            <p>Internal presentations shared within the team.</p>
+                        </div>
+                        <div class="table-search-wrap table-search-inline">
+                            <i data-lucide="search" class="table-search-icon"></i>
+                            <input type="text" id="lp-search" placeholder="Search by topic, presenter, status…" oninput="filterLabPresentations(this.value)">
+                            <button type="button" class="table-search-clear" id="lp-search-clear" onclick="clearLabPresentationSearch()" title="Clear search"><i data-lucide="x" style="width:14px;height:14px;"></i></button>
+                        </div>
                     </div>
                     <div style="display:flex;gap:0.6rem;align-items:center;">
                         <button class="dir-add-btn" id="lp-undo-btn" onclick="undoLabPresentation()" disabled title="Nothing to undo" style="background:#fff;color:#475569;border:1.5px solid #e2e8f0;">
                             <i data-lucide="undo-2" style="width:13px;height:13px;"></i> Undo
                         </button>
-                        <button class="dir-add-btn" onclick="downloadLabPresentationsExcel()" title="Download the current list as an Excel file" style="background:#fff;color:#047857;border:1.5px solid #a7f3d0;">
-                            <i data-lucide="download" style="width:13px;height:13px;"></i> Excel
-                        </button>
+                        <div class="excel-dd-wrap">
+                            <button class="dir-add-btn" onclick="toggleLpExcelMenu(event)" title="Download as an Excel file" style="background:#fff;color:#047857;border:1.5px solid #a7f3d0;">
+                                <i data-lucide="download" style="width:13px;height:13px;"></i> Excel <i data-lucide="chevron-down" style="width:13px;height:13px;"></i>
+                            </button>
+                            <div class="excel-dd-menu" id="lp-excel-menu">
+                                <div class="excel-dd-title">Include statuses</div>
+                                <label class="excel-dd-opt"><input type="checkbox" class="lp-excel-status" value="Completed" checked> Completed</label>
+                                <label class="excel-dd-opt"><input type="checkbox" class="lp-excel-status" value="Scheduled" checked> Scheduled</label>
+                                <label class="excel-dd-opt"><input type="checkbox" class="lp-excel-status" value="Ongoing" checked> Ongoing</label>
+                                <button class="dir-add-btn excel-dd-download" onclick="downloadLabPresentationsExcel()">
+                                    <i data-lucide="download" style="width:13px;height:13px;"></i> Download
+                                </button>
+                            </div>
+                        </div>
                         <button class="dir-add-btn" onclick="openAddLabPresentationModal()">
                             <i data-lucide="plus" style="width:13px;height:13px;"></i> Add Presentation
                         </button>
                     </div>
-                </div>
-                <div class="table-search-wrap">
-                    <i data-lucide="search" class="table-search-icon"></i>
-                    <input type="text" id="lp-search" placeholder="Search by topic, presenter, status…" oninput="filterLabPresentations(this.value)">
-                    <button type="button" class="table-search-clear" id="lp-search-clear" onclick="clearLabPresentationSearch()" title="Clear search"><i data-lucide="x" style="width:14px;height:14px;"></i></button>
                 </div>
                 <div class="dir-section lab-pres-table-card">
                     <div class="dir-table-wrap">
@@ -7708,13 +7776,37 @@ function _labPresSearchText(row) {
         .map(v => String(v || '')).join(' ').toLowerCase();
 }
 
-// Exports exactly what the Lab Presentations table currently shows (so an
-// active search filters the download too).
+// Open/close the Excel status-filter dropdown.
+function toggleLpExcelMenu(event) {
+    if (event) event.stopPropagation();
+    const menu = document.getElementById('lp-excel-menu');
+    if (!menu) return;
+    const nowOpen = menu.classList.toggle('open');
+    if (nowOpen) setTimeout(() => document.addEventListener('click', _closeLpExcelMenuOnOutside), 0);
+    else document.removeEventListener('click', _closeLpExcelMenuOnOutside);
+}
+function _closeLpExcelMenuOnOutside(e) {
+    const wrap = e.target.closest ? e.target.closest('.excel-dd-wrap') : null;
+    if (wrap) return; // clicks inside the dropdown keep it open
+    const menu = document.getElementById('lp-excel-menu');
+    if (menu) menu.classList.remove('open');
+    document.removeEventListener('click', _closeLpExcelMenuOnOutside);
+}
+
+// Exports the Lab Presentations table filtered by the active search AND by the
+// statuses ticked in the Excel dropdown (Completed / Scheduled / Ongoing).
 function downloadLabPresentationsExcel() {
+    const menu = document.getElementById('lp-excel-menu');
+    if (menu) menu.classList.remove('open');
+    document.removeEventListener('click', _closeLpExcelMenuOnOutside);
+    const statuses = Array.from(document.querySelectorAll('.lp-excel-status:checked')).map(c => c.value);
+    if (!statuses.length) { alert('Select at least one status to download.'); return; }
     const internal = presentationsCache.filter(r => r.pres_type !== 'Outer Event');
     const q = _lpSearchQuery.trim().toLowerCase();
-    const rows = q ? internal.filter(r => _labPresSearchText(r).includes(q)) : internal;
-    if (!rows.length) { alert('There are no presentations to download.'); return; }
+    let rows = q ? internal.filter(r => _labPresSearchText(r).includes(q)) : internal;
+    // A blank status is shown as "Completed" in the table, so treat it the same here.
+    rows = rows.filter(r => statuses.includes(r.status || 'Completed'));
+    if (!rows.length) { alert('There are no presentations matching the selected statuses.'); return; }
     const header = ['#', 'Topic', 'Allocated On', 'Webinar / Presentation Date', 'Presenter', 'PPT', 'Reference Link', 'Status', 'Remarks'];
     const aoa = [header, ...rows.map((r, i) => {
         const presEmp = _empByEmployeeId(r.employee_id);
@@ -7728,7 +7820,9 @@ function downloadLabPresentationsExcel() {
             r.ref_link || '', r.status || '', r.remarks || ''
         ];
     })];
-    _exportAoaToExcel(`Lab Presentations ${_todayStamp()}.xlsx`, 'Lab Presentations', aoa);
+    // Tag the filename with the status filter when it's not "all three".
+    const suffix = statuses.length === 3 ? '' : ` (${statuses.join(', ')})`;
+    _exportAoaToExcel(`Lab Presentations${suffix} ${_todayStamp()}.xlsx`, 'Lab Presentations', aoa);
 }
 
 function renderPresentations() {
