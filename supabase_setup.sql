@@ -91,6 +91,9 @@ create index if not exists presentations_employee_id_idx on public.presentations
 -- Migration for existing tables created before ref_link/status/remarks existed:
 alter table public.presentations add column if not exists ref_link text;
 alter table public.presentations add column if not exists status text default 'Completed';
+-- Multiple files per lab presentation: [{ "url": ..., "name": ... }].
+-- file_url/file_name keep mirroring the first file for older readers.
+alter table public.presentations add column if not exists files jsonb not null default '[]'::jsonb;
 alter table public.presentations add column if not exists remarks text;
 
 create table if not exists public.leaves (

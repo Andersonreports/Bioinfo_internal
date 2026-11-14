@@ -6085,8 +6085,8 @@ body {
                         <input type="date" id="lp-webinar-date" style="border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; font-size: 0.9rem; font-family: inherit; background: white; color: #1e293b; width: 100%; box-sizing: border-box;">
                     </div>
                     <div class="form-group">
-                        <label>Upload PPT <span style="color:#94a3b8;font-weight:400;">(PDF or PPT/PPTX, optional)</span></label>
-                        <input type="file" id="lp-file-input" accept=".ppt,.pptx,.pdf" style="border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.6rem 0.75rem; font-size: 0.9rem; font-family: inherit; background: white; color: #1e293b; width: 100%; box-sizing: border-box;">
+                        <label>Upload Files <span style="color:#94a3b8;font-weight:400;">(PDF or PPT/PPTX, optional — you can pick several)</span></label>
+                        <input type="file" id="lp-file-input" accept=".ppt,.pptx,.pdf" multiple style="border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.6rem 0.75rem; font-size: 0.9rem; font-family: inherit; background: white; color: #1e293b; width: 100%; box-sizing: border-box;">
                         <div id="lp-file-current" style="margin-top:0.4rem;font-size:0.8rem;color:#64748b;"></div>
                     </div>
                     <div class="form-group">
@@ -7054,6 +7054,7 @@ function closeViewCertsModal(event) {
 async function deleteSingleCert(empId, certId) {
     const emp = employees.find(e => e.id === empId);
     if (!emp) return;
+    if (!_canManageAch(emp.employeeId)) { alert('You can only delete your own certificates.'); return; }
     if (!confirm('Delete this certificate? This cannot be undone.')) return;
     const cert = emp.certificates.find(c => c.id == certId);
     try {
@@ -7257,10 +7258,24 @@ function handleAddEmployee(event) {
     renderEmployeeSpace();
 }
 
+// Who may edit/delete an achievement item (certificate, publication,
+// presentation): admins can manage everything; everyone else only items
+// that belong to them. ownerIds is the record's employee_id — lab
+// presentations can hold several, comma-separated.
+function _canManageAch(ownerIds) {
+    const session = getSession();
+    if (!session) return false;
+    if (session.role === 'admin') return true;
+    const me = resolveSessionEmployee(session);
+    const myId = ((me && me.employeeId) || session.employeeId || '').trim().toLowerCase();
+    if (!myId) return false;
+    return String(ownerIds || '').split(',').some(id => id.trim().toLowerCase() === myId);
+}
+
 // Single certificate/achievement card.
 function _achCertCard(emp, cert, showActions) {
     if (showActions === undefined) showActions = true;
-    const canDelete = showActions && !!getSession();
+    const canDelete = showActions && _canManageAch(emp.employeeId);
     const dateDisplay = _fmtLongDate(cert.date);
     const isImage = (f) => f && f.data && (f.type ? f.type.startsWith('image') : /^data:image/.test(f.data));
     const isPdf = (f) => f && f.data && (
@@ -7538,8 +7553,9 @@ function renderPublications() {
             actions.push(`<a class="cert-file-btn view" href="${_driveView(row.file_url)}" target="_blank" rel="noopener"><i data-lucide="eye" style="width:13px;height:13px;"></i> View</a>`);
             actions.push(`<a class="cert-file-btn download" href="${_driveDownload(row.file_url)}" target="_blank" rel="noopener"><i data-lucide="download" style="width:13px;height:13px;"></i> Download</a>`);
         }
-        if (canDelete) actions.push(`<button class="cert-file-btn" onclick="openEditAchievementModal('pub','${row.id}')"><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button>`);
-        if (canDelete) actions.push(`<button class="cert-file-btn" onclick="deletePublication('${row.id}')" style="color:#dc2626;"><i data-lucide="trash-2" style="width:13px;height:13px;"></i> Delete</button>`);
+        const canManage = canDelete && _canManageAch(row.employee_id);
+        if (canManage) actions.push(`<button class="cert-file-btn" onclick="openEditAchievementModal('pub','${row.id}')"><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit</button>`);
+        if (canManage) actions.push(`<button class="cert-file-btn" onclick="deletePublication('${row.id}')" style="color:#dc2626;"><i data-lucide="trash-2" style="width:13px;height:13px;"></i> Delete</button>`);
 
         return `<div class="ach-card">
             ${_authorBlock(row)}
@@ -7560,7 +7576,7 @@ function renderPublications() {
 // outer events, the Achievements wall).
 function _achPresCard(row, showActions) {
     if (showActions === undefined) showActions = true;
-    const canDelete = showActions && !!getSession();
+    const canDelete = showActions && _canManageAch(row.employee_id);
     const dateDisplay = _fmtLongDate(row.pres_date);
     const photoMedia = row.photo_url
         ? `<img src="${row.photo_url}" class="ach-card-media-img" title="View photo" onclick="window.open('${row.photo_url}','_blank')">`
@@ -7618,8 +7634,49 @@ function _lpFieldsFromRow(row) {
         status: row.status || '',
         remarks: row.remarks || '',
         link: row.ref_link || '',
-        file: row.file_name || ''
+        file: _lpFiles(row).map(f => f.name).join(', ')
     };
+}
+
+// ---- Lab Presentation files (several per row) ----
+// Files live in the `files` jsonb column as [{ url, name }]. Rows from before
+// multi-file support only have file_url/file_name, so fall back to those.
+// file_url/file_name keep mirroring the first file so older readers (the
+// achievement cards, the sheet) still see something.
+function _lpFiles(row) {
+    if (!row) return [];
+    if (Array.isArray(row.files) && row.files.length) return row.files.filter(f => f && f.url);
+    return row.file_url ? [{ url: row.file_url, name: row.file_name || 'File' }] : [];
+}
+function _lpFileColumns(files) {
+    const first = files[0] || null;
+    return { files, file_url: first ? first.url : null, file_name: first ? first.name : null };
+}
+async function _lpUploadAll(fileList) {
+    const out = [];
+    for (const f of Array.from(fileList || [])) {
+        const up = await sbUpload('presentations', f);
+        out.push({ url: up.url, name: up.name });
+    }
+    return out;
+}
+
+// Files currently attached in the Edit modal (minus any the user removed).
+let _lpModalFiles = [];
+function _lpRenderModalFiles() {
+    const el = document.getElementById('lp-file-current');
+    if (!el) return;
+    if (!_lpModalFiles.length) { el.innerHTML = ''; return; }
+    el.innerHTML = '<div style="margin-bottom:0.25rem;">Current files (new uploads are added to these):</div>' +
+        _lpModalFiles.map((f, i) => `
+            <div style="display:flex;align-items:center;gap:0.4rem;margin:0.15rem 0;">
+                <a href="${_previewUrl(f.url)}" target="_blank" rel="noopener" style="color:#0d9488;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${_escHtml(f.name || 'File ' + (i + 1))}</a>
+                <button type="button" onclick="_lpRemoveModalFile(${i})" title="Remove this file" style="border:none;background:none;color:#dc2626;cursor:pointer;font-size:1rem;line-height:1;padding:0 0.2rem;">×</button>
+            </div>`).join('');
+}
+function _lpRemoveModalFile(i) {
+    _lpModalFiles.splice(i, 1);
+    _lpRenderModalFiles();
 }
 
 async function _lpSyncSheet(mode, opts) {
@@ -7725,14 +7782,19 @@ function _labPresRow(row, i) {
         : '—';
     const presEmp = _empByEmployeeId(row.employee_id);
     const presName = presEmp ? presEmp.name : (row.author_name || 'Team Member');
-    const pptCell = row.file_url
-        ? `<a href="${_previewUrl(row.file_url)}" target="_blank" rel="noopener" style="color:#0d9488;font-weight:600;text-decoration:none;">View</a>`
-        : (canEdit
-            ? `<label class="lab-pres-upload-btn" title="Upload PPT">
-                    <i data-lucide="upload" style="width:13px;height:13px;"></i> Upload
-                    <input type="file" accept=".ppt,.pptx,.pdf" style="display:none;" onchange="uploadLabPresentationPpt('${row.id}', this)">
-                </label>`
-            : '<span style="color:#cbd5e1;">—</span>');
+    const rowFiles = _lpFiles(row);
+    const uploadBtn = canEdit
+        ? `<label class="lab-pres-upload-btn" title="${rowFiles.length ? 'Add more files' : 'Upload files'}">
+                <i data-lucide="${rowFiles.length ? 'plus' : 'upload'}" style="width:13px;height:13px;"></i> ${rowFiles.length ? 'Add' : 'Upload'}
+                <input type="file" accept=".ppt,.pptx,.pdf" multiple style="display:none;" onchange="uploadLabPresentationPpt('${row.id}', this)">
+            </label>`
+        : '';
+    const fileLinks = rowFiles.map((f, i) =>
+        `<a href="${_previewUrl(f.url)}" target="_blank" rel="noopener" title="${_escHtml(f.name || '')}" style="display:block;color:#0d9488;font-weight:600;text-decoration:none;">${rowFiles.length > 1 ? `View ${i + 1}` : 'View'}</a>`
+    ).join('');
+    const pptCell = (fileLinks || uploadBtn)
+        ? `<div style="display:flex;flex-direction:column;align-items:center;gap:0.3rem;">${fileLinks}${uploadBtn}</div>`
+        : '<span style="color:#cbd5e1;">—</span>';
     const linkCell = row.ref_link
         ? `<a href="${row.ref_link}" target="_blank" rel="noopener" style="color:#0d9488;font-weight:600;text-decoration:none;">Open ↗</a>`
         : '<span style="color:#cbd5e1;">—</span>';
@@ -7827,7 +7889,7 @@ function downloadLabPresentationsExcel() {
             _fmtCompactDateRel(r.pres_date).compact || '',
             _fmtCompactDateRel(r.webinar_date).compact || '',
             presName,
-            r.file_url ? _previewUrl(r.file_url) : '',
+            _lpFiles(r).map(f => _previewUrl(f.url)).join('\n'),
             r.ref_link || '', r.status || '', r.remarks || ''
         ];
     })];
@@ -7884,7 +7946,8 @@ function openAddLabPresentationModal() {
     document.getElementById('lp-date').value = '';
     document.getElementById('lp-webinar-date').value = '';
     document.getElementById('lp-file-input').value = '';
-    document.getElementById('lp-file-current').textContent = '';
+    _lpModalFiles = [];
+    _lpRenderModalFiles();
     document.getElementById('lp-ref-link').value = '';
     document.getElementById('lp-status').value = 'Completed';
     document.getElementById('lp-remarks').value = '';
@@ -7904,9 +7967,8 @@ function openEditLabPresentationModal(id) {
     document.getElementById('lp-date').value = row.pres_date || '';
     document.getElementById('lp-webinar-date').value = row.webinar_date || '';
     document.getElementById('lp-file-input').value = '';
-    document.getElementById('lp-file-current').innerHTML = row.file_url
-        ? `Current: <a href="${_previewUrl(row.file_url)}" target="_blank" rel="noopener" style="color:#0d9488;font-weight:600;">${row.file_name || 'View file'}</a> — choosing a new file replaces it.`
-        : '';
+    _lpModalFiles = _lpFiles(row).map(f => ({ ...f }));
+    _lpRenderModalFiles();
     document.getElementById('lp-ref-link').value = row.ref_link || '';
     document.getElementById('lp-status').value = row.status || 'Completed';
     document.getElementById('lp-remarks').value = row.remarks || '';
@@ -7939,16 +8001,9 @@ async function saveLabPresentation() {
     if (!presDate) { alert('Please select the date.'); return; }
 
     try {
-        let fileUrl = null, fileName = null;
-        if (fileInput.files[0]) {
-            const uploaded = await sbUpload('presentations', fileInput.files[0]);
-            fileUrl = uploaded.url;
-            fileName = uploaded.name;
-        } else if (_lpEditingId) {
-            const existing = presentationsCache.find(r => r.id === _lpEditingId);
-            fileUrl = existing ? existing.file_url : null;
-            fileName = existing ? existing.file_name : null;
-        }
+        // Kept files (edit mode, minus any removed with ×) + newly picked ones.
+        const uploaded = await _lpUploadAll(fileInput.files);
+        const fileCols = _lpFileColumns([...(_lpEditingId ? _lpModalFiles : []), ...uploaded]);
 
         if (_lpEditingId) {
             const prevRow = presentationsCache.find(r => r.id === _lpEditingId);
@@ -7956,7 +8011,7 @@ async function saveLabPresentation() {
             if (prevSnapshot) { delete prevSnapshot.id; delete prevSnapshot.created_at; }
             const update = {
                 employee_id: empIds, author_name: empNames, title: title || null,
-                pres_date: presDate, webinar_date: webinarDate || null, file_url: fileUrl, file_name: fileName, ref_link: refLink || null, status,
+                pres_date: presDate, webinar_date: webinarDate || null, ...fileCols, ref_link: refLink || null, status,
                 remarks: remarks || null
             };
             const { data, error } = await _sb.from('presentations').update(update).eq('id', _lpEditingId).select().single();
@@ -7975,8 +8030,7 @@ async function saveLabPresentation() {
                 webinar_date: webinarDate || null,
                 place: null,
                 pres_type: 'Internal Presentation',
-                file_url: fileUrl,
-                file_name: fileName,
+                ...fileCols,
                 photo_url: null,
                 ref_link: refLink || null,
                 status,
@@ -7997,19 +8051,18 @@ async function saveLabPresentation() {
     renderPresentations();
 }
 
-// Direct file upload from the table's "Upload PPT" cell (shown only while
-// the row has no file_url yet).
+// Direct upload from the table's "Upload PPT" cell — appends the picked
+// file(s) to whatever the row already has.
 async function uploadLabPresentationPpt(id, input) {
-    const file = input.files[0];
-    if (!file) return;
+    if (!input.files || !input.files.length) return;
     if (!getSession()) { alert('Please log in to upload.'); return; }
     try {
         const prevRow = presentationsCache.find(r => r.id === id);
         const prevSnapshot = prevRow ? { ...prevRow } : null;
         if (prevSnapshot) { delete prevSnapshot.id; delete prevSnapshot.created_at; }
-        const uploaded = await sbUpload('presentations', file);
+        const uploaded = await _lpUploadAll(input.files);
         const { data, error } = await _sb.from('presentations')
-            .update({ file_url: uploaded.url, file_name: uploaded.name })
+            .update(_lpFileColumns([..._lpFiles(prevRow), ...uploaded]))
             .eq('id', id).select().single();
         if (error) throw error;
         const idx = presentationsCache.findIndex(r => r.id === id);
@@ -8148,8 +8201,9 @@ async function submitPresentation() {
 
 // ---- Delete ----
 async function deletePublication(id) {
-    if (!confirm('Delete this publication?')) return;
     const row = publicationsCache.find(r => r.id === id);
+    if (row && !_canManageAch(row.employee_id)) { alert('You can only delete your own publications.'); return; }
+    if (!confirm('Delete this publication?')) return;
     try {
         const { error } = await _sb.from('publications').delete().eq('id', id);
         if (error) throw error;
@@ -8160,12 +8214,16 @@ async function deletePublication(id) {
 }
 
 async function deletePresentation(id) {
-    if (!confirm('Delete this presentation?')) return;
     const row = presentationsCache.find(r => r.id === id);
+    if (row && !_canManageAch(row.employee_id)) { alert('You can only delete your own presentations.'); return; }
+    if (!confirm('Delete this presentation?')) return;
     try {
         const { error } = await _sb.from('presentations').delete().eq('id', id);
         if (error) throw error;
-        if (row) { await sbDeleteByUrl('presentations', row.file_url); await sbDeleteByUrl('presentations', row.photo_url); }
+        if (row) {
+            for (const f of _lpFiles(row)) await sbDeleteByUrl('presentations', f.url);
+            await sbDeleteByUrl('presentations', row.photo_url);
+        }
     } catch (e) { console.error('deletePresentation failed:', e); alert('Delete failed: ' + (e.message || e)); return; }
     presentationsCache = presentationsCache.filter(r => r.id !== id);
     if (row) {
@@ -8185,6 +8243,11 @@ function openEditAchievementModal(type, id, empId) {
     const modal = document.getElementById('edit-achievement-modal');
     const title = document.getElementById('edit-ach-title');
     if (!modal) return;
+
+    const ownerId = type === 'cert'
+        ? ((employees.find(e => e.id === empId) || {}).employeeId)
+        : (((type === 'pub' ? publicationsCache : presentationsCache).find(r => r.id === id) || {}).employee_id);
+    if (!_canManageAch(ownerId)) { alert('You can only edit your own achievements.'); return; }
 
     document.getElementById('edit-ach-type').value = type;
     document.getElementById('edit-ach-id').value = id;
