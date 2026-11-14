@@ -4706,6 +4706,7 @@ body {
                                 <label>Type</label>
                                 <select id="pres-type" onchange="togglePresEventField()">
                                     <option value="Outer Event">Conference</option>
+                                    <option value="Workshop">Workshop</option>
                                 </select>
                             </div>
                             <div class="form-group" id="pres-event-name-group" style="display:none;">
@@ -5942,6 +5943,7 @@ body {
                         <select id="edit-ach-pres-type" onchange="toggleEditPresEventField()">
                             <option value="Internal Presentation">Internal Presentation</option>
                             <option value="Outer Event">Conference</option>
+                            <option value="Workshop">Workshop</option>
                         </select>
                     </div>
                     <div class="form-group ea-pres" id="edit-ach-pres-event-name-group" style="display:none;">
@@ -7334,7 +7336,7 @@ function renderAchievementsWall() {
     employees.forEach(emp => {
         (emp.certificates || []).forEach(cert => items.push({ kind: 'cert', date: cert.date || '0000-00-00', emp, cert }));
     });
-    presentationsCache.filter(r => r.pres_type === 'Outer Event').forEach(row => {
+    presentationsCache.filter(r => _isOuterPres(r.pres_type)).forEach(row => {
         items.push({ kind: 'pres', date: row.pres_date || '0000-00-00', row });
     });
 
@@ -7646,7 +7648,7 @@ async function _lpSyncSheet(mode, opts) {
 // Re-running it after that would duplicate rows (it always uses 'add'), so
 // don't call it a second time once it's reported done.
 async function _lpBackfillSheet() {
-    const rows = presentationsCache.filter(r => r.pres_type !== 'Outer Event');
+    const rows = presentationsCache.filter(r => !_isOuterPres(r.pres_type));
     console.log(`Backfilling ${rows.length} presentation(s) to the sheet...`);
     for (const row of rows) {
         await _lpSyncSheet('add', { fields: _lpFieldsFromRow(row) });
@@ -7699,7 +7701,7 @@ async function undoLabPresentation() {
             presentationsCache.unshift(data);
             // deletePresentation() also handles Outer Event (achievements) rows,
             // which never lived in the Lab Presentation sheet tab to begin with.
-            if (data.pres_type !== 'Outer Event') _lpSyncSheet('add', { fields: _lpFieldsFromRow(data) });
+            if (!_isOuterPres(data.pres_type)) _lpSyncSheet('add', { fields: _lpFieldsFromRow(data) });
         }
     } catch (e) {
         console.error('Undo failed:', e);
@@ -7810,7 +7812,7 @@ function downloadLabPresentationsExcel() {
     document.removeEventListener('click', _closeLpExcelMenuOnOutside);
     const statuses = Array.from(document.querySelectorAll('.lp-excel-status:checked')).map(c => c.value);
     if (!statuses.length) { alert('Select at least one status to download.'); return; }
-    const internal = presentationsCache.filter(r => r.pres_type !== 'Outer Event');
+    const internal = presentationsCache.filter(r => !_isOuterPres(r.pres_type));
     const q = _lpSearchQuery.trim().toLowerCase();
     let rows = q ? internal.filter(r => _labPresSearchText(r).includes(q)) : internal;
     // A blank status is shown as "Completed" in the table, so treat it the same here.
@@ -7839,7 +7841,7 @@ function renderPresentations() {
     if (!tbody) return;
     // Lab Presentations tab shows internal presentations only; outer events
     // appear on the Achievements wall instead.
-    const internal = presentationsCache.filter(r => r.pres_type !== 'Outer Event');
+    const internal = presentationsCache.filter(r => !_isOuterPres(r.pres_type));
 
     if (!internal.length) {
         tbody.innerHTML = `<tr class="dir-empty-row"><td colspan="10">No lab presentations added yet.</td></tr>`;
@@ -8074,11 +8076,15 @@ async function submitPublication() {
     renderPublications();
 }
 
+// Conference ("Outer Event") and Workshop are both external events: they need
+// an Event Name, show on the achievements wall, and stay out of Lab Presentations.
+function _isOuterPres(type) { return type === 'Outer Event' || type === 'Workshop'; }
+
 // Show the Event Name field only for outer events.
 function togglePresEventField() {
     const type = document.getElementById('pres-type').value;
     const group = document.getElementById('pres-event-name-group');
-    if (group) group.style.display = type === 'Outer Event' ? '' : 'none';
+    if (group) group.style.display = _isOuterPres(type) ? '' : 'none';
 }
 
 async function submitPresentation() {
@@ -8090,7 +8096,7 @@ async function submitPresentation() {
     const title   = document.getElementById('pres-title').value.trim();
     const presDate = document.getElementById('pres-date').value;
     const type    = document.getElementById('pres-type').value;
-    const isOuter = type === 'Outer Event';
+    const isOuter = _isOuterPres(type);
     const eventName = document.getElementById('pres-event-name').value.trim();
     const fileLink = document.getElementById('pres-file-link').value.trim();
     const refLink = document.getElementById('pres-ref-link').value.trim();
@@ -8164,7 +8170,7 @@ async function deletePresentation(id) {
     presentationsCache = presentationsCache.filter(r => r.id !== id);
     if (row) {
         _lpSetUndoAction({ type: 'delete', snapshot: { ...row }, label: row.title || 'presentation' });
-        if (row.pres_type !== 'Outer Event') _lpSyncSheet('delete', { matchId: id });
+        if (!_isOuterPres(row.pres_type)) _lpSyncSheet('delete', { matchId: id });
     }
     renderPresentations();
     renderAchievementsWall();
@@ -8241,7 +8247,7 @@ function closeEditAchievementModal() {
 function toggleEditPresEventField() {
     const type = document.getElementById('edit-ach-pres-type').value;
     const group = document.getElementById('edit-ach-pres-event-name-group');
-    if (group) group.style.display = type === 'Outer Event' ? '' : 'none';
+    if (group) group.style.display = _isOuterPres(type) ? '' : 'none';
 }
 
 async function saveEditAchievement() {
@@ -8330,7 +8336,7 @@ async function saveEditAchievement() {
 
         const titleVal = document.getElementById('edit-ach-pres-title').value.trim();
         const presType = document.getElementById('edit-ach-pres-type').value;
-        const isOuter = presType === 'Outer Event';
+        const isOuter = _isOuterPres(presType);
         const eventName = document.getElementById('edit-ach-pres-event-name').value.trim();
         const presDate = document.getElementById('edit-ach-pres-date').value;
         const fileLink = document.getElementById('edit-ach-pres-file-link').value.trim();
