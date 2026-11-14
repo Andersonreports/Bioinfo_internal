@@ -5130,6 +5130,9 @@ body {
                         <button class="dir-add-btn" id="lp-undo-btn" onclick="undoLabPresentation()" disabled title="Nothing to undo" style="background:#fff;color:#475569;border:1.5px solid #e2e8f0;">
                             <i data-lucide="undo-2" style="width:13px;height:13px;"></i> Undo
                         </button>
+                        <button class="dir-add-btn" onclick="downloadLabPresentationsExcel()" title="Download the current list as an Excel file" style="background:#fff;color:#047857;border:1.5px solid #a7f3d0;">
+                            <i data-lucide="download" style="width:13px;height:13px;"></i> Excel
+                        </button>
                         <button class="dir-add-btn" onclick="openAddLabPresentationModal()">
                             <i data-lucide="plus" style="width:13px;height:13px;"></i> Add Presentation
                         </button>
@@ -5176,6 +5179,9 @@ body {
                         </button>
                         <button class="dir-add-btn" style="background:#7c3aed;" onclick="openAddConferenceModal()" title="Extract conference details from a link">
                             <i data-lucide="sparkles" style="width:13px;height:13px;"></i> Add Details
+                        </button>
+                        <button class="dir-add-btn" onclick="downloadConferencesExcel()" title="Download the current list as an Excel file" style="background:#fff;color:#047857;border:1.5px solid #a7f3d0;">
+                            <i data-lucide="download" style="width:13px;height:13px;"></i> Excel
                         </button>
                         <button class="dir-add-btn" onclick="loadConferenceData()" title="Reload latest values from the sheet">
                             <i data-lucide="refresh-cw" style="width:13px;height:13px;"></i> Refresh
@@ -7702,6 +7708,29 @@ function _labPresSearchText(row) {
         .map(v => String(v || '')).join(' ').toLowerCase();
 }
 
+// Exports exactly what the Lab Presentations table currently shows (so an
+// active search filters the download too).
+function downloadLabPresentationsExcel() {
+    const internal = presentationsCache.filter(r => r.pres_type !== 'Outer Event');
+    const q = _lpSearchQuery.trim().toLowerCase();
+    const rows = q ? internal.filter(r => _labPresSearchText(r).includes(q)) : internal;
+    if (!rows.length) { alert('There are no presentations to download.'); return; }
+    const header = ['#', 'Topic', 'Allocated On', 'Webinar / Presentation Date', 'Presenter', 'PPT', 'Reference Link', 'Status', 'Remarks'];
+    const aoa = [header, ...rows.map((r, i) => {
+        const presEmp = _empByEmployeeId(r.employee_id);
+        const presName = presEmp ? presEmp.name : (r.author_name || '');
+        return [
+            i + 1, r.title || '',
+            _fmtCompactDateRel(r.pres_date).compact || '',
+            _fmtCompactDateRel(r.webinar_date).compact || '',
+            presName,
+            r.file_url ? _previewUrl(r.file_url) : '',
+            r.ref_link || '', r.status || '', r.remarks || ''
+        ];
+    })];
+    _exportAoaToExcel(`Lab Presentations ${_todayStamp()}.xlsx`, 'Lab Presentations', aoa);
+}
+
 function renderPresentations() {
     const tbody = document.getElementById('presentations-tbody');
     if (!tbody) return;
@@ -8670,6 +8699,43 @@ function _escHtml(s) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+}
+
+// ---- Excel export (SheetJS, loaded in <head>) ----
+// Builds a single-sheet .xlsx from an array-of-arrays (first row = headers)
+// and triggers a browser download.
+function _todayStamp() {
+    return new Date().toISOString().slice(0, 10);
+}
+
+function _exportAoaToExcel(filename, sheetName, aoa) {
+    if (typeof XLSX === 'undefined') { alert('Excel export library failed to load. Check your connection and reload.'); return; }
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    XLSX.writeFile(wb, filename);
+}
+
+function _confDaysLeftText(deadlineStr) {
+    const d = _confDaysLeft(deadlineStr);
+    if (d === null) return '';
+    if (d < 0) return 'Closed';
+    return d === 0 ? 'Today' : d === 1 ? '1 day' : `${d} days`;
+}
+
+// Exports exactly what the table currently shows (so an active search filters
+// the download too).
+function downloadConferencesExcel() {
+    const q = _confSearchQuery.trim().toLowerCase();
+    const rows = upcomingConferences.filter(r => !q || [r.name, r.date, r.deadline, r.location, r.abstract, r.allocated]
+        .some(v => String(v || '').toLowerCase().includes(q)));
+    if (!rows.length) { alert('There are no conferences to download.'); return; }
+    const header = ['#', 'Conference Name', 'Conference Date', 'Registration Deadline', 'Days Left', 'Location', 'Abstract Submission', 'Allocated To', 'Link'];
+    const aoa = [header, ...rows.map((r, i) => [
+        i + 1, r.name || '', r.date || '', r.deadline || '', _confDaysLeftText(r.deadline),
+        r.location || '', r.abstract || '', r.allocated || '', r.link || ''
+    ])];
+    _exportAoaToExcel(`Upcoming Conferences ${_todayStamp()}.xlsx`, 'Conferences', aoa);
 }
 
 // Free-text filter for the Upcoming Conferences table (matches on every
