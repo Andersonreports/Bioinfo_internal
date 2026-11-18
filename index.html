@@ -3135,19 +3135,6 @@ body {
     text-align: center;
 }
 .lp-status-filter button.active .lp-sf-count { background: rgba(255,255,255,0.25); }
-.lp-type-filter {
-    width: auto;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 0.45rem 0.6rem;
-    font: inherit;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #475569;
-    background: #fff;
-    cursor: pointer;
-}
-.lp-type-filter.active { border-color: #0d9488; color: #0d9488; background: rgba(13,148,136,0.06); }
 .lp-type-chip {
     display: inline-block;
     padding: 0.1rem 0.5rem;
@@ -5366,13 +5353,6 @@ body {
                         </div>
                     </div>
                     <div style="display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
-                        <select id="lp-type-filter" class="lp-type-filter" onchange="setLpTypeFilter(this.value)" title="Filter by type">
-                            <option value="">All types</option>
-                            <option value="Internal Presentation">Presentation</option>
-                            <option value="Journal Club">Journal Club</option>
-                            <option value="Lab Workshop">Workshop</option>
-                            <option value="Lab Conference">Conference</option>
-                        </select>
                         <div class="lp-status-filter" id="lp-status-filter" role="group" aria-label="Filter by status">
                             <button type="button" class="active" data-status="" onclick="setLpStatusFilter('')">All <span class="lp-sf-count"></span></button>
                             <button type="button" data-status="Scheduled" onclick="setLpStatusFilter('Scheduled')">Scheduled <span class="lp-sf-count"></span></button>
@@ -8137,15 +8117,6 @@ function filterLabPresentations(value) {
 
 // Status pill filter for the Lab Presentations table ('' = all statuses).
 let _lpStatusFilter = '';
-// Type dropdown filter ('' = all types; otherwise a LP_TYPES key).
-let _lpTypeFilter = '';
-
-function setLpTypeFilter(type) {
-    _lpTypeFilter = LP_TYPES[type] ? type : '';
-    const sel = document.getElementById('lp-type-filter');
-    if (sel) sel.classList.toggle('active', !!_lpTypeFilter);
-    renderPresentations();
-}
 
 function setLpStatusFilter(status) {
     _lpStatusFilter = status || '';
@@ -8209,7 +8180,6 @@ function downloadLabPresentationsExcel() {
     let rows = q ? internal.filter(r => _labPresSearchText(r).includes(q)) : internal;
     // A blank status is shown as "Completed" in the table, so treat it the same here.
     rows = rows.filter(r => statuses.includes(r.status || 'Completed'));
-    if (_lpTypeFilter) rows = rows.filter(r => _lpTypeValue(r) === _lpTypeFilter);
     if (!rows.length) { alert('There are no presentations matching the selected statuses.'); return; }
     const header = ['#', 'Topic', 'Type', 'Allocated On', 'Webinar / Presentation Date', 'Presenter', 'PPT', 'Reference Link', 'Status', 'Remarks'];
     const aoa = [header, ..._lpSortRows(rows).map((r, i) => {
@@ -8225,8 +8195,7 @@ function downloadLabPresentationsExcel() {
         ];
     })];
     // Tag the filename with the status filter when it's not "all three".
-    const tags = [_lpTypeFilter ? LP_TYPES[_lpTypeFilter].label : '', statuses.length === 3 ? '' : statuses.join(', ')].filter(Boolean);
-    const suffix = tags.length ? ` (${tags.join(' - ')})` : '';
+    const suffix = statuses.length === 3 ? '' : ` (${statuses.join(', ')})`;
     _exportAoaToExcel(`Lab Presentations${suffix} ${_todayStamp()}.xlsx`, 'Lab Presentations', aoa);
 }
 
@@ -8259,13 +8228,12 @@ function renderPresentations() {
     const q = _lpSearchQuery.trim().toLowerCase();
     const searched = q ? internal.filter(r => _labPresSearchText(r).includes(q)) : internal;
     // A blank status is displayed as "Completed", so filter it the same way.
-    const typed = _lpTypeFilter ? searched.filter(r => _lpTypeValue(r) === _lpTypeFilter) : searched;
-    _updateLpStatusCounts(typed);
+    _updateLpStatusCounts(searched);
     const matches = _lpStatusFilter
-        ? typed.filter(r => (r.status || 'Completed') === _lpStatusFilter)
-        : typed;
+        ? searched.filter(r => (r.status || 'Completed') === _lpStatusFilter)
+        : searched;
     if (!matches.length) {
-        const what = [_lpTypeFilter ? `“${LP_TYPES[_lpTypeFilter].label}”` : '', _lpStatusFilter ? `“${_lpStatusFilter}”` : '', q ? `“${_escHtml(_lpSearchQuery)}”` : '']
+        const what = [_lpStatusFilter ? `“${_lpStatusFilter}”` : '', q ? `“${_escHtml(_lpSearchQuery)}”` : '']
             .filter(Boolean).join(' + ');
         tbody.innerHTML = `<tr class="dir-empty-row"><td colspan="10">No presentations match ${what}.</td></tr>`;
         return;
