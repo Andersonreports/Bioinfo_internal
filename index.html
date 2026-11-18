@@ -3188,6 +3188,41 @@ body {
     color: #b45309;
     font-weight: 700;
 }
+.lp-remark {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    color: #0d9488;
+    background: rgba(13,148,136,0.08);
+    cursor: pointer;
+    outline: none;
+}
+.lp-remark:hover, .lp-remark:focus { background: #0d9488; color: #fff; }
+.lp-remark-tip {
+    display: none;
+    position: absolute;
+    right: calc(100% + 8px);
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 20;
+    width: max-content;
+    max-width: 260px;
+    padding: 0.55rem 0.7rem;
+    border-radius: 8px;
+    background: #1e293b;
+    color: #f8fafc;
+    font-size: 0.78rem;
+    font-weight: 500;
+    line-height: 1.4;
+    text-align: left;
+    white-space: normal;
+    box-shadow: 0 8px 20px rgba(15,23,42,0.25);
+}
+.lp-remark:hover .lp-remark-tip, .lp-remark:focus .lp-remark-tip { display: block; }
 .lp-slides-pending {
     display: inline-flex;
     align-items: center;
@@ -5417,7 +5452,7 @@ body {
                                     <th>Upload PPT</th>
                                     <th>Link</th>
                                     <th>Status</th>
-                                    <th>Remarks</th>
+                                    <th style="width:56px;" title="Remarks">Notes</th>
                                     <th style="width:70px;">Actions</th>
                                 </tr>
                             </thead>
@@ -8100,8 +8135,13 @@ function _labPresRow(row, i) {
         </div>` : '';
 
     const remarksCell = row.remarks
-        ? `<span title="${_escHtml(row.remarks)}" style="display:inline-block;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom;color:#475569;">${_escHtml(row.remarks)}</span>`
-        : '<span style="color:#cbd5e1;">—</span>';
+        // Icon only; the full remark shows in a bubble on hover, or on tap
+        // (focus) on touch screens.
+        ? `<span class="lp-remark" tabindex="0" aria-label="Remarks: ${_escHtml(row.remarks)}">
+                <i data-lucide="message-square-text" style="width:16px;height:16px;"></i>
+                <span class="lp-remark-tip">${_escHtml(row.remarks)}</span>
+           </span>`
+        : '';
 
     return `<tr>
         <td style="color:#94a3b8;font-size:0.76rem;font-weight:500;">${i + 1}</td>
@@ -8204,7 +8244,7 @@ function downloadLabPresentationsExcel() {
     if (_lpTypeFilter) rows = rows.filter(r => _lpTypeValue(r) === _lpTypeFilter);
     if (!rows.length) { alert('There are no presentations matching the selected statuses.'); return; }
     const header = ['#', 'Topic', 'Type', 'Allocated On', 'Webinar / Presentation Date', 'Presenter', 'PPT', 'Reference Link', 'Status', 'Remarks'];
-    const aoa = [header, ...rows.map((r, i) => {
+    const aoa = [header, ..._lpSortRows(rows).map((r, i) => {
         const presEmp = _empByEmployeeId(r.employee_id);
         const presName = presEmp ? presEmp.name : (r.author_name || '');
         return [
@@ -8220,6 +8260,20 @@ function downloadLabPresentationsExcel() {
     const tags = [_lpTypeFilter ? LP_TYPES[_lpTypeFilter].label : '', statuses.length === 3 ? '' : statuses.join(', ')].filter(Boolean);
     const suffix = tags.length ? ` (${tags.join(' - ')})` : '';
     _exportAoaToExcel(`Lab Presentations${suffix} ${_todayStamp()}.xlsx`, 'Lab Presentations', aoa);
+}
+
+// Newest "Allocated on" (pres_date) first; same date → most recently added
+// first; rows without a date go last.
+function _lpSortRows(rows) {
+    return rows.slice().sort((a, b) => {
+        const ad = a.pres_date || '', bd = b.pres_date || '';
+        if (ad !== bd) {
+            if (!ad) return 1;
+            if (!bd) return -1;
+            return bd.localeCompare(ad);
+        }
+        return String(b.created_at || '').localeCompare(String(a.created_at || ''));
+    });
 }
 
 function renderPresentations() {
@@ -8249,7 +8303,7 @@ function renderPresentations() {
         return;
     }
 
-    tbody.innerHTML = matches.map((row, i) => _labPresRow(row, i)).join('');
+    tbody.innerHTML = _lpSortRows(matches).map((row, i) => _labPresRow(row, i)).join('');
     lucide.createIcons();
 }
 
