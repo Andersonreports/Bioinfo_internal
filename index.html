@@ -7532,6 +7532,14 @@ function _canManageAch(ownerIds) {
     return String(ownerIds || '').split(',').some(id => id.trim().toLowerCase() === myId);
 }
 
+// Lab Presentations: managers assign and review these talks, so they can
+// manage every row (like admins); employees only their own.
+function _canManageLabPres(ownerIds) {
+    const session = getSession();
+    if (session && session.role === 'manager') return true;
+    return _canManageAch(ownerIds);
+}
+
 // Single certificate/achievement card.
 function _achCertCard(emp, cert, showActions) {
     if (showActions === undefined) showActions = true;
@@ -8073,7 +8081,7 @@ async function undoLabPresentation() {
 function _labPresRow(row, i) {
     // Only admins and the talk's own presenter(s) can edit, delete, upload
     // or complete a row (employee_id may list several presenters).
-    const canEdit = _canManageAch(row.employee_id);
+    const canEdit = _canManageLabPres(row.employee_id);
     const _dt = _fmtCompactDateRel(row.pres_date);
     const dateDisplay = _dt.compact
         ? `${_dt.compact}${_dt.rel ? `<span class="lab-pres-date-rel ${_dt.relClass}">${_dt.rel}</span>` : ''}`
@@ -8348,7 +8356,7 @@ function openEditLabPresentationModal(id) {
     if (!getSession()) { alert('Please log in to edit.'); return; }
     const row = presentationsCache.find(r => r.id === id);
     if (!row) return;
-    if (!_canManageAch(row.employee_id)) { alert('You can only edit your own presentations.'); return; }
+    if (!_canManageLabPres(row.employee_id)) { alert('You can only edit your own presentations.'); return; }
     _lpEditingId = id;
     _lpPopulateEmpList((row.employee_id || '').split(',').map(s => s.trim()).filter(Boolean));
     document.getElementById('lp-title').value = row.title || '';
@@ -8392,7 +8400,7 @@ async function saveLabPresentation() {
 
     if (_lpEditingId) {
         const editingRow = presentationsCache.find(r => r.id === _lpEditingId);
-        if (editingRow && !_canManageAch(editingRow.employee_id)) {
+        if (editingRow && !_canManageLabPres(editingRow.employee_id)) {
             alert('You can only edit your own presentations.'); return;
         }
     }
@@ -8576,7 +8584,7 @@ async function markLabPresentationComplete(id) {
     if (!getSession()) { alert('Please log in to update.'); return; }
     const prevRow = presentationsCache.find(r => r.id === id);
     if (!prevRow) return;
-    if (!_canManageAch(prevRow.employee_id)) { alert('You can only update your own presentations.'); return; }
+    if (!_canManageLabPres(prevRow.employee_id)) { alert('You can only update your own presentations.'); return; }
     if (!_lpFiles(prevRow).length) {
         alert('Please upload the presentation file (PPT/PDF) before marking it as Completed.');
         return;
@@ -8605,7 +8613,7 @@ async function uploadLabPresentationPpt(id, input, markComplete) {
     if (!input.files || !input.files.length) return;
     if (!getSession()) { alert('Please log in to upload.'); return; }
     const ownerRow = presentationsCache.find(r => r.id === id);
-    if (ownerRow && !_canManageAch(ownerRow.employee_id)) {
+    if (ownerRow && !_canManageLabPres(ownerRow.employee_id)) {
         alert('You can only upload files to your own presentations.');
         input.value = '';
         return;
@@ -8775,7 +8783,7 @@ async function deletePublication(id) {
 
 async function deletePresentation(id) {
     const row = presentationsCache.find(r => r.id === id);
-    if (row && !_canManageAch(row.employee_id)) { alert('You can only delete your own presentations.'); return; }
+    if (row && !(_isOuterPres(row.pres_type) ? _canManageAch(row.employee_id) : _canManageLabPres(row.employee_id))) { alert('You can only delete your own presentations.'); return; }
     if (!confirm('Delete this presentation?')) return;
     try {
         const { error } = await _sb.from('presentations').delete().eq('id', id);
