@@ -3135,6 +3135,58 @@ body {
     text-align: center;
 }
 .lp-status-filter button.active .lp-sf-count { background: rgba(255,255,255,0.25); }
+.lp-type-filter {
+    width: auto;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.45rem 0.6rem;
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #475569;
+    background: #fff;
+    cursor: pointer;
+}
+.lp-type-filter.active { border-color: #0d9488; color: #0d9488; background: rgba(13,148,136,0.06); }
+.lp-type-chip {
+    display: inline-block;
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+.lp-type-chip.pres { background: #f1f5f9; color: #64748b; }
+.lp-type-chip.jc   { background: #ede9fe; color: #6d28d9; }
+.lp-type-chip.ws   { background: #e0f2fe; color: #0369a1; }
+.lp-type-chip.conf { background: #fce7f3; color: #be185d; }
+.lp-overdue {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    margin-top: 0.4rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #dc2626;
+    white-space: nowrap;
+}
+.lp-overdue span { display: inline-flex; align-items: center; gap: 0.2rem; }
+.lp-overdue button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 1.5px solid #fca5a5;
+    border-radius: 6px;
+    background: #fef2f2;
+    color: #dc2626;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+.lp-overdue button:hover { background: #10b981; border-color: #10b981; color: #fff; }
 /* Excel download dropdown (status filter). */
 .excel-dd-wrap { position: relative; }
 .excel-dd-menu {
@@ -5273,6 +5325,13 @@ body {
                         </div>
                     </div>
                     <div style="display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
+                        <select id="lp-type-filter" class="lp-type-filter" onchange="setLpTypeFilter(this.value)" title="Filter by type">
+                            <option value="">All types</option>
+                            <option value="Internal Presentation">Presentation</option>
+                            <option value="Journal Club">Journal Club</option>
+                            <option value="Lab Workshop">Workshop</option>
+                            <option value="Lab Conference">Conference</option>
+                        </select>
                         <div class="lp-status-filter" id="lp-status-filter" role="group" aria-label="Filter by status">
                             <button type="button" class="active" data-status="" onclick="setLpStatusFilter('')">All <span class="lp-sf-count"></span></button>
                             <button type="button" data-status="Scheduled" onclick="setLpStatusFilter('Scheduled')">Scheduled <span class="lp-sf-count"></span></button>
@@ -6164,6 +6223,15 @@ body {
                     <div class="form-group">
                         <label>Topic</label>
                         <input type="text" id="lp-title" placeholder="e.g. Single-cell approaches to tumor profiling" style="border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; font-size: 0.9rem; font-family: inherit; background: white; color: #1e293b; width: 100%; box-sizing: border-box;">
+                    </div>
+                    <div class="form-group">
+                        <label>Type</label>
+                        <select id="lp-type" style="border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; font-size: 0.9rem; font-family: inherit; background: white; color: #1e293b; width: 100%; box-sizing: border-box;">
+                            <option value="Internal Presentation">Presentation</option>
+                            <option value="Journal Club">Journal Club</option>
+                            <option value="Lab Workshop">Workshop</option>
+                            <option value="Lab Conference">Conference</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label>Allocated on</label>
@@ -7737,6 +7805,24 @@ function _lpFiles(row) {
     if (Array.isArray(row.files) && row.files.length) return row.files.filter(f => f && f.url);
     return row.file_url ? [{ url: row.file_url, name: row.file_name || 'File' }] : [];
 }
+// ---- Lab Presentation type (stored in pres_type) ----
+// Values are distinct from the Achievements types ("Outer Event"/"Workshop"),
+// which _isOuterPres() routes away from this tab.
+const LP_TYPES = {
+    'Internal Presentation': { label: 'Presentation', cls: 'pres' },
+    'Journal Club':          { label: 'Journal Club', cls: 'jc' },
+    'Lab Workshop':          { label: 'Workshop',     cls: 'ws' },
+    'Lab Conference':        { label: 'Conference',   cls: 'conf' }
+};
+function _lpTypeValue(row) {
+    return (row && LP_TYPES[row.pres_type]) ? row.pres_type : 'Internal Presentation';
+}
+function _lpTypeLabel(row) { return LP_TYPES[_lpTypeValue(row)].label; }
+function _lpTypeChip(row) {
+    const t = LP_TYPES[_lpTypeValue(row)];
+    return `<span class="lp-type-chip ${t.cls}">${t.label}</span>`;
+}
+
 // Display name for an attached file. Older rows may only have a generic
 // "File" name, so fall back to the stored object name minus the upload
 // prefix ("<timestamp>-<rand>-") that sbUpload adds.
@@ -7917,7 +8003,13 @@ function _labPresRow(row, i) {
         ? `<a href="${row.ref_link}" target="_blank" rel="noopener" style="color:#0d9488;font-weight:600;text-decoration:none;">Open ↗</a>`
         : '<span style="color:#cbd5e1;">—</span>';
     const status = row.status || 'Completed';
-    const statusColor = status === 'Completed' ? '#10b981' : status === 'Ongoing' ? '#3b82f6' : status === 'Scheduled' ? '#f59e0b' : '#6b7280';
+    const overdue = _lpIsOverdue(row);
+    const overdueBadge = !overdue ? ''
+        : `<div class="lp-overdue">
+                <span><i data-lucide="alert-circle" style="width:12px;height:12px;"></i> Overdue${canEdit ? ': mark complete?' : ''}</span>
+                ${canEdit ? `<button type="button" onclick="markLabPresentationComplete('${row.id}')" title="Mark as Completed"><i data-lucide="check" style="width:13px;height:13px;"></i></button>` : ''}
+           </div>`;
+    const statusColor =status === 'Completed' ? '#10b981' : status === 'Ongoing' ? '#3b82f6' : status === 'Scheduled' ? '#f59e0b' : '#6b7280';
     const statusBg = status === 'Completed' ? '#d1fae5' : status === 'Ongoing' ? '#dbeafe' : status === 'Scheduled' ? '#fef3c7' : '#e5e7eb';
     const actions = canEdit ? `<div class="dir-row-actions lab-pres-actions" style="justify-content:center;">
             <button class="dir-tb-btn" onclick="openEditLabPresentationModal('${row.id}')" title="Edit"><i data-lucide="pencil" style="width:14px;height:14px;"></i></button>
@@ -7930,13 +8022,13 @@ function _labPresRow(row, i) {
 
     return `<tr>
         <td style="color:#94a3b8;font-size:0.76rem;font-weight:500;">${i + 1}</td>
-        <td>${row.title ? `<strong>${row.title}</strong>` : '<span class="lab-pres-topic-pending">Topic to be added</span>'}</td>
+        <td>${row.title ? `<strong>${_escHtml(row.title)}</strong>` : '<span class="lab-pres-topic-pending">Topic to be added</span>'}<div style="margin-top:0.35rem;">${_lpTypeChip(row)}</div></td>
         <td>${dateDisplay}</td>
         <td>${webinarDateDisplay}</td>
         <td>${presName}</td>
         <td>${pptCell}</td>
         <td>${linkCell}</td>
-        <td><span style="background:${statusBg};color:${statusColor};padding:0.3rem 0.7rem;border-radius:6px;font-size:0.78rem;font-weight:600;">${status}</span></td>
+        <td><span style="background:${statusBg};color:${statusColor};padding:0.3rem 0.7rem;border-radius:6px;font-size:0.78rem;font-weight:600;">${status}</span>${overdueBadge}</td>
         <td>${remarksCell}</td>
         <td>${actions}</td>
     </tr>`;
@@ -7954,6 +8046,15 @@ function filterLabPresentations(value) {
 
 // Status pill filter for the Lab Presentations table ('' = all statuses).
 let _lpStatusFilter = '';
+// Type dropdown filter ('' = all types; otherwise a LP_TYPES key).
+let _lpTypeFilter = '';
+
+function setLpTypeFilter(type) {
+    _lpTypeFilter = LP_TYPES[type] ? type : '';
+    const sel = document.getElementById('lp-type-filter');
+    if (sel) sel.classList.toggle('active', !!_lpTypeFilter);
+    renderPresentations();
+}
 
 function setLpStatusFilter(status) {
     _lpStatusFilter = status || '';
@@ -7983,7 +8084,7 @@ function clearLabPresentationSearch() {
 function _labPresSearchText(row) {
     const presEmp = _empByEmployeeId(row.employee_id);
     const presName = presEmp ? presEmp.name : (row.author_name || '');
-    return [row.title, presName, row.author_name, row.status, row.remarks, row.pres_date, row.webinar_date]
+    return [row.title, presName, row.author_name, row.status, _lpTypeLabel(row), row.remarks, row.pres_date, row.webinar_date]
         .map(v => String(v || '')).join(' ').toLowerCase();
 }
 
@@ -8017,13 +8118,14 @@ function downloadLabPresentationsExcel() {
     let rows = q ? internal.filter(r => _labPresSearchText(r).includes(q)) : internal;
     // A blank status is shown as "Completed" in the table, so treat it the same here.
     rows = rows.filter(r => statuses.includes(r.status || 'Completed'));
+    if (_lpTypeFilter) rows = rows.filter(r => _lpTypeValue(r) === _lpTypeFilter);
     if (!rows.length) { alert('There are no presentations matching the selected statuses.'); return; }
-    const header = ['#', 'Topic', 'Allocated On', 'Webinar / Presentation Date', 'Presenter', 'PPT', 'Reference Link', 'Status', 'Remarks'];
+    const header = ['#', 'Topic', 'Type', 'Allocated On', 'Webinar / Presentation Date', 'Presenter', 'PPT', 'Reference Link', 'Status', 'Remarks'];
     const aoa = [header, ...rows.map((r, i) => {
         const presEmp = _empByEmployeeId(r.employee_id);
         const presName = presEmp ? presEmp.name : (r.author_name || '');
         return [
-            i + 1, r.title || '',
+            i + 1, r.title || '', _lpTypeLabel(r),
             _fmtCompactDateRel(r.pres_date).compact || '',
             _fmtCompactDateRel(r.webinar_date).compact || '',
             presName,
@@ -8032,7 +8134,8 @@ function downloadLabPresentationsExcel() {
         ];
     })];
     // Tag the filename with the status filter when it's not "all three".
-    const suffix = statuses.length === 3 ? '' : ` (${statuses.join(', ')})`;
+    const tags = [_lpTypeFilter ? LP_TYPES[_lpTypeFilter].label : '', statuses.length === 3 ? '' : statuses.join(', ')].filter(Boolean);
+    const suffix = tags.length ? ` (${tags.join(' - ')})` : '';
     _exportAoaToExcel(`Lab Presentations${suffix} ${_todayStamp()}.xlsx`, 'Lab Presentations', aoa);
 }
 
@@ -8050,13 +8153,14 @@ function renderPresentations() {
 
     const q = _lpSearchQuery.trim().toLowerCase();
     const searched = q ? internal.filter(r => _labPresSearchText(r).includes(q)) : internal;
-    _updateLpStatusCounts(searched);
     // A blank status is displayed as "Completed", so filter it the same way.
+    const typed = _lpTypeFilter ? searched.filter(r => _lpTypeValue(r) === _lpTypeFilter) : searched;
+    _updateLpStatusCounts(typed);
     const matches = _lpStatusFilter
-        ? searched.filter(r => (r.status || 'Completed') === _lpStatusFilter)
-        : searched;
+        ? typed.filter(r => (r.status || 'Completed') === _lpStatusFilter)
+        : typed;
     if (!matches.length) {
-        const what = [_lpStatusFilter ? `“${_lpStatusFilter}”` : '', q ? `“${_escHtml(_lpSearchQuery)}”` : '']
+        const what = [_lpTypeFilter ? `“${LP_TYPES[_lpTypeFilter].label}”` : '', _lpStatusFilter ? `“${_lpStatusFilter}”` : '', q ? `“${_escHtml(_lpSearchQuery)}”` : '']
             .filter(Boolean).join(' + ');
         tbody.innerHTML = `<tr class="dir-empty-row"><td colspan="10">No presentations match ${what}.</td></tr>`;
         return;
@@ -8095,6 +8199,7 @@ function openAddLabPresentationModal() {
     _lpRenderModalFiles();
     document.getElementById('lp-ref-link').value = '';
     document.getElementById('lp-status').value = 'Completed';
+    document.getElementById('lp-type').value = 'Internal Presentation';
     document.getElementById('lp-remarks').value = '';
     document.getElementById('lab-pres-modal-title').textContent = 'Add Presentation';
     document.getElementById('lp-save-btn').innerHTML = '<i data-lucide="check" style="width:16px;height:16px;"></i> Save';
@@ -8116,6 +8221,7 @@ function openEditLabPresentationModal(id) {
     _lpRenderModalFiles();
     document.getElementById('lp-ref-link').value = row.ref_link || '';
     document.getElementById('lp-status').value = row.status || 'Completed';
+    document.getElementById('lp-type').value = _lpTypeValue(row);
     document.getElementById('lp-remarks').value = row.remarks || '';
     document.getElementById('lab-pres-modal-title').textContent = 'Edit Presentation';
     document.getElementById('lp-save-btn').innerHTML = '<i data-lucide="check" style="width:16px;height:16px;"></i> Save Changes';
@@ -8141,6 +8247,7 @@ async function saveLabPresentation() {
     const fileInput = document.getElementById('lp-file-input');
     const refLink = document.getElementById('lp-ref-link').value.trim();
     const status = document.getElementById('lp-status').value;
+    const presType = document.getElementById('lp-type').value || 'Internal Presentation';
     const remarks = document.getElementById('lp-remarks').value.trim();
 
     if (!presDate) { alert('Please select the date.'); return; }
@@ -8157,7 +8264,7 @@ async function saveLabPresentation() {
             const update = {
                 employee_id: empIds, author_name: empNames, title: title || null,
                 pres_date: presDate, webinar_date: webinarDate || null, ...fileCols, ref_link: refLink || null, status,
-                remarks: remarks || null
+                pres_type: presType, remarks: remarks || null
             };
             const { data, error } = await _sb.from('presentations').update(update).eq('id', _lpEditingId).select().single();
             if (error) throw error;
@@ -8174,7 +8281,7 @@ async function saveLabPresentation() {
                 pres_date: presDate,
                 webinar_date: webinarDate || null,
                 place: null,
-                pres_type: 'Internal Presentation',
+                pres_type: presType,
                 ...fileCols,
                 photo_url: null,
                 ref_link: refLink || null,
@@ -8193,6 +8300,41 @@ async function saveLabPresentation() {
     }
 
     closeAddLabPresentationModal();
+    renderPresentations();
+}
+
+// Overdue = still Scheduled/Ongoing although the Webinar / Presentation Date
+// (the actual allocated talk date, not "Allocated on") is already past.
+// Rows without a webinar date are never flagged.
+function _lpIsOverdue(row) {
+    const status = row.status || 'Completed';
+    if (status === 'Completed' || !row.webinar_date) return false;
+    const [y, m, d] = String(row.webinar_date).split('-').map(Number);
+    if (!y || !m || !d) return false;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    return new Date(y, m - 1, d) < today;
+}
+
+// One-click "✓" on an overdue row: sets status to Completed (undoable).
+async function markLabPresentationComplete(id) {
+    if (!getSession()) { alert('Please log in to update.'); return; }
+    const prevRow = presentationsCache.find(r => r.id === id);
+    if (!prevRow) return;
+    const prevSnapshot = { ...prevRow };
+    delete prevSnapshot.id; delete prevSnapshot.created_at;
+    try {
+        const { data, error } = await _sb.from('presentations')
+            .update({ status: 'Completed' }).eq('id', id).select().single();
+        if (error) throw error;
+        const idx = presentationsCache.findIndex(r => r.id === id);
+        if (idx !== -1) presentationsCache[idx] = data;
+        _lpSetUndoAction({ type: 'update', id, snapshot: prevSnapshot, label: data.title || 'presentation' });
+        _lpSyncSheet('update', { fields: _lpFieldsFromRow(data), matchId: data.id });
+    } catch (e) {
+        console.error('Mark complete failed:', e);
+        alert('Update failed: ' + (e.message || e));
+        return;
+    }
     renderPresentations();
 }
 
