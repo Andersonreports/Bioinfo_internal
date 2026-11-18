@@ -3096,6 +3096,45 @@ body {
     width: 300px;
     max-width: 40vw;
 }
+/* Lab Presentations status filter (segmented pills). */
+.lp-status-filter {
+    display: inline-flex;
+    background: #fff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 3px;
+    gap: 2px;
+}
+.lp-status-filter button {
+    border: none;
+    background: transparent;
+    color: #475569;
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.35rem 0.7rem;
+    border-radius: 7px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
+}
+.lp-status-filter button:hover { background: #f1f5f9; }
+.lp-status-filter button.active { background: #0d9488; color: #fff; }
+.lp-status-filter button[data-status="Scheduled"].active { background: #f59e0b; }
+.lp-status-filter button[data-status="Ongoing"].active   { background: #3b82f6; }
+.lp-status-filter button[data-status="Completed"].active { background: #10b981; }
+.lp-sf-count {
+    display: inline-block;
+    min-width: 1.2rem;
+    margin-left: 0.2rem;
+    padding: 0 0.3rem;
+    border-radius: 999px;
+    background: rgba(100,116,139,0.12);
+    font-size: 0.7rem;
+    line-height: 1.2rem;
+    text-align: center;
+}
+.lp-status-filter button.active .lp-sf-count { background: rgba(255,255,255,0.25); }
 /* Excel download dropdown (status filter). */
 .excel-dd-wrap { position: relative; }
 .excel-dd-menu {
@@ -3279,6 +3318,47 @@ body {
     transition: background 0.15s, color 0.15s;
 }
 .lab-pres-upload-btn:hover { background: #0d9488; color: #fff; }
+.lp-file-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    max-width: 170px;
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: border-color 0.15s;
+}
+.lp-file-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lp-file-chip.pdf   { background: #fef2f2; color: #dc2626; }
+.lp-file-chip.ppt   { background: #fff7ed; color: #ea580c; }
+.lp-file-chip.other { background: rgba(13,148,136,0.08); color: #0d9488; }
+.lp-file-chip:hover { border-color: currentColor; }
+.lp-files-dd { text-align: center; }
+.lp-files-dd summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    cursor: pointer;
+    list-style: none;
+    padding: 0.2rem 0.55rem;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: #334155;
+    font-size: 0.76rem;
+    font-weight: 600;
+}
+.lp-files-dd summary::-webkit-details-marker { display: none; }
+.lp-files-dd[open] summary { background: #e2e8f0; }
+.lp-files-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    margin-top: 0.4rem;
+}
 .lab-pres-topic-pending { color: #94a3b8; font-style: italic; font-weight: 500; }
 .dir-empty-row td {
     text-align: center;
@@ -5192,7 +5272,13 @@ body {
                             <button type="button" class="table-search-clear" id="lp-search-clear" onclick="clearLabPresentationSearch()" title="Clear search"><i data-lucide="x" style="width:14px;height:14px;"></i></button>
                         </div>
                     </div>
-                    <div style="display:flex;gap:0.6rem;align-items:center;">
+                    <div style="display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
+                        <div class="lp-status-filter" id="lp-status-filter" role="group" aria-label="Filter by status">
+                            <button type="button" class="active" data-status="" onclick="setLpStatusFilter('')">All <span class="lp-sf-count"></span></button>
+                            <button type="button" data-status="Scheduled" onclick="setLpStatusFilter('Scheduled')">Scheduled <span class="lp-sf-count"></span></button>
+                            <button type="button" data-status="Ongoing" onclick="setLpStatusFilter('Ongoing')">Ongoing <span class="lp-sf-count"></span></button>
+                            <button type="button" data-status="Completed" onclick="setLpStatusFilter('Completed')">Completed <span class="lp-sf-count"></span></button>
+                        </div>
                         <button class="dir-add-btn" id="lp-undo-btn" onclick="undoLabPresentation()" disabled title="Nothing to undo" style="background:#fff;color:#475569;border:1.5px solid #e2e8f0;">
                             <i data-lucide="undo-2" style="width:13px;height:13px;"></i> Undo
                         </button>
@@ -7651,6 +7737,28 @@ function _lpFiles(row) {
     if (Array.isArray(row.files) && row.files.length) return row.files.filter(f => f && f.url);
     return row.file_url ? [{ url: row.file_url, name: row.file_name || 'File' }] : [];
 }
+// Display name for an attached file. Older rows may only have a generic
+// "File" name, so fall back to the stored object name minus the upload
+// prefix ("<timestamp>-<rand>-") that sbUpload adds.
+function _lpFileName(f) {
+    if (f.name && f.name !== 'File') return f.name;
+    try {
+        const last = decodeURIComponent(String(f.url).split('?')[0].split('/').pop() || '');
+        return last.replace(/^\d+-[a-z0-9]+-/, '') || 'File';
+    } catch (e) { return 'File'; }
+}
+// One file link: type icon + (truncated) file name, full name on hover.
+function _lpFileChip(f) {
+    const name = _lpFileName(f);
+    const ext = (name.split('.').pop() || '').toLowerCase();
+    const isPdf = ext === 'pdf';
+    const isPpt = ext === 'ppt' || ext === 'pptx';
+    const icon = isPdf ? 'file-text' : isPpt ? 'presentation' : 'file';
+    const cls = isPdf ? 'pdf' : isPpt ? 'ppt' : 'other';
+    return `<a class="lp-file-chip ${cls}" href="${_previewUrl(f.url)}" target="_blank" rel="noopener" title="${_escHtml(name)}">
+            <i data-lucide="${icon}" style="width:13px;height:13px;flex-shrink:0;"></i><span>${_escHtml(name)}</span>
+        </a>`;
+}
 function _lpFileColumns(files) {
     const first = files[0] || null;
     return { files, file_url: first ? first.url : null, file_name: first ? first.name : null };
@@ -7792,9 +7900,16 @@ function _labPresRow(row, i) {
                 <input type="file" accept=".ppt,.pptx,.pdf" multiple style="display:none;" onchange="uploadLabPresentationPpt('${row.id}', this)">
             </label>`
         : '';
-    const fileLinks = rowFiles.map((f, i) =>
-        `<a href="${_previewUrl(f.url)}" target="_blank" rel="noopener" title="${_escHtml(f.name || '')}" style="display:block;color:#0d9488;font-weight:600;text-decoration:none;">${rowFiles.length > 1 ? `View ${i + 1}` : 'View'}</a>`
-    ).join('');
+    const fileChips = rowFiles.map(_lpFileChip).join('');
+    // Up to 2 files are listed inline; more collapse behind a "N files" toggle
+    // so one row with many attachments doesn't stretch the table.
+    const fileLinks = !rowFiles.length ? ''
+        : rowFiles.length <= 2
+            ? fileChips
+            : `<details class="lp-files-dd">
+                    <summary><i data-lucide="paperclip" style="width:13px;height:13px;"></i> ${rowFiles.length} files</summary>
+                    <div class="lp-files-list">${fileChips}</div>
+               </details>`;
     const pptCell = (fileLinks || uploadBtn)
         ? `<div style="display:flex;flex-direction:column;align-items:center;gap:0.3rem;">${fileLinks}${uploadBtn}</div>`
         : '<span style="color:#cbd5e1;">—</span>';
@@ -7835,6 +7950,26 @@ function filterLabPresentations(value) {
     const clearBtn = document.getElementById('lp-search-clear');
     if (clearBtn) clearBtn.style.display = _lpSearchQuery ? 'block' : 'none';
     renderPresentations();
+}
+
+// Status pill filter for the Lab Presentations table ('' = all statuses).
+let _lpStatusFilter = '';
+
+function setLpStatusFilter(status) {
+    _lpStatusFilter = status || '';
+    document.querySelectorAll('#lp-status-filter button').forEach(b =>
+        b.classList.toggle('active', b.dataset.status === _lpStatusFilter));
+    renderPresentations();
+}
+
+// Per-status counts on the pills, based on rows matching the current search.
+function _updateLpStatusCounts(rows) {
+    const counts = { '': rows.length };
+    rows.forEach(r => { const s = r.status || 'Completed'; counts[s] = (counts[s] || 0) + 1; });
+    document.querySelectorAll('#lp-status-filter button').forEach(b => {
+        const el = b.querySelector('.lp-sf-count');
+        if (el) el.textContent = counts[b.dataset.status] || 0;
+    });
 }
 
 function clearLabPresentationSearch() {
@@ -7914,9 +8049,16 @@ function renderPresentations() {
     }
 
     const q = _lpSearchQuery.trim().toLowerCase();
-    const matches = q ? internal.filter(r => _labPresSearchText(r).includes(q)) : internal;
+    const searched = q ? internal.filter(r => _labPresSearchText(r).includes(q)) : internal;
+    _updateLpStatusCounts(searched);
+    // A blank status is displayed as "Completed", so filter it the same way.
+    const matches = _lpStatusFilter
+        ? searched.filter(r => (r.status || 'Completed') === _lpStatusFilter)
+        : searched;
     if (!matches.length) {
-        tbody.innerHTML = `<tr class="dir-empty-row"><td colspan="10">No presentations match “${_escHtml(_lpSearchQuery)}”.</td></tr>`;
+        const what = [_lpStatusFilter ? `“${_lpStatusFilter}”` : '', q ? `“${_escHtml(_lpSearchQuery)}”` : '']
+            .filter(Boolean).join(' + ');
+        tbody.innerHTML = `<tr class="dir-empty-row"><td colspan="10">No presentations match ${what}.</td></tr>`;
         return;
     }
 
