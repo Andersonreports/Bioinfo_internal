@@ -3188,41 +3188,6 @@ body {
     color: #b45309;
     font-weight: 700;
 }
-.lp-remark {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 30px;
-    height: 30px;
-    border-radius: 8px;
-    color: #0d9488;
-    background: rgba(13,148,136,0.08);
-    cursor: pointer;
-    outline: none;
-}
-.lp-remark:hover, .lp-remark:focus { background: #0d9488; color: #fff; }
-.lp-remark-tip {
-    display: none;
-    position: absolute;
-    right: calc(100% + 8px);
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 20;
-    width: max-content;
-    max-width: 260px;
-    padding: 0.55rem 0.7rem;
-    border-radius: 8px;
-    background: #1e293b;
-    color: #f8fafc;
-    font-size: 0.78rem;
-    font-weight: 500;
-    line-height: 1.4;
-    text-align: left;
-    white-space: normal;
-    box-shadow: 0 8px 20px rgba(15,23,42,0.25);
-}
-.lp-remark:hover .lp-remark-tip, .lp-remark:focus .lp-remark-tip { display: block; }
 .lp-slides-pending {
     display: inline-flex;
     align-items: center;
@@ -5452,7 +5417,7 @@ body {
                                     <th>Upload PPT</th>
                                     <th>Link</th>
                                     <th>Status</th>
-                                    <th style="width:56px;" title="Remarks">Notes</th>
+                                    <th>Remarks</th>
                                     <th style="width:70px;">Actions</th>
                                 </tr>
                             </thead>
@@ -8143,13 +8108,8 @@ function _labPresRow(row, i) {
         </div>` : '';
 
     const remarksCell = row.remarks
-        // Icon only; the full remark shows in a bubble on hover, or on tap
-        // (focus) on touch screens.
-        ? `<span class="lp-remark" tabindex="0" aria-label="Remarks: ${_escHtml(row.remarks)}">
-                <i data-lucide="message-square-text" style="width:16px;height:16px;"></i>
-                <span class="lp-remark-tip">${_escHtml(row.remarks)}</span>
-           </span>`
-        : '';
+        ? `<span title="${_escHtml(row.remarks)}" style="display:inline-block;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom;color:#475569;">${_escHtml(row.remarks)}</span>`
+        : '<span style="color:#cbd5e1;">—</span>';
 
     return `<tr>
         <td style="color:#94a3b8;font-size:0.76rem;font-weight:500;">${i + 1}</td>
